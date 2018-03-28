@@ -2,32 +2,83 @@ package ar.edu.unicen.exa.bconmanager
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.content.BroadcastReceiver
+import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.Parcelable
+import android.os.Handler
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 
 
 class MyBeaconsActivity : AppCompatActivity() {
 
-    val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    //val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     var mArrayAdapter = mutableListOf<String>()
 
+    private var mScanning:Boolean = false
+    private val mHandler: Handler = Handler()
+    private val SCAN_PERIOD:Long = 10000
 
+    val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_my_beacons)
-        scanBluetooth()
-        Log.d("TAG1", mArrayAdapter.toString())
+     //   scanBluetooth()
+       // Log.d("TAG1", mArrayAdapter.toString())
+        scanLeDevice(true)
     }
 
+
+    /**
+     * Activity for scanning and displaying available BLE devices.
+     */
+
+    private fun scanLeDevice(enable:Boolean) {
+            if (enable)
+            {
+                Log.d("BLE", "Starting")
+                // Stops scanning after a pre-defined scan period.
+                mHandler.postDelayed(object:Runnable {
+                    override fun run() {
+                        Log.d("BLE", "Stopping")
+                        mScanning = false
+                        mBluetoothAdapter.stopLeScan(mLeScanCallback)
+                    }
+                }, SCAN_PERIOD)
+                mScanning = true
+                mBluetoothAdapter.startLeScan(mLeScanCallback)
+            }
+            else
+            {
+                mScanning = false
+                mBluetoothAdapter.stopLeScan(mLeScanCallback)
+            }
+        }
+
+
+
+
+
+    var mLeScanCallback = object:BluetoothAdapter.LeScanCallback {
+        override fun onLeScan(device:BluetoothDevice, rssi:Int,
+                     scanRecord:ByteArray) {
+            Log.d("BLE", "BLE  LE")
+            runOnUiThread(object:Runnable {
+                 override fun run() {
+                    Log.d("BLE", device.address.toString())
+                }
+            })
+        }
+    }
+
+
+
+
+
+
     // Create a BroadcastReceiver for ACTION_FOUND
-    private val mReceiver = object: BroadcastReceiver() {
+    /*private val mReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context, intent:Intent) {
             Log.d("TAG1", " Entro aca")
             val action = intent.getAction()
@@ -57,5 +108,5 @@ class MyBeaconsActivity : AppCompatActivity() {
         var filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(mReceiver, filter) // Don't forget to unregister during onDestroy
 
-    }
+    }*/
 }
