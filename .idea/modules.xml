@@ -3,9 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://C:\Users\Angus\Desktop\bconmanager\app\app.iml" filepath="C:\Users\Angus\Desktop\bconmanager\app\app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../Angus/Desktop/bconmanager/app/app.iml" filepath="$PROJECT_DIR$/../../../Angus/Desktop/bconmanager/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/bconmanager.iml" filepath="$PROJECT_DIR$/bconmanager.iml" />
-      <module fileurl="file://C:\Users\Angus\Desktop\bconmanager\bconmanager.iml" filepath="C:\Users\Angus\Desktop\bconmanager\bconmanager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../Angus/Desktop/bconmanager/bconmanager.iml" filepath="$PROJECT_DIR$/../../../Angus/Desktop/bconmanager/bconmanager.iml" />
     </modules>
   </component>
 </project>
