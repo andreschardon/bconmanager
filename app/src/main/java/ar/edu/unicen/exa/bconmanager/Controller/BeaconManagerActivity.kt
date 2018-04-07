@@ -1,11 +1,12 @@
-package ar.edu.unicen.exa.bconmanager
+package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import ar.edu.unicen.exa.bconmanager.R
 
-class BeaconManager : AppCompatActivity() {
+class BeaconManagerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="ar.edu.unicen.exa.bconmanager.BeaconManager">
+    tools:context="ar.edu.unicen.exa.bconmanager.Controller.BeaconManagerActivity">
 
     <Button
         android:id="@+id/button"
