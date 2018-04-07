@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.ArrayAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import java.math.BigDecimal
 
 class BluetoothScanner  : AppCompatActivity() {
 
@@ -54,6 +55,9 @@ class BluetoothScanner  : AppCompatActivity() {
 //        Log.d("ARRAY: ", devicesList.toString())
 //    }
 
+    fun Double.roundTo2DecimalPlaces() =
+            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
+
     var mLeScanCallback = object:BluetoothAdapter.LeScanCallback {
         override fun onLeScan(device: BluetoothDevice, rssi:Int,
                               scanRecord:ByteArray) {
@@ -61,10 +65,13 @@ class BluetoothScanner  : AppCompatActivity() {
                 override fun run() {
 
                     val detectedBeacon = BeaconDevice(device.address, rssi, device)
+                    val approx : Double =  ((Math.pow(10.toDouble(), ((2f-rssi)/30f).toDouble()))/100).roundTo2DecimalPlaces()
+                    detectedBeacon.approxDistance = approx
+
 
                     // Hard-coded, this should be removed later
                     when {
-                        device.address.startsWith("0C:F3") -> detectedBeacon.name = "EM Microelectronic"
+                        device.address.startsWith("0C:F3") -> detectedBeacon.name = "EM Micro"
                         device.address.startsWith("D3:B5") -> detectedBeacon.name = "Social Retail"
                         device.address.startsWith("C1:31") -> detectedBeacon.name = "iBKS"
                         else -> detectedBeacon.name = "Unknown"
@@ -76,6 +83,7 @@ class BluetoothScanner  : AppCompatActivity() {
                     } else {
                         val index = devicesList.indexOf(detectedBeacon)
                         devicesList[index].intensity = rssi
+                        devicesList[index].approxDistance = approx
                         devicesListAdapter.notifyDataSetChanged()
                     }
                 }
