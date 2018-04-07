@@ -10,13 +10,15 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
 class BluetoothScanner  : AppCompatActivity() {
 
-    private var mScanning:Boolean = false
-    private val mHandler: Handler = Handler()
-    private val SCAN_PERIOD:Long = 1000000
+    private val SCAN_PERIOD = 10000L
+    private val TAG = "BluetoothScanner"
 
-    var devicesList = mutableListOf<BeaconDevice>()
+    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private var isScanning:Boolean = false
+    private val mHandler: Handler = Handler()
+
     lateinit var devicesListAdapter : ArrayAdapter<BeaconDevice>
-    val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    var devicesList = mutableListOf<BeaconDevice>()
 
     /**
     * Activity for scanning and displaying available BLE devices.
@@ -24,41 +26,50 @@ class BluetoothScanner  : AppCompatActivity() {
 
     fun scanLeDevice(enable:Boolean, adapter: ArrayAdapter<BeaconDevice>)  {
         devicesListAdapter = adapter
-        if (enable)
-        {
-            Log.d("BLE", "Starting")
+
+        if (enable) {
+            Log.d(TAG, "Starting BluetoothLowEnergy scan")
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(object:Runnable {
                 override fun run() {
-                    Log.d("BLE", "Stopping")
-                    mScanning = false
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback)
-                    doSomething()
+                    Log.d(TAG, "Stopping BluetoothLowEnergy scan")
+                    isScanning = false
+                    bluetoothAdapter.stopLeScan(mLeScanCallback)
+                    //doSomething()
                 }
             }, SCAN_PERIOD)
-            mScanning = true
-            mBluetoothAdapter.startLeScan(mLeScanCallback)
+            isScanning = true
+            bluetoothAdapter.startLeScan(mLeScanCallback)
         }
-        else
-        {
-            mScanning = false
-            mBluetoothAdapter.stopLeScan(mLeScanCallback)
+        else {
+            isScanning = false
+            bluetoothAdapter.stopLeScan(mLeScanCallback)
         }
 
         //val bluetoothDevice = mBluetoothAdapter.getRemoteDevice(beacon.getAddress())
     }
 
-    fun doSomething() {
-        Log.d("BLE-END", "It finished scanning, print the list")
-        Log.d("ARRAY: ", devicesList.toString())
-    }
+//    fun doSomething() {
+//        Log.d("BLE-END", "It finished scanning, print the list")
+//        Log.d("ARRAY: ", devicesList.toString())
+//    }
 
     var mLeScanCallback = object:BluetoothAdapter.LeScanCallback {
         override fun onLeScan(device: BluetoothDevice, rssi:Int,
                               scanRecord:ByteArray) {
             runOnUiThread(object:Runnable {
                 override fun run() {
+
                     val detectedBeacon = BeaconDevice(device.address, rssi, device)
+
+                    // Hard-coded, this should be removed later
+                    when {
+                        device.address.startsWith("0C:F3") -> detectedBeacon.name = "EM Microelectronic"
+                        device.address.startsWith("D3:B5") -> detectedBeacon.name = "Social Retail"
+                        device.address.startsWith("C1:31") -> detectedBeacon.name = "iBKS"
+                        else -> detectedBeacon.name = "Unknown"
+                    }
+
                     if (!devicesList.contains(detectedBeacon)) {
                         devicesList.add(detectedBeacon)
                         devicesListAdapter.notifyDataSetChanged()
@@ -67,8 +78,6 @@ class BluetoothScanner  : AppCompatActivity() {
                         devicesList[index].intensity = rssi
                         devicesListAdapter.notifyDataSetChanged()
                     }
-                    Log.d("MAC", device.address)
-                    Log.d("RSSI", rssi.toString())
                 }
             })
         }
