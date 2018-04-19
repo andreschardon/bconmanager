@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.ArrayAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import java.math.BigDecimal
+
 
 class BluetoothScanner  : AppCompatActivity() {
 
@@ -15,8 +15,8 @@ class BluetoothScanner  : AppCompatActivity() {
     private val TAG = "BluetoothScanner"
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val bluetoothHandler: Handler = Handler()
     private var isScanning:Boolean = false
-    private val mHandler: Handler = Handler()
 
     lateinit var devicesListAdapter : ArrayAdapter<BeaconDevice>
     var devicesList = mutableListOf<BeaconDevice>()
@@ -31,7 +31,7 @@ class BluetoothScanner  : AppCompatActivity() {
         if (enable) {
             Log.d(TAG, "Starting BluetoothLowEnergy scan")
             // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(object:Runnable {
+            bluetoothHandler.postDelayed(object:Runnable {
                 override fun run() {
                     Log.d(TAG, "Stopping BluetoothLowEnergy scan")
                     isScanning = false
@@ -55,27 +55,43 @@ class BluetoothScanner  : AppCompatActivity() {
 //        Log.d("ARRAY: ", devicesList.toString())
 //    }
 
-    fun Double.roundTo2DecimalPlaces() =
-            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 
     var mLeScanCallback = object:BluetoothAdapter.LeScanCallback {
+
+
         override fun onLeScan(device: BluetoothDevice, rssi:Int,
                               scanRecord:ByteArray) {
             runOnUiThread(object:Runnable {
                 override fun run() {
 
                     val detectedBeacon = BeaconDevice(device.address, rssi, device)
-                    val approx : Double =  ((Math.pow(10.toDouble(), ((2f-rssi)/30f).toDouble()))/100).roundTo2DecimalPlaces()
+                    val approx : Double =  detectedBeacon.calculateDistance(rssi)
                     detectedBeacon.approxDistance = approx
 
 
                     // Hard-coded, this should be removed later
                     when {
-                        device.address.startsWith("0C:F3") -> detectedBeacon.name = "EM Micro"
-                        device.address.startsWith("D3:B5") -> detectedBeacon.name = "Social Retail"
-                        device.address.startsWith("C1:31") -> detectedBeacon.name = "iBKS"
+                        device.address.startsWith("0C:F3") -> {
+                            detectedBeacon.name = "EM Micro"
+                            detectedBeacon.txPower = -63
+                        } //  -63 a 1m
+                        device.address.startsWith("D3:B5") -> {
+                            detectedBeacon.name = "Social Retail"
+                            detectedBeacon.txPower = -75
+                        } // -75 a 1m
+                        device.address.startsWith("C1:31") -> {
+                            detectedBeacon.name = "iBKS"
+                            detectedBeacon.txPower = -60 //Default, TO DO
+                        }
                         else -> detectedBeacon.name = "Unknown"
                     }
+
+//                    val data = AdvertiseData.Builder()
+//                            .addServiceUuid(ParcelUuid
+//                                    .fromString(UUID
+//                                            .nameUUIDFromBytes(scanRecord).toString())).build()
+//                    Log.d(TAG, data.toString())
+
 
                     if (!devicesList.contains(detectedBeacon)) {
                         devicesList.add(detectedBeacon)
@@ -83,11 +99,15 @@ class BluetoothScanner  : AppCompatActivity() {
                     } else {
                         val index = devicesList.indexOf(detectedBeacon)
                         devicesList[index].intensity = rssi
+
                         devicesList[index].approxDistance = approx
+
                         devicesListAdapter.notifyDataSetChanged()
                     }
+
                 }
             })
         }
     }
 }
+
