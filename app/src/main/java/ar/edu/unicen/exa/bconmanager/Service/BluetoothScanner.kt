@@ -63,21 +63,20 @@ class BluetoothScanner  : AppCompatActivity() {
                               scanRecord:ByteArray) {
             runOnUiThread(object:Runnable {
                 override fun run() {
-
                     val detectedBeacon = BeaconDevice(device.address, rssi, device)
-                    val approx : Double =  detectedBeacon.calculateDistance(rssi)
-                    detectedBeacon.approxDistance = approx
+                    //val approx : Double =  detectedBeacon.calculateDistance(rssi)
+                    //detectedBeacon.approxDistance = approx
 
 
                     // Hard-coded, this should be removed later
                     when {
                         device.address.startsWith("0C:F3") -> {
                             detectedBeacon.name = "EM Micro"
-                            detectedBeacon.txPower = -63
+                            detectedBeacon.txPower = -68
                         } //  -63 a 1m
                         device.address.startsWith("D3:B5") -> {
                             detectedBeacon.name = "Social Retail"
-                            detectedBeacon.txPower = -75
+                            detectedBeacon.txPower = -66
                         } // -75 a 1m
                         device.address.startsWith("C1:31") -> {
                             detectedBeacon.name = "iBKS"
@@ -95,13 +94,12 @@ class BluetoothScanner  : AppCompatActivity() {
 
                     if (!devicesList.contains(detectedBeacon)) {
                         devicesList.add(detectedBeacon)
+                        detectedBeacon.calculateDistance(rssi)
                         devicesListAdapter.notifyDataSetChanged()
                     } else {
                         val index = devicesList.indexOf(detectedBeacon)
                         devicesList[index].intensity = rssi
-
-                        devicesList[index].approxDistance = approx
-
+                        devicesList[index].calculateDistance(rssi)
                         devicesListAdapter.notifyDataSetChanged()
                     }
 
