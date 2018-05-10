@@ -89,17 +89,24 @@ class BluetoothScanner  : AppCompatActivity() {
 //                                            .nameUUIDFromBytes(scanRecord).toString())).build()
 //                    Log.d(TAG, data.toString())
 
+                    if (!detectedBeacon.name.equals("Unknown")) {
+//                        val record= ScanRecordParser.ParseRecord(scanRecord)
+//                        Log.d(TAG, ScanRecordParser.getServiceUUID(record))
 
-                    if (!devicesList.contains(detectedBeacon)) {
-                        devicesList.add(detectedBeacon)
-                        detectedBeacon.calculateDistance(rssi)
-                        devicesListAdapter.notifyDataSetChanged()
-                    } else {
-                        val index = devicesList.indexOf(detectedBeacon)
-                        devicesList[index].intensity = rssi
-                        devicesList[index].calculateDistance(rssi)
-                        devicesListAdapter.notifyDataSetChanged()
+
+                        if (!devicesList.contains(detectedBeacon)) {
+                            devicesList.add(detectedBeacon)
+                            detectedBeacon.calculateDistance(rssi)
+                            devicesListAdapter.notifyDataSetChanged()
+                        } else {
+                            val index = devicesList.indexOf(detectedBeacon)
+                            devicesList[index].intensity = rssi
+                            devicesList[index].calculateDistance(rssi)
+                            devicesListAdapter.notifyDataSetChanged()
+                        }
                     }
+
+
 
                 }
             })

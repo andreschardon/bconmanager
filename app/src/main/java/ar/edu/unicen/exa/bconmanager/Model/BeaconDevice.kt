@@ -32,7 +32,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         val approxDistance = ((Math.pow(10.toDouble(), ((txPower - rssi)/30f).toDouble())))
                 .roundTo2DecimalPlaces()
         average = (((average * averageAmount) + approxDistance ) / (averageAmount+1))
-        averageAmount ++
+        averageAmount++
         this.approxDistance = average.roundTo2DecimalPlaces()
         Log.d("Beacon : ", "$name ::: $average ::: $averageAmount")
 
