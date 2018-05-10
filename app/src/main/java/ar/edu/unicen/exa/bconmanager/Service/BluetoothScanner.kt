@@ -46,8 +46,6 @@ class BluetoothScanner  : AppCompatActivity() {
             isScanning = false
             bluetoothAdapter.stopLeScan(mLeScanCallback)
         }
-
-        //val bluetoothDevice = mBluetoothAdapter.getRemoteDevice(beacon.getAddress())
     }
 
 //    fun doSomething() {

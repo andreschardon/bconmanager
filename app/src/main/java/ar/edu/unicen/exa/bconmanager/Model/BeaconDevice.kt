@@ -15,14 +15,6 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
 
 
     override fun toString(): String {
-        var proximity : String
-        when {
-            (approxDistance <= 0.8) -> proximity = "closest"
-            (approxDistance > 0.8 && approxDistance <= 1.3) -> proximity = "close"
-            (approxDistance > 1.3 && approxDistance <= 2) -> proximity = "not so close"
-            (approxDistance > 2 && approxDistance <= 3) -> proximity = "far"
-            else -> proximity = "really far"
-        }
         return "$name ($address) --- $intensity ($approxDistance mts)"
     }
 
@@ -40,7 +32,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         val approxDistance = ((Math.pow(10.toDouble(), ((txPower - rssi)/30f).toDouble())))
                 .roundTo2DecimalPlaces()
         average = (((average * averageAmount) + approxDistance ) / (averageAmount+1))
-        averageAmount = averageAmount + 1
+        averageAmount ++
         this.approxDistance = average.roundTo2DecimalPlaces()
         Log.d("Beacon : ", "$name ::: $average ::: $averageAmount")
 
