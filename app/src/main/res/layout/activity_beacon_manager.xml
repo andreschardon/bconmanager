@@ -33,6 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="200dp"
         android:layout_marginStart="16dp"
+        android:onClick="goToFindMeActivity"
         android:text="Find Me"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/button"
