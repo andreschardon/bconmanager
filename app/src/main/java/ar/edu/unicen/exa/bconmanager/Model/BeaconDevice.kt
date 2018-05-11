@@ -5,7 +5,7 @@ import android.graphics.Color
 import android.util.Log
 import java.math.BigDecimal
 
-class BeaconDevice constructor (val address: String, var intensity: Int, val device:BluetoothDevice) {
+class BeaconDevice constructor (val address: String, var intensity: Int, val device:BluetoothDevice?) {
     var name : String = address
     var brand : String = "Unknown"
     var approxDistance: Double = 999.toDouble()
