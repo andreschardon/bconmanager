@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
@@ -26,8 +27,12 @@ class FindMeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
 
+        // Creating a map (TO DO: Display according to image)
+        val testMap = CustomMap(0, 3.0, 4.0) // in meters
+        testMap.calculateRatio(floorPlan.drawable.intrinsicWidth, floorPlan.drawable.intrinsicHeight)
+
         // TEST: Creating a test beacon and displaying it
-        val testBeacon = BeaconOnMap(Location(500.toDouble(), 300.toDouble()), BeaconDevice("AA:BB:CC", 80, null))
+        val testBeacon = BeaconOnMap(Location(0.5, 0.5, testMap), BeaconDevice("AA:BB:CC", 80, null))
         testBeacon.image = beacon_icon
 
         setupBeacon(testBeacon)
@@ -44,8 +49,8 @@ class FindMeActivity : AppCompatActivity() {
         // Set up the beacon's image size and position
         val imageView = ImageView(this)
         val layoutParams = LinearLayout.LayoutParams(100, 100) // value is in pixels
-        layoutParams.leftMargin = testBeacon.position.x.toInt() - 50
-        layoutParams.topMargin = testBeacon.position.y.toInt() - 50
+        layoutParams.leftMargin = testBeacon.position.getX() - 50
+        layoutParams.topMargin = testBeacon.position.getY() - 50
         imageView.setImageResource(testBeacon.image!!)
 
         // Add ImageView to LinearLayout
