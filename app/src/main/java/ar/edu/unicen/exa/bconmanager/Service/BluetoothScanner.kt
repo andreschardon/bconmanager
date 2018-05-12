@@ -6,6 +6,7 @@ import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.ArrayAdapter
+import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
 
@@ -18,14 +19,14 @@ class BluetoothScanner  : AppCompatActivity() {
     private val bluetoothHandler: Handler = Handler()
     private var isScanning:Boolean = false
 
-    lateinit var devicesListAdapter : ArrayAdapter<BeaconDevice>
+    lateinit var devicesListAdapter : BaseAdapter
     var devicesList = mutableListOf<BeaconDevice>()
 
     /**
     * Activity for scanning and displaying available BLE devices.
     */
 
-    fun scanLeDevice(enable:Boolean, adapter: ArrayAdapter<BeaconDevice>)  {
+    fun scanLeDevice(enable:Boolean, adapter: BaseAdapter)  {
         devicesListAdapter = adapter
 
         if (enable) {

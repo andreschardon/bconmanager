@@ -3,17 +3,24 @@ package ar.edu.unicen.exa.bconmanager.Controller
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.LinearLayout
+import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
+import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import kotlinx.android.synthetic.main.activity_find_me.*
+import kotlinx.android.synthetic.main.activity_my_beacons.*
 
 
 class FindMeActivity : AppCompatActivity() {
+
+    private val bluetoothScanner = BluetoothScanner()
+    lateinit var devicesListAdapter : BeaconsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +31,12 @@ class FindMeActivity : AppCompatActivity() {
         testBeacon.image = beacon_icon
 
         setupBeacon(testBeacon)
+
+        devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
+        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+
+
+
     }
 
     private fun setupBeacon(testBeacon: BeaconOnMap) {
@@ -40,6 +53,6 @@ class FindMeActivity : AppCompatActivity() {
     }
 
     fun refreshButtonClicked(view: View) {
-
+        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
     }
 }
