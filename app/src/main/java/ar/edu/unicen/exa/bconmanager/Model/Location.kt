@@ -6,12 +6,15 @@ class Location constructor(val x : Double, val y : Double, val map : CustomMap) 
     // X and Y are in meters
 
     fun getX() : Int {
-        Log.d("GETX", ((map.widthMtsToPixelsRatio * x ).toInt()).toString())
+
+        Log.d("POSITION - WIDTH MTS", "${x.toString()} meters")
+        Log.d("POSITION - WIDTH PX", "${((map.widthMtsToPixelsRatio * x ).toInt()).toString()} pixels")
         return (map.widthMtsToPixelsRatio * x ).toInt()
     }
 
     fun getY() : Int {
-        Log.d("GETY", ((map.heightMtsToPixelsRatio * y ).toInt()).toString())
+        Log.d("POSITION - HEIGHT MTS", "${y.toString()} meters")
+        Log.d("POSITION - HEIGHT PX", "${((map.heightMtsToPixelsRatio * y ).toInt()).toString()} pixels")
         return (map.heightMtsToPixelsRatio * y ).toInt()
     }
 }

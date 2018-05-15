@@ -16,14 +16,14 @@ class CustomMap constructor(val image : Int, val height : Double, val width : Do
     }
 
     fun calculateRatio(widthPixels : Int, heightPixels : Int) {
-        Log.d("HEIGHT IN METERS", height.toString())
-        Log.d("WIDTH IN METERS", width.toString())
+        Log.d("POSITION - MAP HEIGHT MTS", "${height.toString()} mts")
+        Log.d("POSITION - MAP HEIGHT PX", "${heightPixels.toString()} pixels")
+        Log.d("POSITION - MAP WIDTH MTS", "${width.toString()} mts")
+        Log.d("POSITION - MAP WIDTH PX", "${widthPixels.toString()} pixels")
         this.widthPixels = widthPixels
         this.heightPixels = heightPixels
         widthMtsToPixelsRatio = widthPixels / width
         heightMtsToPixelsRatio = heightPixels / height
-        Log.d("HEIGHT", "${heightPixels.toString()} -  ${heightMtsToPixelsRatio.toString()}")
-        Log.d("WIDTH", "${widthPixels.toString()} -  ${widthMtsToPixelsRatio.toString()}")
     }
 
 }
