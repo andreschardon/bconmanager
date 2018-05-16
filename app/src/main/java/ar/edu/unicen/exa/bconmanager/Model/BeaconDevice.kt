@@ -1,15 +1,14 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
 import android.bluetooth.BluetoothDevice
-import android.graphics.Color
 import android.util.Log
 import java.math.BigDecimal
 
 class BeaconDevice constructor (val address: String, var intensity: Int, val device:BluetoothDevice?) {
     var name : String = address
     var brand : String = "Unknown"
-    var approxDistance: Double = 999.toDouble()
-    var average: Double = 0.toDouble()
+    var approxDistance: Double = 999.0
+    var average: Double = 0.0
     var averageAmount = 0
     var txPower : Int = -60
 

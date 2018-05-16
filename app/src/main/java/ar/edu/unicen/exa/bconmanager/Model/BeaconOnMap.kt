@@ -1,7 +1,5 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
-import android.graphics.drawable.Drawable
-
 class BeaconOnMap constructor (position : Location, beacon : BeaconDevice){
     var position : Location = position // x, y
     var beacon : BeaconDevice = beacon
