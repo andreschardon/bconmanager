@@ -17,6 +17,8 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
 import ar.edu.unicen.exa.bconmanager.R.drawable.floor_plan
+import ar.edu.unicen.exa.bconmanager.R.id.floorLayout
+import ar.edu.unicen.exa.bconmanager.R.id.floorPlan
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_find_me.*
@@ -24,16 +26,46 @@ import kotlinx.android.synthetic.main.activity_find_me.*
 
 class FindMeActivity : AppCompatActivity() {
 
+    private val TAG = "FindMeActivity"
     private val bluetoothScanner = BluetoothScanner()
-    lateinit var testMap : CustomMap
+    private val downloadsDirectory = getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath
+    private lateinit var floorMap : CustomMap
     lateinit var devicesListAdapter : BeaconsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
 
+        // Loading the map from a JSON file
+        floorMap = loadMapFromFile("$downloadsDirectory/test.json")
+
+        // OR creating it right here
+        //floorMap = createTestMap()
+
+        // AND saving it to a JSON file
+        //saveMapToFile(floorMap, "$downloadsDirectory/test.json")
+
+        // Drawing the map's image
+        val img = findViewById<View>(R.id.floorPlan) as ImageView
+        img.setImageResource(floorMap.image)
+
+        // Obtain real width and height of the map
+        val mapSize = getRealMapSize()
+        floorMap.calculateRatio(mapSize.x, mapSize.y)
+
+        // Drawing all the beacons for this map
+        for (beacon in floorMap.savedBeacons) {
+            setupBeacon(beacon)
+        }
+
+        // Scanning beacons
+        devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
+        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+    }
+
+    private fun createTestMap() : CustomMap {
         // Creating a test map
-        testMap = CustomMap(floor_plan, 4.0, 3.0) // in meters
+        val testMap = CustomMap(floor_plan, 4.0, 3.0) // in meters
 
         // TEST: Creating a test beacon and displaying it
         val testBeacon = BeaconOnMap(Location(2.0, 0.0, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
@@ -44,34 +76,22 @@ class FindMeActivity : AppCompatActivity() {
         val testBeacon2 = BeaconOnMap(Location(0.0, 3.0, testMap), BeaconDevice("AA:BB:CC", 80, null))
         testBeacon2.image = beacon_icon
         testMap.addBeacon(testBeacon2)
-
-        // Drawing the map's image
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageResource(testMap.image)
-
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        testMap.calculateRatio(mapSize.x, mapSize.y)
-
-        // Drawing all the beacons for this map
-        for (beacon in testMap.savedBeacons) {
-            setupBeacon(beacon)
-        }
-
-        testSave(testMap)
-
-        // Scanning beacons
-        devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
-        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        return testMap
     }
 
-    private fun testSave(testMap: CustomMap) {
+    private fun saveMapToFile(testMap: CustomMap, filePath: String) {
         val jsonMap = testMap.toJson()
-        Log.d("SAVING","${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/test.json")
-        JsonUtility.saveToFile("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/test.json", jsonMap)
+        JsonUtility.saveToFile(filePath, jsonMap)
+        Log.d(TAG, "Map saved to JSON file in $filePath")
     }
 
-
+    private fun loadMapFromFile(filePath : String) : CustomMap {
+        val jsonMap = JsonUtility.readFromFile(filePath)
+        val fileMap = CustomMap(0, 0.0, 0.0)
+        fileMap.startFromFile(jsonMap)
+        Log.d(TAG, "Map loaded from JSON file in $filePath")
+        return fileMap
+    }
 
     private fun getRealMapSize() : Point {
         val realSize = Point()

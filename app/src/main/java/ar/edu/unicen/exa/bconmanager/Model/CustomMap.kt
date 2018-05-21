@@ -1,18 +1,27 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
 import android.util.Log
+import ar.edu.unicen.exa.bconmanager.R
 
-class CustomMap constructor(val image : Int, val width : Double , val height : Double ) {
+class CustomMap constructor(var image : Int, var width : Double , var height : Double ) {
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
     var widthMtsToPixelsRatio : Double = 0.0
     var heightMtsToPixelsRatio : Double = 0.0
 
+    fun startFromFile(jsonMap: JsonMap) {
+        for (beacon in jsonMap.beaconList!!) {
+            val testBeacon = BeaconOnMap(Location(beacon.x!!, beacon.y!!, this),
+                    BeaconDevice(beacon.mac!!, 80, null))
+            testBeacon.image = R.drawable.beacon_icon
+            this.addBeacon(testBeacon)
+        }
+        this.image = jsonMap.image!!
+        this.width = jsonMap.width!!
+        this.height = jsonMap.height!!
+        Log.d("LOADING", "Json parsed to CustomMap")
 
-
-    fun startFromFile(filename : String) {
-        // TO DO
     }
 
     fun toJson() : JsonMap {
@@ -38,6 +47,11 @@ class CustomMap constructor(val image : Int, val width : Double , val height : D
         this.heightPixels = heightPixels
         widthMtsToPixelsRatio = widthPixels / width
         heightMtsToPixelsRatio = heightPixels / height
+    }
+
+    override fun toString(): String {
+        return "CustomMap: $image - width: $width - height: $height /n" +
+                "Beacons: ${savedBeacons.toString()}"
     }
 
 }

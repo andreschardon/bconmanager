@@ -10,4 +10,8 @@ class BeaconOnMap constructor (position : Location, beacon : BeaconDevice){
         val beac = JsonBeacon(beacon.address, position.x, position.y)
         return beac
     }
+
+    override fun toString(): String {
+        return "BeaconOnMap: (${position.x} , ${position.y}) mac: ${beacon.address}"
+    }
 }
