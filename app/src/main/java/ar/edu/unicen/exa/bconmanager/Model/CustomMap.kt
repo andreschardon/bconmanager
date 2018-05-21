@@ -15,6 +15,16 @@ class CustomMap constructor(val image : Int, val width : Double , val height : D
         // TO DO
     }
 
+    fun toJson() : JsonMap {
+        val beaconList = mutableListOf<JsonBeacon>()
+        for (beacon in this.savedBeacons) {
+            beaconList.add(beacon.toJson())
+        }
+        val map = JsonMap(image, width, height, beaconList)
+        return map
+
+    }
+
     fun addBeacon(beacon : BeaconOnMap) {
         savedBeacons.add(beacon)
     }

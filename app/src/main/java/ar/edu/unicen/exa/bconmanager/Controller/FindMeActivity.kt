@@ -2,6 +2,8 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.graphics.Point
 import android.os.Bundle
+import android.os.Environment.DIRECTORY_DOWNLOADS
+import android.os.Environment.getExternalStoragePublicDirectory
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -16,6 +18,7 @@ import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
 import ar.edu.unicen.exa.bconmanager.R.drawable.floor_plan
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_find_me.*
 
 
@@ -55,10 +58,20 @@ class FindMeActivity : AppCompatActivity() {
             setupBeacon(beacon)
         }
 
+        testSave(testMap)
+
         // Scanning beacons
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
     }
+
+    private fun testSave(testMap: CustomMap) {
+        val jsonMap = testMap.toJson()
+        Log.d("SAVING","${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/test.json")
+        JsonUtility.saveToFile("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/test.json", jsonMap)
+    }
+
+
 
     private fun getRealMapSize() : Point {
         val realSize = Point()
