@@ -3,7 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Model
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.R
 
-class CustomMap constructor(var image : Int, var width : Double , var height : Double ) {
+class CustomMap constructor(var image : String, var width : Double , var height : Double ) {
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()

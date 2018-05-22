@@ -22,6 +22,10 @@ import ar.edu.unicen.exa.bconmanager.R.id.floorPlan
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_find_me.*
+import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+
+
 
 
 class FindMeActivity : AppCompatActivity() {
@@ -37,17 +41,18 @@ class FindMeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_find_me)
 
         // Loading the map from a JSON file
-        floorMap = loadMapFromFile("$downloadsDirectory/test.json")
+        floorMap = loadMapFromFile("$downloadsDirectory/myRoom.json")
 
         // OR creating it right here
         //floorMap = createTestMap()
 
         // AND saving it to a JSON file
-        //saveMapToFile(floorMap, "$downloadsDirectory/test.json")
+        //saveMapToFile(floorMap, "$downloadsDirectory/myRoom.json")
 
         // Drawing the map's image
+        val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageResource(floorMap.image)
+        img.setImageBitmap(bitmap)
 
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
@@ -65,7 +70,7 @@ class FindMeActivity : AppCompatActivity() {
 
     private fun createTestMap() : CustomMap {
         // Creating a test map
-        val testMap = CustomMap(floor_plan, 4.0, 3.0) // in meters
+        val testMap = CustomMap("$downloadsDirectory/TestPic.jpg", 3.3, 3.45) // in meters
 
         // TEST: Creating a test beacon and displaying it
         val testBeacon = BeaconOnMap(Location(2.0, 0.0, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
@@ -73,9 +78,14 @@ class FindMeActivity : AppCompatActivity() {
         testMap.addBeacon(testBeacon)
 
         // TEST: Creating a second test beacon and displaying it
-        val testBeacon2 = BeaconOnMap(Location(0.0, 3.0, testMap), BeaconDevice("AA:BB:CC", 80, null))
+        val testBeacon2 = BeaconOnMap(Location(0.0, 3.0, testMap), BeaconDevice("C1:31:86:2A:30:62", 80, null))
         testBeacon2.image = beacon_icon
         testMap.addBeacon(testBeacon2)
+
+        // TEST: Creating a third test beacon and displaying it
+        val testBeacon3 = BeaconOnMap(Location(2.4, 1.5, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
+        testBeacon3.image = beacon_icon
+        testMap.addBeacon(testBeacon3)
         return testMap
     }
 
@@ -87,7 +97,7 @@ class FindMeActivity : AppCompatActivity() {
 
     private fun loadMapFromFile(filePath : String) : CustomMap {
         val jsonMap = JsonUtility.readFromFile(filePath)
-        val fileMap = CustomMap(0, 0.0, 0.0)
+        val fileMap = CustomMap("", 0.0, 0.0)
         fileMap.startFromFile(jsonMap)
         Log.d(TAG, "Map loaded from JSON file in $filePath")
         return fileMap
