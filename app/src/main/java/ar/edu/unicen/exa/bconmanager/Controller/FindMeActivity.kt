@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.os.Bundle
 import android.os.Environment.DIRECTORY_DOWNLOADS
@@ -9,23 +10,15 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
-import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
-import ar.edu.unicen.exa.bconmanager.Model.Location
+import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
-import ar.edu.unicen.exa.bconmanager.R.drawable.floor_plan
-import ar.edu.unicen.exa.bconmanager.R.id.floorLayout
-import ar.edu.unicen.exa.bconmanager.R.id.floorPlan
+import ar.edu.unicen.exa.bconmanager.R.drawable.location_icon
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_find_me.*
-import android.graphics.BitmapFactory
-import android.graphics.Bitmap
-
-
 
 
 class FindMeActivity : AppCompatActivity() {
@@ -35,6 +28,8 @@ class FindMeActivity : AppCompatActivity() {
     private val downloadsDirectory = getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath
     private lateinit var floorMap : CustomMap
     lateinit var devicesListAdapter : BeaconsAdapter
+    lateinit var positionView : ImageView
+    lateinit var currentPosition : PositionOnMap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +58,11 @@ class FindMeActivity : AppCompatActivity() {
             setupBeacon(beacon)
         }
 
+        // Starting point
+        currentPosition = PositionOnMap(Location(2.0, 2.0, floorMap))
+        currentPosition.image = location_icon
+        setupPosition(currentPosition)
+
         // Scanning beacons
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
@@ -86,6 +86,7 @@ class FindMeActivity : AppCompatActivity() {
         val testBeacon3 = BeaconOnMap(Location(2.4, 1.5, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
         testBeacon3.image = beacon_icon
         testMap.addBeacon(testBeacon3)
+
         return testMap
     }
 
@@ -136,18 +137,44 @@ class FindMeActivity : AppCompatActivity() {
 
         // Set up the beacon's image size and position
         val imageView = ImageView(this)
-        val layoutParams = LinearLayout.LayoutParams(100, 100) // value is in pixels
+        val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
 
-        layoutParams.leftMargin = testBeacon.position.getX() - 50
-        layoutParams.topMargin = testBeacon.position.getY() - 50
+        layoutParams.leftMargin = testBeacon.position.getX() - 35
+        layoutParams.topMargin = testBeacon.position.getY() - 35
         imageView.setImageResource(testBeacon.image!!)
 
         // Add ImageView to LinearLayout
         floorLayout.addView(imageView, layoutParams)
     }
 
+    private fun setupPosition(testPosition : PositionOnMap) {
+        // Set up the position's image size and position
+        positionView = ImageView(this)
+        val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
+
+        layoutParams.leftMargin = testPosition.position.getX() - 35
+        layoutParams.topMargin = testPosition.position.getY() - 35
+        positionView.setImageResource(testPosition.image!!)
+
+        // Add ImageView to LinearLayout
+        floorLayout.addView(positionView, layoutParams)
+    }
+
     fun refreshButtonClicked(view: View) {
-        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        // For now we don't need this
+        //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        currentPosition.position.x -= 0.1
+        currentPosition.position.y -= 0.1
+        updatePosition()
+    }
+
+    fun updatePosition() {
+        Log.d(TAG, "Updating current position")
+        val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        layoutParams.leftMargin = currentPosition.position.getX() - 35
+        layoutParams.topMargin = currentPosition.position.getY() - 35
+        positionView.layoutParams = layoutParams
+
     }
 
 }
