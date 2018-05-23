@@ -75,11 +75,11 @@ class BluetoothScanner  : AppCompatActivity() {
                         } //  -63 a 1m
                         device.address.startsWith("D3:B5") -> {
                             detectedBeacon.name = "Social Retail"
-                            detectedBeacon.txPower = -66
+                            detectedBeacon.txPower = -75
                         } // -75 a 1m
                         device.address.startsWith("C1:31") -> {
                             detectedBeacon.name = "iBKS"
-                            detectedBeacon.txPower = -60 //Default, TO DO
+                            detectedBeacon.txPower = -45 //Default, TO DO
                         }
                         else -> detectedBeacon.name = "Unknown"
                     }

@@ -38,13 +38,13 @@ class FindMeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_find_me)
 
         // Loading the map from a JSON file
-        floorMap = loadMapFromFile("$downloadsDirectory/myRoom.json")
+        //floorMap = loadMapFromFile("$downloadsDirectory/myRoom.json")
 
         // OR creating it right here
-        //floorMap = createTestMap()
+        floorMap = createTestMap()
 
         // AND saving it to a JSON file
-        //saveMapToFile(floorMap, "$downloadsDirectory/myRoom.json")
+        saveMapToFile(floorMap, "$downloadsDirectory/myRoom.json")
 
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
@@ -70,7 +70,7 @@ class FindMeActivity : AppCompatActivity() {
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
 
-        trilaterationCalculator.getPositionInMap(floorMap)
+
 
 
     }
@@ -80,17 +80,17 @@ class FindMeActivity : AppCompatActivity() {
         val testMap = CustomMap("$downloadsDirectory/TestPic.jpg", 3.3, 3.45) // in meters
 
         // TEST: Creating a test beacon and displaying it
-        val testBeacon = BeaconOnMap(Location(2.0, 0.0, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
+        val testBeacon = BeaconOnMap(Location(1.65, 0.0, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
         testBeacon.image = beacon_icon
         testMap.addBeacon(testBeacon)
 
         // TEST: Creating a second test beacon and displaying it
-        val testBeacon2 = BeaconOnMap(Location(0.0, 3.0, testMap), BeaconDevice("C1:31:86:2A:30:62", 80, null))
+        val testBeacon2 = BeaconOnMap(Location(0.3, 3.0, testMap), BeaconDevice("C1:31:86:2A:30:62", 80, null))
         testBeacon2.image = beacon_icon
         testMap.addBeacon(testBeacon2)
 
         // TEST: Creating a third test beacon and displaying it
-        val testBeacon3 = BeaconOnMap(Location(2.4, 1.5, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
+        val testBeacon3 = BeaconOnMap(Location(0.3, 0.6, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
         testBeacon3.image = beacon_icon
         testMap.addBeacon(testBeacon3)
 
@@ -172,7 +172,11 @@ class FindMeActivity : AppCompatActivity() {
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
         //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
-        trilateratePosition()
+        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        currentPosition.position.x = resultLocation.x
+        currentPosition.position.y = resultLocation.y
+        updatePosition()
+        //trilateratePosition()
     }
 
     fun updatePosition() {
@@ -182,8 +186,10 @@ class FindMeActivity : AppCompatActivity() {
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
 
+
+
         // Demo to obtain current distance to a particular beacon
-        Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
+        //Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
 
     }
 
@@ -198,8 +204,9 @@ class FindMeActivity : AppCompatActivity() {
         currentPosition.position.x -= 0.1
         currentPosition.position.y -= 0.1
 
+
         // Call this after currentPosition's x and y are updated
-        updatePosition()
+        //updatePosition()
     }
 
 }

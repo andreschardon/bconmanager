@@ -24,7 +24,7 @@ class TrilaterationCalculator  : AppCompatActivity() {
         distance= Math.sqrt(Math.pow(location1.x-location2.x,2.00) + Math.pow(location1.y-location2.y,2.00))
         return distance
     }
-    fun getPositionInMap( map: CustomMap) {
+    fun getPositionInMap( map: CustomMap) : Location {
         mapHeight=map.height
         mapWidth= map.width
         //val savedBeacons : List<BeaconOnMap> = map.savedBeacons
@@ -36,19 +36,30 @@ class TrilaterationCalculator  : AppCompatActivity() {
             //positions.forEach { println("Posicion X :${it.x}   Posicion Y: ${it.y}") }
         }
         */
-        var circle1 = Circle(1.3,2.06,1.00)
-        var circle2 = Circle(2.58,1.73,1.25)
+
+        val beacon0 = map.savedBeacons.get(0)
+        val beacon1 = map.savedBeacons.get(1)
+        val beacon2 = map.savedBeacons.get(2)
+
+
+        var circle0 = Circle(beacon0.position.x, beacon0.position.y, beacon0.beacon.approxDistance)
+        var circle1 = Circle(beacon1.position.x, beacon1.position.y, beacon1.beacon.approxDistance)
+        Log.d("INTERSECTION", circle0.toString())
+        Log.d("INTERSECTION", circle1.toString())
         var intersectionLocations = mutableListOf<Location>()
-        intersectionLocations = circleCircleIntersectionPoints(circle1,circle2) as MutableList<Location>
+        intersectionLocations = circleCircleIntersectionPoints(circle0,circle1) as MutableList<Location>
         val TAG = "INTERSECTION"
         intersectionLocations.forEach{Log.d(TAG,"INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
-        var circle3 = Circle(3.1,1.2,0.4)
-        var location3 = Location(circle3.x,circle3.y,map)
-        if(euclideanDistance(intersectionLocations.first(),location3) == circle3.r){
+        var circle2 = Circle(beacon2.position.x, beacon2.position.y, beacon2.beacon.approxDistance)
+        Log.d("INTERSECTION", circle2.toString())
+        var location3 = Location(circle2.x,circle2.y,map)
+        if(euclideanDistance(intersectionLocations.first(),location3) == circle2.r){
             Log.d(TAG,"ES este")
+            return intersectionLocations.get(0)
         }
         else {
             Log.d(TAG,"ES el otro este")
+            return intersectionLocations.get(1)
         }
     }
 
