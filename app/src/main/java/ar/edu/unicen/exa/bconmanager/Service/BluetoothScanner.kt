@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import kotlinx.android.synthetic.main.activity_my_beacons.*
 
 
 class BluetoothScanner  : AppCompatActivity() {

@@ -64,6 +64,7 @@ class FindMeActivity : AppCompatActivity() {
         setupPosition(currentPosition)
 
         // Scanning beacons
+        floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon)  }
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
     }
@@ -163,9 +164,7 @@ class FindMeActivity : AppCompatActivity() {
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
         //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
-        currentPosition.position.x -= 0.1
-        currentPosition.position.y -= 0.1
-        updatePosition()
+        trilateratePosition()
     }
 
     fun updatePosition() {
@@ -175,6 +174,24 @@ class FindMeActivity : AppCompatActivity() {
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
 
+        // Demo to obtain current distance to a particular beacon
+        Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
+
+    }
+
+    fun threeClosestBeacons() : List<BeaconOnMap> {
+        // TO DO
+        var closestList = mutableListOf<BeaconOnMap>()
+        return closestList
+    }
+
+    fun trilateratePosition() {
+        // This is fake, we need to do something real here :P
+        currentPosition.position.x -= 0.1
+        currentPosition.position.y -= 0.1
+
+        // Call this after currentPosition's x and y are updated
+        updatePosition()
     }
 
 }
