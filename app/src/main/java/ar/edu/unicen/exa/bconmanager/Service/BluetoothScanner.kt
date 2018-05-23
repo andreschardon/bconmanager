@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothDevice
 import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.widget.ArrayAdapter
 import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import kotlinx.android.synthetic.main.activity_my_beacons.*

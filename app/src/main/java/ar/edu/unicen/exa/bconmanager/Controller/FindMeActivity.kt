@@ -18,6 +18,7 @@ import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
 import ar.edu.unicen.exa.bconmanager.R.drawable.location_icon
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_find_me.*
 
 
@@ -30,6 +31,7 @@ class FindMeActivity : AppCompatActivity() {
     lateinit var devicesListAdapter : BeaconsAdapter
     lateinit var positionView : ImageView
     lateinit var currentPosition : PositionOnMap
+    private var trilaterationCalculator = TrilaterationCalculator()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +69,10 @@ class FindMeActivity : AppCompatActivity() {
         floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon)  }
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+
+        trilaterationCalculator.getPositionInMap(floorMap)
+
+
     }
 
     private fun createTestMap() : CustomMap {
@@ -132,6 +138,7 @@ class FindMeActivity : AppCompatActivity() {
         Log.d("POSITION", "WIDTH IS : $width")
         Log.d("POSITION", "HEIGHT IS :  ${real_height}")
         Log.d("POSITION", "-----------------------------")
+
     }
 
     private fun setupBeacon(testBeacon: BeaconOnMap) {
@@ -146,6 +153,7 @@ class FindMeActivity : AppCompatActivity() {
 
         // Add ImageView to LinearLayout
         floorLayout.addView(imageView, layoutParams)
+
     }
 
     private fun setupPosition(testPosition : PositionOnMap) {
