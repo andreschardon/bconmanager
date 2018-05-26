@@ -44,20 +44,46 @@ class TrilaterationCalculator  : AppCompatActivity() {
 
         var circle0 = Circle(beacon0.position.x, beacon0.position.y, beacon0.beacon.approxDistance)
         var circle1 = Circle(beacon1.position.x, beacon1.position.y, beacon1.beacon.approxDistance)
-        Log.d("INTERSECTION", circle0.toString())
-        Log.d("INTERSECTION", circle1.toString())
-        var intersectionLocations = mutableListOf<Location>()
-        intersectionLocations = circleCircleIntersectionPoints(circle0,circle1) as MutableList<Location>
-        val TAG = "INTERSECTION"
-        intersectionLocations.forEach{Log.d(TAG,"INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
         var circle2 = Circle(beacon2.position.x, beacon2.position.y, beacon2.beacon.approxDistance)
-        Log.d("INTERSECTION", circle2.toString())
-        var location3 = Location(circle2.x,circle2.y,map)
-        if(euclideanDistance(intersectionLocations.first(),location3) == circle2.r){
+
+        val TAG = "INTERSECTION"
+        Log.d(TAG, circle0.toString())
+        Log.d(TAG, circle1.toString())
+        Log.d(TAG, circle2.toString())
+
+
+        var intersectionLocations = mutableListOf<Location>()
+        val intersection01 = circleCircleIntersectionPoints(circle0,circle1)
+        val intersection02 = circleCircleIntersectionPoints(circle0,circle2)
+        val intersection12 = circleCircleIntersectionPoints(circle1,circle2)
+        var location3 : Location? = null
+
+        if (intersection01 != null) {
+            Log.d(TAG, "Intersection01")
+            intersectionLocations =  intersection01 as MutableList<Location>
+            location3 = Location(circle2.x,circle2.y,map)
+        } else if (intersection02 != null) {
+            Log.d(TAG, "Intersection02")
+            intersectionLocations =  intersection02 as MutableList<Location>
+            location3 = Location(circle1.x,circle1.y,map)
+        } else if (intersection12 != null) {
+            Log.d(TAG, "Intersection12")
+            intersectionLocations =  intersection12 as MutableList<Location>
+            location3 = Location(circle0.x,circle0.y,map)
+        } else {
+            Log.d(TAG, "Kernel panic")
+        }
+
+        intersectionLocations.forEach{Log.d(TAG,"INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
+
+
+        // TO DO: Check the closest one, not the exact point
+        val firstDistance = euclideanDistance(intersectionLocations.get(0),location3!!)
+        val secondDistance = euclideanDistance(intersectionLocations.get(1),location3!!)
+        if (firstDistance <= secondDistance) {
             Log.d(TAG,"ES este")
             return intersectionLocations.get(0)
-        }
-        else {
+        } else {
             Log.d(TAG,"ES el otro este")
             return intersectionLocations.get(1)
         }
