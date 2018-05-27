@@ -80,17 +80,20 @@ class FindMeActivity : AppCompatActivity() {
         val testMap = CustomMap("$downloadsDirectory/TestPic.jpg", 3.3, 3.45) // in meters
 
         // TEST: Creating a test beacon and displaying it
-        val testBeacon = BeaconOnMap(Location(1.65, 0.0, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
+        val testBeacon = BeaconOnMap(Location(1.2, 3.15, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
+        testBeacon.beacon.name = "Social Retail"
         testBeacon.image = beacon_icon
         testMap.addBeacon(testBeacon)
 
         // TEST: Creating a second test beacon and displaying it
-        val testBeacon2 = BeaconOnMap(Location(0.3, 3.0, testMap), BeaconDevice("C1:31:86:2A:30:62", 80, null))
+        val testBeacon2 = BeaconOnMap(Location(2.83, 1.43, testMap), BeaconDevice("C1:31:86:2A:30:62", 80, null))
+        testBeacon2.beacon.name = "iBKS"
         testBeacon2.image = beacon_icon
         testMap.addBeacon(testBeacon2)
 
         // TEST: Creating a third test beacon and displaying it
-        val testBeacon3 = BeaconOnMap(Location(0.3, 0.6, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
+        val testBeacon3 = BeaconOnMap(Location(0.3, 0.3, testMap), BeaconDevice("0C:F3:EE:0D:84:50", 80, null))
+        testBeacon3.beacon.name = "EM Micro"
         testBeacon3.image = beacon_icon
         testMap.addBeacon(testBeacon3)
 
@@ -171,11 +174,8 @@ class FindMeActivity : AppCompatActivity() {
 
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
-        //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
-        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
-        currentPosition.position.x = resultLocation.x
-        currentPosition.position.y = resultLocation.y
-        updatePosition()
+        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+
         //trilateratePosition()
     }
 
@@ -200,13 +200,13 @@ class FindMeActivity : AppCompatActivity() {
     }
 
     fun trilateratePosition() {
-        // This is fake, we need to do something real here :P
-        currentPosition.position.x -= 0.1
-        currentPosition.position.y -= 0.1
-
-
         // Call this after currentPosition's x and y are updated
-        //updatePosition()
+        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        if (resultLocation != null) {
+            currentPosition.position.x = resultLocation.x
+            currentPosition.position.y = resultLocation.y
+            updatePosition()
+        }
     }
 
 }

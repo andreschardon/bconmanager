@@ -24,7 +24,7 @@ class TrilaterationCalculator  : AppCompatActivity() {
         distance= Math.sqrt(Math.pow(location1.x-location2.x,2.00) + Math.pow(location1.y-location2.y,2.00))
         return distance
     }
-    fun getPositionInMap( map: CustomMap) : Location {
+    fun getPositionInMap( map: CustomMap) : Location? {
         mapHeight=map.height
         mapWidth= map.width
         //val savedBeacons : List<BeaconOnMap> = map.savedBeacons
@@ -72,20 +72,34 @@ class TrilaterationCalculator  : AppCompatActivity() {
             location3 = Location(circle0.x,circle0.y,map)
         } else {
             Log.d(TAG, "Kernel panic")
+            return null
         }
 
         intersectionLocations.forEach{Log.d(TAG,"INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
 
+        // Check if both intersection points are inside the map (indexes >= 0 ) and correct them if
+        // they are not
+        forceInsideMap(intersectionLocations.get(0))
+        forceInsideMap(intersectionLocations.get(1))
 
-        // TO DO: Check the closest one, not the exact point
         val firstDistance = euclideanDistance(intersectionLocations.get(0),location3!!)
         val secondDistance = euclideanDistance(intersectionLocations.get(1),location3!!)
-        if (firstDistance <= secondDistance) {
+        if ((firstDistance <= secondDistance)) {
             Log.d(TAG,"ES este")
             return intersectionLocations.get(0)
         } else {
             Log.d(TAG,"ES el otro este")
             return intersectionLocations.get(1)
+        }
+
+    }
+
+    private fun forceInsideMap(location : Location) {
+        if (location.x < 0.0) {
+            location.x = 0.0
+        }
+        if (location.y < 0.0) {
+            location.y = 0.0
         }
     }
 
