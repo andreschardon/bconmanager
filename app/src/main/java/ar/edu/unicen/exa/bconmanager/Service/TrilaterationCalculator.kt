@@ -37,9 +37,13 @@ class TrilaterationCalculator  : AppCompatActivity() {
         }
         */
 
-        val beacon0 = map.savedBeacons.get(0)
-        val beacon1 = map.savedBeacons.get(1)
-        val beacon2 = map.savedBeacons.get(2)
+        val sortedList = map.savedBeacons.sortedWith(compareBy({ it.beacon.approxDistance }))
+
+        val beacon0 = sortedList[0]
+        val beacon1 = sortedList[1]
+        val beacon2 = sortedList[2]
+
+        Log.d("CLOSEST", "1: ${beacon0.beacon.name} at ${beacon0.beacon.approxDistance}mts // 2: ${beacon1.beacon.name} at ${beacon1.beacon.approxDistance}mts // 3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts")
 
 
         var circle0 = Circle(beacon0.position.x, beacon0.position.y, beacon0.beacon.approxDistance)
@@ -79,28 +83,36 @@ class TrilaterationCalculator  : AppCompatActivity() {
 
         // Check if both intersection points are inside the map (indexes >= 0 ) and correct them if
         // they are not
-        forceInsideMap(intersectionLocations.get(0))
-        forceInsideMap(intersectionLocations.get(1))
+        forceInsideMap(intersectionLocations[0])
+        forceInsideMap(intersectionLocations[1])
 
-        val firstDistance = euclideanDistance(intersectionLocations.get(0),location3!!)
-        val secondDistance = euclideanDistance(intersectionLocations.get(1),location3!!)
+        val firstDistance = euclideanDistance(intersectionLocations[0], location3)
+        val secondDistance = euclideanDistance(intersectionLocations[1], location3)
         if ((firstDistance <= secondDistance)) {
             Log.d(TAG,"ES este")
-            return intersectionLocations.get(0)
+            return forceInsideMap(intersectionLocations[0]!!)
         } else {
             Log.d(TAG,"ES el otro este")
-            return intersectionLocations.get(1)
+            return forceInsideMap(intersectionLocations[1]!!)
         }
 
     }
 
-    private fun forceInsideMap(location : Location) {
+    /**
+     * Restrain the position to the map
+     */
+    private fun forceInsideMap(location : Location) : Location {
         if (location.x < 0.0) {
             location.x = 0.0
+        } else if (location.x > mapWidth){
+            location.x = mapWidth
         }
         if (location.y < 0.0) {
             location.y = 0.0
+        } else if (location.y > mapHeight) {
+            location.y = mapHeight
         }
+        return location
     }
 
 
