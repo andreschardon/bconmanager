@@ -57,37 +57,56 @@ class TrilaterationCalculator  : AppCompatActivity() {
 
 
         var intersectionLocations = mutableListOf<Location>()
-        val intersection01 = circleCircleIntersectionPoints(circle0,circle1)
+        var intersection01 = circleCircleIntersectionPoints(circle0,circle1)
         val intersection02 = circleCircleIntersectionPoints(circle0,circle2)
         val intersection12 = circleCircleIntersectionPoints(circle1,circle2)
         var location3 : Location? = null
+        var furthestCircle : Circle? = null
 
-        if (intersection01 != null) {
-            Log.d(TAG, "Intersection01")
-            intersectionLocations =  intersection01 as MutableList<Location>
-            location3 = Location(circle2.x,circle2.y,map)
-        } else if (intersection02 != null) {
-            Log.d(TAG, "Intersection02")
-            intersectionLocations =  intersection02 as MutableList<Location>
-            location3 = Location(circle1.x,circle1.y,map)
-        } else if (intersection12 != null) {
-            Log.d(TAG, "Intersection12")
-            intersectionLocations =  intersection12 as MutableList<Location>
-            location3 = Location(circle0.x,circle0.y,map)
-        } else {
-            Log.d(TAG, "Kernel panic")
-            return null
+        var continueForcing = true
+        while (continueForcing) {
+            if (intersection01 != null) {
+                Log.d(TAG, "Intersection01")
+                intersectionLocations = intersection01 as MutableList<Location>
+                location3 = Location(circle2.x, circle2.y, map)
+                furthestCircle = circle2
+                continueForcing = false
+            } else if (intersection02 != null) {
+                Log.d(TAG, "Intersection02")
+                intersectionLocations = intersection02 as MutableList<Location>
+                location3 = Location(circle1.x, circle1.y, map)
+                furthestCircle = circle1
+                continueForcing = false
+            } else if (intersection12 != null && (circle1.r != 999.0)) {
+            // This is not very precise, we should force an intersection between 0 and 1 here
+                /*Log.d(TAG, "Intersection12")
+                intersectionLocations =  intersection12 as MutableList<Location>
+                location3 = Location(circle0.x,circle0.y,map)
+                furthestCircle = circle0*/
+                // Force an intersection between 0 and 1
+                Log.d(TAG, "Kernel panic ${circle1.r + 0.1}")
+                circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.5)
+                intersection01 = circleCircleIntersectionPoints(circle0,circle1)
+                if (intersection01 == null) {
+                    Log.d(TAG, "It is still null")
+                }
+            } else {
+                continueForcing = false
+                return null
+            }
         }
 
-        intersectionLocations.forEach{Log.d(TAG,"INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
+        //intersectionLocations.forEach{Log.d("CLOSEST","INTERSECTION IN X : ${it.x}  INTERSECTION IN Y: ${it.y}")}
 
-        // Check if both intersection points are inside the map (indexes >= 0 ) and correct them if
-        // they are not
-        forceInsideMap(intersectionLocations[0])
-        forceInsideMap(intersectionLocations[1])
+        // We have the distance between our position and the furthest beacon
+        // We need to calculate the distance between the two points and that beacon and choose the
+        // one that is the closest to the "real" distance
+        Log.d("DISTANCE", "Real distance is ${furthestCircle!!.r}")
+        Log.d("DISTANCE", "First distance is ${euclideanDistance(intersectionLocations[0], location3!!)}")
+        Log.d("DISTANCE", "Second distance is ${euclideanDistance(intersectionLocations[1], location3!!)}")
+        val firstDistance = Math.abs((furthestCircle!!.r - (euclideanDistance(intersectionLocations[0], location3!!))))
+        val secondDistance = Math.abs((furthestCircle!!.r - (euclideanDistance(intersectionLocations[1], location3!!))))
 
-        val firstDistance = euclideanDistance(intersectionLocations[0], location3)
-        val secondDistance = euclideanDistance(intersectionLocations[1], location3)
         if ((firstDistance <= secondDistance)) {
             Log.d(TAG,"ES este")
             return forceInsideMap(intersectionLocations[0]!!)
@@ -112,6 +131,7 @@ class TrilaterationCalculator  : AppCompatActivity() {
         } else if (location.y > mapHeight) {
             location.y = mapHeight
         }
+        //Log.d("CLOSEST", "Final position is (${location.x}, ${location.y})")
         return location
     }
 
