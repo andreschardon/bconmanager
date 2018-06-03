@@ -32,14 +32,6 @@ class BluetoothScanner  : AppCompatActivity() {
         if (enable) {
             Log.d(TAG, "Starting BluetoothLowEnergy scan")
             // Stops scanning after a pre-defined scan period.
-            bluetoothHandler.postDelayed(object:Runnable {
-                override fun run() {
-                    Log.d(TAG, "Stopping BluetoothLowEnergy scan")
-                    isScanning = false
-                    bluetoothAdapter.stopLeScan(mLeScanCallback)
-                    //doSomething()
-                }
-            }, SCAN_PERIOD)
             isScanning = true
             bluetoothAdapter.startLeScan(mLeScanCallback)
         }
@@ -47,6 +39,16 @@ class BluetoothScanner  : AppCompatActivity() {
             isScanning = false
             bluetoothAdapter.stopLeScan(mLeScanCallback)
         }
+    }
+
+    fun stopScan() {
+        bluetoothHandler.post(object:Runnable {
+            override fun run() {
+                Log.d(TAG, "Stopping BluetoothLowEnergy scan")
+                isScanning = false
+                bluetoothAdapter.stopLeScan(mLeScanCallback)
+            }
+        })
     }
 
 //    fun doSomething() {
