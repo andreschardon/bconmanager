@@ -14,8 +14,7 @@ import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.R.drawable.beacon_icon
-import ar.edu.unicen.exa.bconmanager.R.drawable.location_icon
+import ar.edu.unicen.exa.bconmanager.R.drawable.*
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
@@ -57,13 +56,17 @@ class FindMeActivity : AppCompatActivity() {
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {
-            setupBeacon(beacon)
+            setupResource(beacon)
         }
 
+        // Drawing all the points of interest for this map
+        for (point in floorMap.pointsOfInterest) {
+            setupResource(point)
+        }
         // Starting point
         currentPosition = PositionOnMap(Location(2.0, 2.0, floorMap))
         currentPosition.image = location_icon
-        setupPosition(currentPosition)
+        setupResource(currentPosition)
 
         // Scanning beacons
         floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon)  }
@@ -96,6 +99,18 @@ class FindMeActivity : AppCompatActivity() {
         testBeacon3.beacon.name = "EM Micro"
         testBeacon3.image = beacon_icon
         testMap.addBeacon(testBeacon3)
+
+
+        // TEST: Creating a interest point and displaying it
+        val Room1 = PointOfInterest(Location(2.0,1.0,testMap))
+        Room1.image = interest_icon
+        testMap.addPoI(Room1)
+
+        // TEST: Creating a interest point and displaying it
+        val Living =  PointOfInterest(Location(3.0,1.0,testMap))
+        Living.image = interest_icon
+        testMap.addPoI(Living)
+
 
         return testMap
     }
@@ -144,33 +159,20 @@ class FindMeActivity : AppCompatActivity() {
 
     }
 
-    private fun setupBeacon(testBeacon: BeaconOnMap) {
+    private fun setupResource(resource: Resource) {
 
         // Set up the beacon's image size and position
         val imageView = ImageView(this)
         val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
-
-        layoutParams.leftMargin = testBeacon.position.getX() - 35
-        layoutParams.topMargin = testBeacon.position.getY() - 35
-        imageView.setImageResource(testBeacon.image!!)
+        layoutParams.leftMargin = resource.position.getX() - 35
+        layoutParams.topMargin = resource.position.getY() - 35
+        imageView.setImageResource(resource.image!!)
 
         // Add ImageView to LinearLayout
         floorLayout.addView(imageView, layoutParams)
 
     }
 
-    private fun setupPosition(testPosition : PositionOnMap) {
-        // Set up the position's image size and position
-        positionView = ImageView(this)
-        val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
-
-        layoutParams.leftMargin = testPosition.position.getX() - 35
-        layoutParams.topMargin = testPosition.position.getY() - 35
-        positionView.setImageResource(testPosition.image!!)
-
-        // Add ImageView to LinearLayout
-        floorLayout.addView(positionView, layoutParams)
-    }
 
     fun refreshButtonClicked(view: View) {
         // For now we don't need this

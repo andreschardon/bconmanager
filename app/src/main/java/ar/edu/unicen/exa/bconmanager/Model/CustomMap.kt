@@ -7,6 +7,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
+    var pointsOfInterest : MutableList<PointOfInterest> = mutableListOf<PointOfInterest>()
     var widthMtsToPixelsRatio : Double = 0.0
     var heightMtsToPixelsRatio : Double = 0.0
 
@@ -36,6 +37,10 @@ class CustomMap constructor(var image : String, var width : Double , var height 
 
     fun addBeacon(beacon : BeaconOnMap) {
         savedBeacons.add(beacon)
+    }
+
+    fun addPoI(point : PointOfInterest) {
+        pointsOfInterest.add(point)
     }
 
     fun calculateRatio(widthPixels : Int, heightPixels : Int) {
