@@ -36,11 +36,11 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
     override fun notifyDataSetChanged() {
         super.notifyDataSetChanged()
         //printBeaconsDistance()
+        notifyDataSetChanged(true)
 
     }
 
     fun notifyDataSetChanged(updateNow : Boolean) {
-        notifyDataSetChanged()
         if (updateNow)
             context.trilateratePosition()
     }
