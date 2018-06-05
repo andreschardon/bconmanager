@@ -56,17 +56,20 @@ class FindMeActivity : AppCompatActivity() {
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {
-            setupResource(beacon)
+            val imageView = ImageView(this)
+            setupResource(beacon,imageView)
         }
 
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {
-            setupResource(point)
+            val imageView = ImageView(this)
+            setupResource(point, imageView)
         }
         // Starting point
         currentPosition = PositionOnMap(Location(2.0, 2.0, floorMap))
         currentPosition.image = location_icon
-        setupResource(currentPosition)
+        positionView = ImageView(this)
+        setupResource(currentPosition, positionView)
 
         // Scanning beacons
         floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon)  }
@@ -159,10 +162,10 @@ class FindMeActivity : AppCompatActivity() {
 
     }
 
-    private fun setupResource(resource: Resource) {
+    private fun setupResource(resource: Resource, imageView: ImageView) {
 
         // Set up the beacon's image size and position
-        val imageView = ImageView(this)
+
         val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
         layoutParams.leftMargin = resource.position.getX() - 35
         layoutParams.topMargin = resource.position.getY() - 35
@@ -172,6 +175,7 @@ class FindMeActivity : AppCompatActivity() {
         floorLayout.addView(imageView, layoutParams)
 
     }
+
 
 
     fun refreshButtonClicked(view: View) {
@@ -186,6 +190,7 @@ class FindMeActivity : AppCompatActivity() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
+        Log.d("POSITION VIEW UPDATE","${positionView.layoutParams}")
         positionView.layoutParams = layoutParams
 
 
