@@ -28,4 +28,9 @@ class MyBeaconsActivity : AppCompatActivity() {
     fun refreshButtonClicked(view:View) {
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
     }
+
+    override fun onPause() {
+        super.onPause()
+        bluetoothScanner.stopScan()
+    }
 }

@@ -81,6 +81,11 @@ class FindMeActivity : AppCompatActivity() {
 
     }
 
+    override fun onPause() {
+        super.onPause()
+        bluetoothScanner.stopScan()
+    }
+
     private fun createTestMap() : CustomMap {
         // Creating a test map
         val testMap = CustomMap("$downloadsDirectory/TestPic.jpg", 6.3, 9.75) // in meters

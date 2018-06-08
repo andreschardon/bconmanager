@@ -13,6 +13,8 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
 
     val context = context
     val beacons = beacons
+    var counter = 0
+    val REFRESH_RATE = 10
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val beaconView : View
@@ -35,12 +37,24 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
 
     override fun notifyDataSetChanged() {
         super.notifyDataSetChanged()
-        printBeaconsDistance()
+        //printBeaconsDistance()
+        counter++
+        if (counter == REFRESH_RATE) {
+            Log.d("REFRESH", "NOW")
+            counter = 0
+            context.trilateratePosition()
+        }
+
+
     }
+
+    /*fun notifyDataSetChanged(updateNow : Boolean) {
+        if (updateNow)
+
+    }*/
 
     private fun printBeaconsDistance() {
         beacons.forEach { Log.d("Adap", it.toString()) }
-        context.trilateratePosition()
     }
 
 }

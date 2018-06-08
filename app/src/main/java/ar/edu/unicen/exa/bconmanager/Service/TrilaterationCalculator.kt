@@ -85,7 +85,7 @@ class TrilaterationCalculator  : AppCompatActivity() {
                 furthestCircle = circle0*/
                 // Force an intersection between 0 and 1
                 Log.d(TAG, "Kernel panic ${circle1.r + 0.1}")
-                circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.5)
+                circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.1)
                 intersection01 = circleCircleIntersectionPoints(circle0,circle1)
                 if (intersection01 == null) {
                     Log.d(TAG, "It is still null")
