@@ -105,13 +105,13 @@ class FindMeActivity : AppCompatActivity() {
 
 
         // TEST: Creating a interest point and displaying it
-        val Room1 = PointOfInterest(Location(2.0,1.0,testMap))
-        Room1.image = interest_icon
+        val Room1 = PointOfInterest(Location(2.0,1.0,testMap),1.6)
+        Room1.image = zone_icon
         testMap.addPoI(Room1)
 
         // TEST: Creating a interest point and displaying it
-        val Living =  PointOfInterest(Location(3.0,1.0,testMap))
-        Living.image = interest_icon
+        val Living =  PointOfInterest(Location(3.0,1.0,testMap),1.6)
+        Living.image = zone_icon
         testMap.addPoI(Living)
 
 
@@ -164,11 +164,24 @@ class FindMeActivity : AppCompatActivity() {
 
     private fun setupResource(resource: Resource, imageView: ImageView) {
 
-        // Set up the beacon's image size and position
+        // Set up the resource image size and position
+        val layoutParams : LinearLayout.LayoutParams
+        if (resource is PointOfInterest) {
 
-        val layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
-        layoutParams.leftMargin = resource.position.getX() - 35
-        layoutParams.topMargin = resource.position.getY() - 35
+            val loc = Location(resource.zone, resource.zone, floorMap)
+            layoutParams= LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixels
+
+
+        }
+        else {
+            layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
+        }
+
+
+
+
+            layoutParams.leftMargin = resource.position.getX() - (layoutParams.width/2)
+            layoutParams.topMargin = resource.position.getY() - (layoutParams.height /2)
         imageView.setImageResource(resource.image!!)
 
         // Add ImageView to LinearLayout
