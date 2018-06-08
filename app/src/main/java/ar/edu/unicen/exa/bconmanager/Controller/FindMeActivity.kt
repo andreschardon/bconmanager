@@ -176,12 +176,8 @@ class FindMeActivity : AppCompatActivity() {
         else {
             layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
         }
-
-
-
-
-            layoutParams.leftMargin = resource.position.getX() - (layoutParams.width/2)
-            layoutParams.topMargin = resource.position.getY() - (layoutParams.height /2)
+        layoutParams.leftMargin = resource.position.getX() - (layoutParams.width/2)
+        layoutParams.topMargin = resource.position.getY() - (layoutParams.height /2)
         imageView.setImageResource(resource.image!!)
 
         // Add ImageView to LinearLayout
