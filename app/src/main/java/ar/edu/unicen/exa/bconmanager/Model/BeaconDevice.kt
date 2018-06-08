@@ -18,7 +18,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
     }
 
     override fun equals(other: Any?): Boolean {
-        return address.equals((other as BeaconDevice).address)
+        return address == (other as BeaconDevice).address
     }
 
     fun Double.roundTo2DecimalPlaces() =
@@ -36,6 +36,11 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         Log.d("Beacon : ", "$name ::: $average ::: $averageAmount")
 
         return average
+    }
+
+    fun cleanAverages() {
+        Log.d("Beacon", "Setting to 0")
+        averageAmount = 0
     }
 
 }

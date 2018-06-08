@@ -14,10 +14,12 @@ class BluetoothScanner  : AppCompatActivity() {
 
     private val SCAN_PERIOD = 10000L
     private val TAG = "BluetoothScanner"
+    private val REFRESH_RATE = 30
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothHandler: Handler = Handler()
     private var isScanning:Boolean = false
+    private var refreshCounter = 0
 
     lateinit var devicesListAdapter : BaseAdapter
     var devicesList = mutableListOf<BeaconDevice>()
@@ -62,59 +64,65 @@ class BluetoothScanner  : AppCompatActivity() {
 
         override fun onLeScan(device: BluetoothDevice, rssi:Int,
                               scanRecord:ByteArray) {
-            runOnUiThread(object:Runnable {
-                override fun run() {
-                    val detectedBeacon = BeaconDevice(device.address, rssi, device)
-                    //val approx : Double =  detectedBeacon.calculateDistance(rssi)
-                    //detectedBeacon.approxDistance = approx
+            runOnUiThread {
+                val detectedBeacon = BeaconDevice(device.address, rssi, device)
+
+                //val approx : Double =  detectedBeacon.calculateDistance(rssi)
+                //detectedBeacon.approxDistance = approx
 
 
-                    // Hard-coded, this should be removed later
-                    when {
-                        device.address.startsWith("0C:F3") -> {
-                            detectedBeacon.name = "EM Micro"
-                            detectedBeacon.txPower = -68
-                        } //  -63 a 1m
-                        device.address.startsWith("D3:B5") -> {
-                            detectedBeacon.name = "Social Retail"
-                            detectedBeacon.txPower = -60
-                        } // -75 a 1m
-                        device.address.startsWith("C1:31") -> {
-                            detectedBeacon.name = "iBKS"
-                            detectedBeacon.txPower = -65
-                        }
-                        else -> detectedBeacon.name = "Unknown"
+                // Hard-coded, this should be removed later
+                when {
+                    device.address.startsWith("0C:F3") -> {
+                        detectedBeacon.name = "EM Micro"
+                        detectedBeacon.txPower = -68
+                    } //  -63 a 1m
+                    device.address.startsWith("D3:B5") -> {
+                        detectedBeacon.name = "Social Retail"
+                        detectedBeacon.txPower = -60
+                    } // -75 a 1m
+                    device.address.startsWith("C1:31") -> {
+                        detectedBeacon.name = "iBKS"
+                        detectedBeacon.txPower = -65
                     }
-
-//                    val data = AdvertiseData.Builder()
-//                            .addServiceUuid(ParcelUuid
-//                                    .fromString(UUID
-//                                            .nameUUIDFromBytes(scanRecord).toString())).build()
-//                    Log.d(TAG, data.toString())
-
-                    if (!detectedBeacon.name.equals("Unknown")) {
-//                        val record= ScanRecordParser.ParseRecord(scanRecord)
-//                        Log.d(TAG, ScanRecordParser.getServiceUUID(record))
-
-
-                        if (!devicesList.contains(detectedBeacon)) {
-                            devicesList.add(detectedBeacon)
-                            detectedBeacon.calculateDistance(rssi)
-                            devicesListAdapter.notifyDataSetChanged()
-                        } else {
-                            val index = devicesList.indexOf(detectedBeacon)
-                            devicesList[index].intensity = rssi
-                            devicesList[index].calculateDistance(rssi)
-                            devicesList[index].txPower = detectedBeacon.txPower
-                            devicesListAdapter.notifyDataSetChanged()
-                        }
-                    }
-
-
-
+                    else -> detectedBeacon.name = "Unknown"
                 }
-            })
+
+                //                    val data = AdvertiseData.Builder()
+                //                            .addServiceUuid(ParcelUuid
+                //                                    .fromString(UUID
+                //                                            .nameUUIDFromBytes(scanRecord).toString())).build()
+                //                    Log.d(TAG, data.toString())
+
+                if (!detectedBeacon.name.equals("Unknown")) {
+                    //                        val record= ScanRecordParser.ParseRecord(scanRecord)
+                    //                        Log.d(TAG, ScanRecordParser.getServiceUUID(record))
+
+                    refreshCounter++
+                    if (!devicesList.contains(detectedBeacon)) {
+                        devicesList.add(detectedBeacon)
+                        detectedBeacon.calculateDistance(rssi)
+                    } else {
+                        val index = devicesList.indexOf(detectedBeacon)
+                        devicesList[index].intensity = rssi
+                        devicesList[index].calculateDistance(rssi)
+                        devicesList[index].txPower = detectedBeacon.txPower
+                    }
+                    Log.d("Beacon", "Refresh counter is $refreshCounter")
+                    devicesListAdapter.notifyDataSetChanged()
+                    clearAverages()
+                }
+            }
         }
     }
+
+    fun clearAverages() {
+        if (refreshCounter == REFRESH_RATE) {
+            Log.d("Beacon", "Entro a borrar todo $refreshCounter")
+            refreshCounter = 0
+            devicesList.forEach { it.cleanAverages() }
+        }
+    }
+
 }
 
