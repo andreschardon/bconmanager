@@ -14,7 +14,7 @@ class BluetoothScanner  : AppCompatActivity() {
 
     private val SCAN_PERIOD = 10000L
     private val TAG = "BluetoothScanner"
-    private val REFRESH_RATE = 30
+    private val REFRESH_RATE = 70
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothHandler: Handler = Handler()

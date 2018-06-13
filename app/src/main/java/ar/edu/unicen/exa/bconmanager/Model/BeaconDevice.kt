@@ -40,7 +40,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
 
     fun cleanAverages() {
         Log.d("Beacon", "Setting to 0")
-        averageAmount = 0
+        averageAmount = 1
     }
 
 }
