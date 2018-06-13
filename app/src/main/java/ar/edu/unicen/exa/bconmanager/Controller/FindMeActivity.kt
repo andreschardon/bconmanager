@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
+import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
@@ -173,9 +174,9 @@ class FindMeActivity : AppCompatActivity() {
         val layoutParams : LinearLayout.LayoutParams
         if (resource is PointOfInterest) {
 
-            val loc = Location(resource.zone, resource.zone, floorMap)
-            layoutParams= LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixels
 
+            val loc = Location(resource.zone * 2, resource.zone * 2, floorMap)
+            layoutParams= LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
 
         }
         else {
@@ -208,6 +209,12 @@ class FindMeActivity : AppCompatActivity() {
         positionView.layoutParams = layoutParams
 
 
+        floorMap.pointsOfInterest[0].position.getY()
+        if(floorMap.isInZoneOfInterest(currentPosition)){
+            Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
+        }
+
+
 
         // Demo to obtain current distance to a particular beacon
         //Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
@@ -226,6 +233,11 @@ class FindMeActivity : AppCompatActivity() {
         if (resultLocation != null) {
             currentPosition.position.x = resultLocation.x
             currentPosition.position.y = resultLocation.y
+
+            Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
+            Log.d("CURRENT X","${currentPosition.position.x}")
+            Log.d("CURRENT Y","${currentPosition.position.y}")
+
             updatePosition()
         }
     }
