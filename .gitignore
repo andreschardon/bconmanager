@@ -19,6 +19,8 @@ local.properties
 .idea/libraries/
 .idea/workspace.xml
 .idea/tasks.xml
+.idea/misc.xml
+.idea/misc.*
 .idea/.name
 .idea/compiler.xml
 .idea/caches/build_file_checksums.ser
@@ -29,6 +31,7 @@ local.properties
 .idea/scopes/scope_settings.xml
 .idea/vcs.xml
 *.iml
+.idea/dictionaries/Andres.xml
 
 # OS-specific files
 .DS_Store

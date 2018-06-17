@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.os.Bundle
@@ -26,25 +27,53 @@ class FindMeActivity : AppCompatActivity() {
 
     private val TAG = "FindMeActivity"
     private val bluetoothScanner = BluetoothScanner()
-    private val downloadsDirectory = getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath
-    private lateinit var floorMap : CustomMap
-    lateinit var devicesListAdapter : BeaconsAdapter
-    lateinit var positionView : ImageView
-    lateinit var currentPosition : PositionOnMap
+    private var filePath: String = ""
+
+    private lateinit var floorMap: CustomMap
+    lateinit var devicesListAdapter: BeaconsAdapter
+    lateinit var positionView: ImageView
+    lateinit var currentPosition: PositionOnMap
     private var trilaterationCalculator = TrilaterationCalculator()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
 
+        val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+        val intent: Intent
+        chooseFile.type = "*/*" // TO DO: We should allow only json files
+        intent = Intent.createChooser(chooseFile, "Choose a file")
+        startActivityForResult(intent, 101)
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            101 -> if (resultCode == -1) {
+                    val uri = data!!.data
+                    filePath = uri.lastPathSegment.removePrefix("raw:")
+                }
+        }
+        if (!filePath.isNullOrEmpty()) {
+            displayMap()
+        } else {
+            Log.e(TAG, "The file path is incorrect")
+        }
+    }
+
+    /**
+     * This method is called after getting the json file's path
+     * It displays the map's image, the beacons and the current location
+     */
+    private fun displayMap() {
+
+        // This method will create a test map on the downloads directory.
+        // Make sure the TestPic.jpg is on the same location
+        //createTestMap()
+
         // Loading the map from a JSON file
-        //floorMap = loadMapFromFile("$downloadsDirectory/myRoom.json")
-
-        // OR creating it right here
-        floorMap = createTestMap()
-
-        // AND saving it to a JSON file
-        saveMapToFile(floorMap, "$downloadsDirectory/myRoom.json")
+        floorMap = loadMapFromFile(filePath)
 
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
@@ -58,7 +87,7 @@ class FindMeActivity : AppCompatActivity() {
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {
             val imageView = ImageView(this)
-            setupResource(beacon,imageView)
+            setupResource(beacon, imageView)
         }
 
         // Drawing all the points of interest for this map
@@ -73,23 +102,21 @@ class FindMeActivity : AppCompatActivity() {
         setupResource(currentPosition, positionView)
 
         // Scanning beacons
-        floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon)  }
+        floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon) }
         devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
-
-
-
 
     }
 
     override fun onPause() {
         super.onPause()
         bluetoothScanner.stopScan()
+
     }
 
-    private fun createTestMap() : CustomMap {
+    private fun createTestMap() {
         // Creating a test map
-        val testMap = CustomMap("$downloadsDirectory/TestPic.jpg", 6.3, 9.75) // in meters
+        val testMap = CustomMap("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/TestPic.jpg", 6.3, 9.75) // in meters
 
         // TEST: Creating a test beacon and displaying it
         val testBeacon = BeaconOnMap(Location(1.2, 9.49, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))
@@ -111,17 +138,17 @@ class FindMeActivity : AppCompatActivity() {
 
 
         // TEST: Creating a interest point and displaying it
-        val Room1 = PointOfInterest(Location(2.0,1.0,testMap),1.6)
+        val Room1 = PointOfInterest(Location(2.0, 1.0, testMap), 1.6)
         Room1.image = zone_icon
         testMap.addPoI(Room1)
 
         // TEST: Creating a interest point and displaying it
-        val Living =  PointOfInterest(Location(3.0,1.0,testMap),1.6)
+        val Living = PointOfInterest(Location(3.0, 1.0, testMap), 1.6)
         Living.image = zone_icon
         testMap.addPoI(Living)
 
+        saveMapToFile(testMap, "${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/myRoom.json")
 
-        return testMap
     }
 
     private fun saveMapToFile(testMap: CustomMap, filePath: String) {
@@ -130,7 +157,7 @@ class FindMeActivity : AppCompatActivity() {
         Log.d(TAG, "Map saved to JSON file in $filePath")
     }
 
-    private fun loadMapFromFile(filePath : String) : CustomMap {
+    private fun loadMapFromFile(filePath: String): CustomMap {
         val jsonMap = JsonUtility.readFromFile(filePath)
         val fileMap = CustomMap("", 0.0, 0.0)
         fileMap.startFromFile(jsonMap)
@@ -138,7 +165,7 @@ class FindMeActivity : AppCompatActivity() {
         return fileMap
     }
 
-    private fun getRealMapSize() : Point {
+    private fun getRealMapSize(): Point {
         val realSize = Point()
         val size = Point()
         windowManager.defaultDisplay.getSize(size)
@@ -171,19 +198,15 @@ class FindMeActivity : AppCompatActivity() {
     private fun setupResource(resource: Resource, imageView: ImageView) {
 
         // Set up the resource image size and position
-        val layoutParams : LinearLayout.LayoutParams
+        val layoutParams: LinearLayout.LayoutParams
         if (resource is PointOfInterest) {
-
-
             val loc = Location(resource.zone * 2, resource.zone * 2, floorMap)
-            layoutParams= LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
-
-        }
-        else {
+            layoutParams = LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
+        } else {
             layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
         }
-        layoutParams.leftMargin = resource.position.getX() - (layoutParams.width/2)
-        layoutParams.topMargin = resource.position.getY() - (layoutParams.height /2)
+        layoutParams.leftMargin = resource.position.getX() - (layoutParams.width / 2)
+        layoutParams.topMargin = resource.position.getY() - (layoutParams.height / 2)
         imageView.setImageResource(resource.image!!)
 
         // Add ImageView to LinearLayout
@@ -192,28 +215,25 @@ class FindMeActivity : AppCompatActivity() {
     }
 
 
-
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
-
         //trilateratePosition()
     }
 
-    fun updatePosition() {
+    private fun updatePosition() {
         Log.d(TAG, "Updating current position")
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
-        Log.d("POSITION VIEW UPDATE","${positionView.layoutParams}")
+        Log.d("POSITION VIEW UPDATE", "${positionView.layoutParams}")
         positionView.layoutParams = layoutParams
 
 
-        floorMap.pointsOfInterest[0].position.getY()
-        if(floorMap.isInZoneOfInterest(currentPosition)){
+        //floorMap.pointsOfInterest[0].position.getY()
+        if (floorMap.isInZoneOfInterest(currentPosition)) {
             Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
         }
-
 
 
         // Demo to obtain current distance to a particular beacon
@@ -221,7 +241,7 @@ class FindMeActivity : AppCompatActivity() {
 
     }
 
-    fun threeClosestBeacons() : List<BeaconOnMap> {
+    fun threeClosestBeacons(): List<BeaconOnMap> {
         // TO DO
         var closestList = mutableListOf<BeaconOnMap>()
         return closestList
@@ -234,9 +254,9 @@ class FindMeActivity : AppCompatActivity() {
             currentPosition.position.x = resultLocation.x
             currentPosition.position.y = resultLocation.y
 
-            Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
-            Log.d("CURRENT X","${currentPosition.position.x}")
-            Log.d("CURRENT Y","${currentPosition.position.y}")
+            //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
+            Log.d("CURRENT X", "${currentPosition.position.x}")
+            Log.d("CURRENT Y", "${currentPosition.position.y}")
 
             updatePosition()
         }
