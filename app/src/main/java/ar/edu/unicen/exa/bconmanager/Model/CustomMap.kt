@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
+import android.graphics.Point
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.R
 
@@ -18,6 +19,11 @@ class CustomMap constructor(var image : String, var width : Double , var height 
             testBeacon.image = R.drawable.beacon_icon
             this.addBeacon(testBeacon)
         }
+        for (circle in jsonMap.pointsOfInterest!!) {
+            val point = PointOfInterest(Location(circle.x,circle.y,this),circle.r)
+            point.image = R.drawable.zone_icon
+            this.addPoI(point)
+        }
         this.image = jsonMap.image!!
         this.width = jsonMap.width!!
         this.height = jsonMap.height!!
@@ -30,7 +36,11 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         for (beacon in this.savedBeacons) {
             beaconList.add(beacon.toJson())
         }
-        val map = JsonMap(image, width, height, beaconList)
+        val pointsList = mutableListOf<Circle>()
+        for (point in this.pointsOfInterest) {
+            pointsList.add(point.toJson())
+        }
+        val map = JsonMap(image, width, height, beaconList,pointsList)
         return map
 
     }

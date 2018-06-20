@@ -4,8 +4,5 @@ class JsonMap constructor (
     val image : String? = null,
     val width : Double? = null,
     val height : Double? = null,
-    var beaconList: List<JsonBeacon>? = null ) {
-
-
-
-}
+    var beaconList: List<JsonBeacon>? = null,
+    var pointsOfInterest : List <Circle>? = null)

@@ -230,7 +230,6 @@ class FindMeActivity : AppCompatActivity() {
         positionView.layoutParams = layoutParams
 
 
-        //floorMap.pointsOfInterest[0].position.getY()
         if (floorMap.isInZoneOfInterest(currentPosition)) {
             Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
         }
