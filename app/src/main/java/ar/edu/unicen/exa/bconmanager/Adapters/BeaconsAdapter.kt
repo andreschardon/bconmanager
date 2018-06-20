@@ -15,6 +15,7 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
     val beacons = beacons
     var counter = 0
     val REFRESH_RATE = 10
+    val REFRESH_INTERMEDIATE = listOf(0, 2, 4, 6, 8)
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val beaconView : View
@@ -43,6 +44,9 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
             Log.d("REFRESH", "NOW")
             counter = 0
             context.trilateratePosition()
+        }
+        if (counter in REFRESH_INTERMEDIATE) {
+            context.updateIntermediate()
         }
 
 

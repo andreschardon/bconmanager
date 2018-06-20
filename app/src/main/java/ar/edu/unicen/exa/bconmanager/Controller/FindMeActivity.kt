@@ -21,6 +21,8 @@ import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_find_me.*
+import java.math.BigDecimal
+import java.util.*
 
 
 class FindMeActivity : AppCompatActivity() {
@@ -28,6 +30,7 @@ class FindMeActivity : AppCompatActivity() {
     private val TAG = "FindMeActivity"
     private val bluetoothScanner = BluetoothScanner()
     private var filePath: String = ""
+    private var drawQueue : Queue<Location> = ArrayDeque<Location>()
 
     private lateinit var floorMap: CustomMap
     lateinit var devicesListAdapter: BeaconsAdapter
@@ -217,16 +220,17 @@ class FindMeActivity : AppCompatActivity() {
 
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
-        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
         //trilateratePosition()
     }
 
     private fun updatePosition() {
+        // We should slowly update the position in... 5 stages?
         Log.d(TAG, "Updating current position")
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
-        Log.d("POSITION VIEW UPDATE", "${positionView.layoutParams}")
+        Log.d("UPDATING VIEW DRAW", "${positionView.layoutParams}")
         positionView.layoutParams = layoutParams
 
 
@@ -247,19 +251,63 @@ class FindMeActivity : AppCompatActivity() {
         return closestList
     }
 
+    /**
+     * This is called to update the current position with the new distances to the beacons
+     * It populates a queue of positions between the previous location and the new one
+     */
     fun trilateratePosition() {
         // Call this after currentPosition's x and y are updated
         val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
         if (resultLocation != null) {
-            currentPosition.position.x = resultLocation.x
-            currentPosition.position.y = resultLocation.y
+
+            // We will update the position slowly
+            val startLocation = currentPosition.position
+            val finishLocation = resultLocation
+            val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
+            Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
+            Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
+            Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
+            pointsToDraw.forEach {
+                drawQueue.add(it)
+            }
 
             //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
-            Log.d("CURRENT X", "${currentPosition.position.x}")
-            Log.d("CURRENT Y", "${currentPosition.position.y}")
 
-            updatePosition()
         }
     }
 
+    /**
+     * This is called in the "middle" of the calls to trilateratePosition
+     * It draws the points in the queue, so the movement between two locations is more fluid
+     */
+    fun updateIntermediate() {
+        if (drawQueue.isNotEmpty()) {
+            val positionToDraw = drawQueue.remove()!!
+            currentPosition.position.x = positionToDraw.x
+            currentPosition.position.y = positionToDraw.y
+            Log.d("DRAW INTERMEDIATE", "$positionToDraw")
+            updatePosition()
+        }
+
+    }
+
+    /**
+     * Used to obtain 5 points between two given locations ir order to draw the movement step by step
+     */
+    fun calculatePointsBetweenPositions(a : Location, b : Location) : List<Location> {
+            val count = 6
+            val d : Double = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)) / count;
+            val fi : Double = Math.atan2(b.y - a.y, b.x - a.x);
+
+            val points = mutableListOf<Location>()
+
+            for (i : Int in 1..5) {
+                points.add(Location((a.x + i * d * Math.cos(fi)).roundTo2DecimalPlaces(), (a.y + i * d * Math.sin(fi)).roundTo2DecimalPlaces(), currentPosition.position.map))
+            }
+
+            return points
+    }
+
+    fun Double.roundTo2DecimalPlaces() =
+            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 }

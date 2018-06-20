@@ -24,4 +24,8 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
         }
         return 0
     }
+
+    override fun toString(): String {
+        return "($x, $y)"
+    }
 }
