@@ -273,6 +273,9 @@ class FindMeActivity : AppCompatActivity() {
             //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
 
         }
+        else {
+            Toast.makeText(this, "Beacons out of range", Toast.LENGTH_SHORT).show()
+        }
     }
 
     /**
