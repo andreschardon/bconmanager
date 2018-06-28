@@ -99,7 +99,7 @@ class FindMeActivity : AppCompatActivity() {
             setupResource(point, imageView)
         }
         // Starting point
-        currentPosition = PositionOnMap(Location(2.0, 2.0, floorMap))
+        currentPosition = PositionOnMap(Location(-1.0, -1.0, floorMap))
         currentPosition.image = location_icon
         positionView = ImageView(this)
         setupResource(currentPosition, positionView)
@@ -258,20 +258,25 @@ class FindMeActivity : AppCompatActivity() {
         // Call this after currentPosition's x and y are updated
         val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
         if (resultLocation != null) {
-
-            // We will update the position slowly
-            val startLocation = currentPosition.position
-            val finishLocation = resultLocation
-            val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
-            Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
-            Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
-            Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
-            pointsToDraw.forEach {
-                drawQueue.add(it)
+            if(currentPosition.position.equals(Location(-1.0,-1.0,floorMap))) {
+                //INITIAL LOCATION
+                drawQueue.add(resultLocation)
             }
+            else {
+                // We will update the position slowly
+                val startLocation = currentPosition.position
+                val finishLocation = resultLocation
+                val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
+                Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
+                Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
+                Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
+                pointsToDraw.forEach {
+                    drawQueue.add(it)
+                }
 
-            //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
+                //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
 
+            }
         }
         else {
             Toast.makeText(this, "Beacons out of range", Toast.LENGTH_SHORT).show()
