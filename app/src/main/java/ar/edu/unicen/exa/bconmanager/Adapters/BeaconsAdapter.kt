@@ -11,7 +11,7 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
 class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
 
-    val context = context
+    var context = context
     val beacons = beacons
     var counter = 0
     val REFRESH_RATE = 10
@@ -41,7 +41,7 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
         //printBeaconsDistance()
         counter++
         if (counter == REFRESH_RATE) {
-            Log.d("REFRESH", "NOW")
+            Log.d("REFRESH", context.toString())
             counter = 0
             context.trilateratePosition()
         }

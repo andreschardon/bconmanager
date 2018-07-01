@@ -15,6 +15,12 @@ class TrilaterationCalculator  : AppCompatActivity() {
     private val TAG = "INTERSECTION"
     private val maxLength = 50.0
 
+    private object Holder { val INSTANCE = TrilaterationCalculator() }
+
+    companion object {
+        val instance: TrilaterationCalculator by lazy { Holder.INSTANCE }
+    }
+
 
     /**
      * Returns the current location on the map based on

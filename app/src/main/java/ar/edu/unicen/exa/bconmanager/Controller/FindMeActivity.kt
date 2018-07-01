@@ -28,7 +28,8 @@ import java.util.*
 class FindMeActivity : AppCompatActivity() {
 
     private val TAG = "FindMeActivity"
-    private val bluetoothScanner = BluetoothScanner()
+    private val bluetoothScanner = BluetoothScanner.instance
+    private var trilaterationCalculator = TrilaterationCalculator.instance
     private var filePath: String = ""
     private var drawQueue : Queue<Location> = ArrayDeque<Location>()
 
@@ -36,17 +37,25 @@ class FindMeActivity : AppCompatActivity() {
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
-    private var trilaterationCalculator = TrilaterationCalculator()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
+       if (!bluetoothScanner.isRunningOnBackground) {
+           val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+           val intent: Intent
+           chooseFile.type = "*/*" // TO DO: We should allow only json files
+           intent = Intent.createChooser(chooseFile, "Choose a file")
+           startActivityForResult(intent, 101)
+       } else {
+           backgroundSwitch.toggle()
+           val settings = getSharedPreferences(TAG, 0)
+           filePath = settings.getString("filePath", "")
+           Log.d("DESTROY", "Path is $filePath")
+           displayMap()
+       }
 
-        val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-        val intent: Intent
-        chooseFile.type = "*/*" // TO DO: We should allow only json files
-        intent = Intent.createChooser(chooseFile, "Choose a file")
-        startActivityForResult(intent, 101)
 
     }
 
@@ -105,16 +114,39 @@ class FindMeActivity : AppCompatActivity() {
         setupResource(currentPosition, positionView)
 
         // Scanning beacons
-        floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon) }
-        devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
-        bluetoothScanner.scanLeDevice(true, devicesListAdapter)
 
+        if (!bluetoothScanner.isRunningOnBackground) {
+            floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon) }
+            devicesListAdapter = BeaconsAdapter(this, bluetoothScanner.devicesList)
+            bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        } else {
+            floorMap.savedBeacons.forEach { restoreBeacon(it, bluetoothScanner.devicesList) }
+            bluetoothScanner.changeContext(this)
+            devicesListAdapter = (bluetoothScanner.devicesListAdapter as BeaconsAdapter)
+        }
+
+
+    }
+
+    private fun restoreBeacon(mapBeacon: BeaconOnMap, devicesList: MutableList<BeaconDevice>) {
+        devicesList.forEach {
+            if (it == mapBeacon.beacon) mapBeacon.beacon = it
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        bluetoothScanner.stopScan()
-
+        val settings = getSharedPreferences(TAG, 0)
+        val editor = settings.edit()
+        if (bluetoothScanner.isRunningOnBackground) {
+            editor.putString("filePath", filePath)
+            editor.commit()
+        } else {
+            bluetoothScanner.stopScan()
+            bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
+            editor.remove("filePath")
+            editor.commit()
+        }
     }
 
     private fun createTestMap() {
@@ -222,6 +254,8 @@ class FindMeActivity : AppCompatActivity() {
         // For now we don't need this
         //bluetoothScanner.scanLeDevice(true, devicesListAdapter)
         //trilateratePosition()
+
+        bluetoothScanner.isRunningOnBackground = !bluetoothScanner.isRunningOnBackground
     }
 
     private fun updatePosition() {
@@ -292,7 +326,6 @@ class FindMeActivity : AppCompatActivity() {
             val positionToDraw = drawQueue.remove()!!
             currentPosition.position.x = positionToDraw.x
             currentPosition.position.y = positionToDraw.y
-            Log.d("DRAW INTERMEDIATE", "$positionToDraw")
             updatePosition()
         }
 

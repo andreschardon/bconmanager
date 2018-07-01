@@ -6,6 +6,8 @@ import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.BaseAdapter
+import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
+import ar.edu.unicen.exa.bconmanager.Controller.FindMeActivity
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import kotlinx.android.synthetic.main.activity_my_beacons.*
 
@@ -23,6 +25,12 @@ class BluetoothScanner  : AppCompatActivity() {
 
     lateinit var devicesListAdapter : BaseAdapter
     var devicesList = mutableListOf<BeaconDevice>()
+    var isRunningOnBackground = false
+    private object Holder { val INSTANCE = BluetoothScanner() }
+
+    companion object {
+        val instance: BluetoothScanner by lazy { Holder.INSTANCE }
+    }
 
     /**
     * Activity for scanning and displaying available BLE devices.
@@ -114,6 +122,10 @@ class BluetoothScanner  : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun changeContext(context : FindMeActivity) {
+        (devicesListAdapter as BeaconsAdapter).context = context
     }
 
     fun clearAverages() {
