@@ -68,7 +68,7 @@ class FindMeActivity : AppCompatActivity() {
            Log.d("DESTROY", "Path is $filePath")
            displayMap()
        }
-        setupNotifications()
+
 
     }
 
@@ -93,12 +93,12 @@ class FindMeActivity : AppCompatActivity() {
         for (point in floorMap.pointsOfInterest) {
             val mBuilder = NotificationCompat.Builder(this.applicationContext, "notify_001")
             val bigText = NotificationCompat.BigTextStyle()
-            bigText.setBigContentTitle(point.id)
-            bigText.setSummaryText(point.content)
+            bigText.setBigContentTitle(point.content)
+            bigText.setSummaryText(point.id)
 
             mBuilder.setSmallIcon(R.drawable.interest_icon)
-            mBuilder.setContentTitle(point.id)
-            mBuilder.setContentText(point.content)
+            mBuilder.setContentTitle(point.content)
+            mBuilder.setContentText(point.id)
             mBuilder.priority = Notification.PRIORITY_MAX
             mBuilder.setStyle(bigText)
             point.notification = mBuilder
@@ -164,6 +164,8 @@ class FindMeActivity : AppCompatActivity() {
             bluetoothScanner.changeContext(this)
             devicesListAdapter = (bluetoothScanner.devicesListAdapter as BeaconsAdapter)
         }
+
+        setupNotifications()
 
 
     }
@@ -311,7 +313,7 @@ class FindMeActivity : AppCompatActivity() {
             if (point.isInside(currentPosition)) {
                 if (!point.alreadyInside) {
                     point.alreadyInside = true
-                    notificationManager.notify(point.id.toInt(), point.notification.build())
+                    notificationManager.notify(floorMap.pointsOfInterest.indexOf(point), point.notification.build())
                 }
             } else {
                 point.alreadyInside = false
