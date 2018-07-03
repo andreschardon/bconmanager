@@ -78,12 +78,4 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         return "CustomMap: $image - width: $width - height: $height /n" +
                 "Beacons: ${savedBeacons.toString()}"
     }
-    fun isInZoneOfInterest(positionOnMap: PositionOnMap) : Boolean{
-        pointsOfInterest.forEach {
-            zoneOfInterest->
-            if(zoneOfInterest.isInside(positionOnMap))
-                return true
-            }
-        return false
-    }
 }
