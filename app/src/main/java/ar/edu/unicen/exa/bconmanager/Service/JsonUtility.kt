@@ -1,7 +1,7 @@
 package ar.edu.unicen.exa.bconmanager.Service
 
 import android.util.Log
-import ar.edu.unicen.exa.bconmanager.Model.JsonMap
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
 import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.File

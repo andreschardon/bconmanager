@@ -1,7 +1,9 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
-import android.graphics.Point
 import android.util.Log
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonBeacon
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
 import ar.edu.unicen.exa.bconmanager.R
 
 class CustomMap constructor(var image : String, var width : Double , var height : Double ) {
@@ -20,8 +22,8 @@ class CustomMap constructor(var image : String, var width : Double , var height 
             this.addBeacon(testBeacon)
         }
         if(jsonMap.pointsOfInterest != null) {
-            for (circle in jsonMap.pointsOfInterest!!) {
-                val point = PointOfInterest(Location(circle.x, circle.y, this), circle.r)
+            for (p in jsonMap.pointsOfInterest!!) {
+                val point = PointOfInterest(Location(p.x, p.y, this), p.r, p.content,p.id)
                 point.image = R.drawable.zone_icon
                 this.addPoI(point)
             }
@@ -38,7 +40,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         for (beacon in this.savedBeacons) {
             beaconList.add(beacon.toJson())
         }
-        val pointsList = mutableListOf<Circle>()
+        val pointsList = mutableListOf<JsonPoI>()
         for (point in this.pointsOfInterest) {
             pointsList.add(point.toJson())
         }
@@ -47,7 +49,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
             map = JsonMap(image, width, height, beaconList)
         }
         else {
-            map = JsonMap(image, width, height, beaconList,pointsList)
+            map = JsonMap(image, width, height, beaconList, pointsList)
         }
         return map
 

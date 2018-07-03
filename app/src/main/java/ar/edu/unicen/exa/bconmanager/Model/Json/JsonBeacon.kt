@@ -1,4 +1,4 @@
-package ar.edu.unicen.exa.bconmanager.Model
+package ar.edu.unicen.exa.bconmanager.Model.Json
 
 class JsonBeacon constructor(
     val mac : String? = null,

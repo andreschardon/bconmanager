@@ -210,12 +210,12 @@ class FindMeActivity : AppCompatActivity() {
 
 
         // TEST: Creating a interest point and displaying it
-        val Room1 = PointOfInterest(Location(2.0, 1.0, testMap), 1.6)
+        val Room1 = PointOfInterest(Location(2.0, 1.0, testMap), 1.6,"Room1","Content for Room1")
         Room1.image = zone_icon
         testMap.addPoI(Room1)
 
         // TEST: Creating a interest point and displaying it
-        val Living = PointOfInterest(Location(3.0, 1.0, testMap), 1.6)
+        val Living = PointOfInterest(Location(3.0, 1.0, testMap), 1.6,"Living", "Content for Living")
         Living.image = zone_icon
         testMap.addPoI(Living)
 
