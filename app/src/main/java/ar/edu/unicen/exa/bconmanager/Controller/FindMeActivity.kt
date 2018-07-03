@@ -47,6 +47,7 @@ class FindMeActivity : AppCompatActivity() {
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
+    private var inZoneOfInterest = false
 
     private lateinit var notificationManager : NotificationManager
     private lateinit var mBuilder : NotificationCompat.Builder
@@ -58,7 +59,7 @@ class FindMeActivity : AppCompatActivity() {
        if (!bluetoothScanner.isRunningOnBackground) {
            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
            val intent: Intent
-           chooseFile.type = "*/*" // TO DO: We should allow only json files
+           chooseFile.type = "application/octet-stream" //as close to only Json as possible
            intent = Intent.createChooser(chooseFile, "Choose a file")
            startActivityForResult(intent, 101)
        } else {
@@ -304,9 +305,14 @@ class FindMeActivity : AppCompatActivity() {
         positionView.layoutParams = layoutParams
 
 
-        if (floorMap.isInZoneOfInterest(currentPosition)) {
-            //Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
-            notificationManager.notify(999, mBuilder.build())
+        if (floorMap.isInZoneOfInterest(currentPosition)){
+                if (!inZoneOfInterest) {
+                    notificationManager.notify(999, mBuilder.build())
+                    inZoneOfInterest = true
+                }
+        }
+        else {
+            inZoneOfInterest = false
         }
 
 
