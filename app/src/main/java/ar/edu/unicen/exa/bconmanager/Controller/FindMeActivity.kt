@@ -45,7 +45,7 @@ class FindMeActivity : AppCompatActivity() {
        if (!bluetoothScanner.isRunningOnBackground) {
            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
            val intent: Intent
-           chooseFile.type = "*/*" // TO DO: We should allow only json files
+           chooseFile.type = "application/octet-stream" //as close to only Json as possible
            intent = Intent.createChooser(chooseFile, "Choose a file")
            startActivityForResult(intent, 101)
        } else {
