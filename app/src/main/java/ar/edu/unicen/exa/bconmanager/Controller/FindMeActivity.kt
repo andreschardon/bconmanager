@@ -1,11 +1,13 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.app.Notification
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.os.Bundle
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.os.Environment.getExternalStoragePublicDirectory
+import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -23,6 +25,14 @@ import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_find_me.*
 import java.math.BigDecimal
 import java.util.*
+import android.support.v4.app.NotificationManagerCompat
+import ar.edu.unicen.exa.bconmanager.R.id.*
+import android.app.NotificationManager
+import android.app.NotificationChannel
+import android.os.Build
+import android.content.Context.NOTIFICATION_SERVICE
+import android.app.PendingIntent
+import android.content.Context
 
 
 class FindMeActivity : AppCompatActivity() {
@@ -37,6 +47,9 @@ class FindMeActivity : AppCompatActivity() {
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
+
+    private lateinit var notificationManager : NotificationManager
+    private lateinit var mBuilder : NotificationCompat.Builder
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +68,7 @@ class FindMeActivity : AppCompatActivity() {
            Log.d("DESTROY", "Path is $filePath")
            displayMap()
        }
-
+        setupNotification()
 
     }
 
@@ -71,6 +84,29 @@ class FindMeActivity : AppCompatActivity() {
             displayMap()
         } else {
             Log.e(TAG, "The file path is incorrect")
+        }
+    }
+
+    private fun setupNotification() {
+        mBuilder = NotificationCompat.Builder(this.applicationContext, "notify_001")
+        val bigText = NotificationCompat.BigTextStyle()
+        bigText.setBigContentTitle("BconManager")
+        bigText.setSummaryText("Zone of interest reached")
+
+        mBuilder.setSmallIcon(R.drawable.interest_icon)
+        mBuilder.setContentTitle("BconManager")
+        mBuilder.setContentText("Zone of interest reached")
+        mBuilder.priority = Notification.PRIORITY_MAX
+        mBuilder.setStyle(bigText)
+
+        notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel("notify_001",
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
         }
     }
 
@@ -269,7 +305,8 @@ class FindMeActivity : AppCompatActivity() {
 
 
         if (floorMap.isInZoneOfInterest(currentPosition)) {
-            Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
+            notificationManager.notify(999, mBuilder.build())
         }
 
 
