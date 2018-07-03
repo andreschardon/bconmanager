@@ -37,6 +37,7 @@ class FindMeActivity : AppCompatActivity() {
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
+    private var inZoneOfInterest = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -268,8 +269,14 @@ class FindMeActivity : AppCompatActivity() {
         positionView.layoutParams = layoutParams
 
 
-        if (floorMap.isInZoneOfInterest(currentPosition)) {
-            Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
+        if (floorMap.isInZoneOfInterest(currentPosition)){
+                if (!inZoneOfInterest) {
+                    Toast.makeText(this, "ZONE OF INTEREST REACHED", Toast.LENGTH_SHORT).show()
+                    inZoneOfInterest = true
+                }
+        }
+        else {
+            inZoneOfInterest = false
         }
 
 
