@@ -50,7 +50,6 @@ class FindMeActivity : AppCompatActivity() {
     private var inZoneOfInterest = false
 
     private lateinit var notificationManager : NotificationManager
-    private lateinit var mBuilder : NotificationCompat.Builder
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +68,7 @@ class FindMeActivity : AppCompatActivity() {
            Log.d("DESTROY", "Path is $filePath")
            displayMap()
        }
-        setupNotification()
+        setupNotifications()
 
     }
 
@@ -88,21 +87,25 @@ class FindMeActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupNotification() {
-        mBuilder = NotificationCompat.Builder(this.applicationContext, "notify_001")
-        val bigText = NotificationCompat.BigTextStyle()
-        bigText.setBigContentTitle("BconManager")
-        bigText.setSummaryText("Zone of interest reached")
+    private fun setupNotifications() {
 
-        mBuilder.setSmallIcon(R.drawable.interest_icon)
-        mBuilder.setContentTitle("BconManager")
-        mBuilder.setContentText("Zone of interest reached")
-        mBuilder.priority = Notification.PRIORITY_MAX
-        mBuilder.setStyle(bigText)
+        // Create a notification builder for each point of interest
+        for (point in floorMap.pointsOfInterest) {
+            val mBuilder = NotificationCompat.Builder(this.applicationContext, "notify_001")
+            val bigText = NotificationCompat.BigTextStyle()
+            bigText.setBigContentTitle(point.id)
+            bigText.setSummaryText(point.content)
 
+            mBuilder.setSmallIcon(R.drawable.interest_icon)
+            mBuilder.setContentTitle(point.id)
+            mBuilder.setContentText(point.content)
+            mBuilder.priority = Notification.PRIORITY_MAX
+            mBuilder.setStyle(bigText)
+            point.notification = mBuilder
+        }
+
+        // Set up notification manager
         notificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel("notify_001",
                     "Channel human readable title",
@@ -304,17 +307,16 @@ class FindMeActivity : AppCompatActivity() {
         Log.d("UPDATING VIEW DRAW", "${positionView.layoutParams}")
         positionView.layoutParams = layoutParams
 
-
-        if (floorMap.isInZoneOfInterest(currentPosition)){
-                if (!inZoneOfInterest) {
-                    notificationManager.notify(999, mBuilder.build())
-                    inZoneOfInterest = true
+        for (point in floorMap.pointsOfInterest) {
+            if (point.isInside(currentPosition)) {
+                if (!point.alreadyInside) {
+                    point.alreadyInside = true
+                    notificationManager.notify(point.id.toInt(), point.notification.build())
                 }
+            } else {
+                point.alreadyInside = false
+            }
         }
-        else {
-            inZoneOfInterest = false
-        }
-
 
         // Demo to obtain current distance to a particular beacon
         //Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
