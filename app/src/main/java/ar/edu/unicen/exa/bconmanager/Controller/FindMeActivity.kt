@@ -90,12 +90,16 @@ class FindMeActivity : AppCompatActivity() {
     private fun setupNotifications() {
 
         // Create a notification builder for each point of interest
+        val intent = Intent(this, FindMeActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+
         for (point in floorMap.pointsOfInterest) {
             val mBuilder = NotificationCompat.Builder(this.applicationContext, "notify_001")
             val bigText = NotificationCompat.BigTextStyle()
             bigText.setBigContentTitle(point.content)
             bigText.setSummaryText(point.id)
-
+            mBuilder.setContentIntent(pendingIntent)
             mBuilder.setSmallIcon(R.drawable.interest_icon)
             mBuilder.setContentTitle(point.content)
             mBuilder.setContentText(point.id)
