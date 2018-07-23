@@ -14,6 +14,7 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
     var context = context
     val beacons = beacons
     var counter = 0
+    var cleanAverages = false
     val REFRESH_RATE = 10
     val REFRESH_INTERMEDIATE = listOf(0, 2, 4, 6, 8)
 
@@ -36,11 +37,23 @@ class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : B
         return beacons.count()
     }
 
+    fun refreshEverything() {
+        cleanAverages = true
+    }
+
     override fun notifyDataSetChanged() {
         super.notifyDataSetChanged()
         //printBeaconsDistance()
         counter++
+        if (cleanAverages) {
+            beacons.forEach {
+                it.cleanAverages()
+                Log.d("ACCELERATION: ", it.approxDistance.toString())
+            }
+            cleanAverages = false
+        }
         if (counter == REFRESH_RATE) {
+
             Log.d("REFRESH", context.toString())
             counter = 0
             context.trilateratePosition()

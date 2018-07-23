@@ -61,14 +61,17 @@ class TrilaterationCalculator  : AppCompatActivity() {
             // Either we are too far away of all three beacons
             // Or we are in the middle and we should increase the radius a little
             var counter = 0
-            while (counter < 6) {
+            while (counter < 30) {
 
                 if ((circle1.r < maxLength) && (circle2.r < maxLength) && (circle0.r < maxLength)) {
                     // We should consider some error margin
-                    Log.d(TAG, "Increasing beacon's distance by 0.5")
+                    Log.d(TAG, "Increasing beacon's distance by 0.1")
                     circle0 = increaseCircleRadius(circle0)
                     circle1 = increaseCircleRadius(circle1)
                     circle2 = increaseCircleRadius(circle2)
+                    Log.d(TAG, circle0.toString())
+                    Log.d(TAG, circle1.toString())
+                    Log.d(TAG, circle2.toString())
                 } else {
                     // We are too far away
                     Log.d(TAG, "We are too far away from at least one beacon")
@@ -84,11 +87,11 @@ class TrilaterationCalculator  : AppCompatActivity() {
                     counter++
                 } else {
                     Log.d(TAG, "New intersection found! Continue")
-                    counter = 7
+                    counter = 31
                 }
 
             }
-            if (counter == 6) {
+            if (counter == 30) {
                 // We couldn't fix it by increasing the radius
                 Log.d(TAG, " :( We reached the maximum attempts")
                 return null
@@ -164,7 +167,7 @@ class TrilaterationCalculator  : AppCompatActivity() {
      *  Increase a circle's radius 0.5 mts (to consider errors)
      */
     private fun increaseCircleRadius(circle : Circle) : Circle {
-        return Circle(circle.x, circle.y, circle.r + 0.5)
+        return Circle(circle.x, circle.y, circle.r + 0.1)
     }
 
     /**
