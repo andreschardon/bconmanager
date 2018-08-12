@@ -1,7 +1,5 @@
 package ar.edu.unicen.exa.bconmanager.Model.Json
 
-import ar.edu.unicen.exa.bconmanager.Model.Circle
-
 class JsonMap constructor (
         val image : String? = null,
         val width : Double? = null,

@@ -26,6 +26,7 @@
         </activity>
         <activity android:name=".Controller.MyBeaconsActivity"></activity>
         <activity android:name=".Controller.FindMeActivity"></activity>
+        <activity android:name=".Controller.MyMapsActivity"></activity>
     </application>
 
 </manifest>

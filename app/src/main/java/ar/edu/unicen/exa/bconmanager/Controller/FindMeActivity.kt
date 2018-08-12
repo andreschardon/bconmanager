@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -52,10 +53,25 @@ class FindMeActivity : AppCompatActivity() {
     private lateinit var notificationManager : NotificationManager
 
 
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
-       if (!bluetoothScanner.isRunningOnBackground) {
+
+        val intent = intent
+        //get the attached extras from the intent
+        //we should use the same key as we used to attach the data.
+        val mapPath = intent.getStringExtra("path")
+        if(!mapPath.isNullOrEmpty()) {
+            filePath = mapPath
+            displayMap()
+            Log.d("SAVEDMAPS","TENGO EXTRA")
+            //clean extra???
+        }
+        //Log.d("SAVEDMAPS","THE PATH OF THE MAPS IS $mapPath")
+       else if (!bluetoothScanner.isRunningOnBackground) {
            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
            val intent: Intent
            chooseFile.type = "application/octet-stream" //as close to only Json as possible
@@ -68,6 +84,7 @@ class FindMeActivity : AppCompatActivity() {
            Log.d("DESTROY", "Path is $filePath")
            displayMap()
        }
+
 
 
     }
@@ -127,7 +144,7 @@ class FindMeActivity : AppCompatActivity() {
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
         //createTestMap()
-
+        Log.d("FILEPATH",filePath)
         // Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
 
@@ -245,6 +262,8 @@ class FindMeActivity : AppCompatActivity() {
         Log.d(TAG, "Map loaded from JSON file in $filePath")
         return fileMap
     }
+
+
 
     private fun getRealMapSize(): Point {
         val realSize = Point()
