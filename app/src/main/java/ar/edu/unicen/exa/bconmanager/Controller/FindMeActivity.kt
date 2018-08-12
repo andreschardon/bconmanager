@@ -2,9 +2,16 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.Point
+import android.hardware.SensorEvent
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment.DIRECTORY_DOWNLOADS
 import android.os.Environment.getExternalStoragePublicDirectory
@@ -22,18 +29,11 @@ import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.*
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.MovementDetector
 import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_find_me.*
 import java.math.BigDecimal
 import java.util.*
-import android.support.v4.app.NotificationManagerCompat
-import ar.edu.unicen.exa.bconmanager.R.id.*
-import android.app.NotificationManager
-import android.app.NotificationChannel
-import android.os.Build
-import android.content.Context.NOTIFICATION_SERVICE
-import android.app.PendingIntent
-import android.content.Context
 
 
 class FindMeActivity : AppCompatActivity() {
@@ -42,15 +42,20 @@ class FindMeActivity : AppCompatActivity() {
     private val bluetoothScanner = BluetoothScanner.instance
     private var trilaterationCalculator = TrilaterationCalculator.instance
     private var filePath: String = ""
-    private var drawQueue : Queue<Location> = ArrayDeque<Location>()
+    private var drawQueue: Queue<Location> = ArrayDeque<Location>()
 
     private lateinit var floorMap: CustomMap
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
     private var inZoneOfInterest = false
+    private var jumpCounter = 0
+    private val detector = MovementDetector(this)
+    private val ACCELERATION_THRESHOLD = 1.5
+    private val USELESS_MOVE_THRESHOLD = 0.3
+    private val JUMP_THRESHOLD = 1.4 //meters
 
-    private lateinit var notificationManager : NotificationManager
+    private lateinit var notificationManager: NotificationManager
 
 
 
@@ -84,18 +89,48 @@ class FindMeActivity : AppCompatActivity() {
            Log.d("DESTROY", "Path is $filePath")
            displayMap()
        }
+        if (!bluetoothScanner.isRunningOnBackground) {
+            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+            val intent: Intent
+            chooseFile.type = "application/octet-stream" //as close to only Json as possible
+            intent = Intent.createChooser(chooseFile, "Choose a file")
+            startActivityForResult(intent, 101)
+        } else {
+            backgroundSwitch.toggle()
+            val settings = getSharedPreferences(TAG, 0)
+            filePath = settings.getString("filePath", "")
+            Log.d("DESTROY", "Path is $filePath")
+            displayMap()
+        }
 
 
 
+        detector.addListener(object:MovementDetector.Listener {
+            override fun onMotionDetected(event:SensorEvent, acceleration:Float) {
+                /*Log.d("ACCELERATION", ("Acceleration: [" + String.format("%.3f", event.values[0])
+                        + "," + String.format("%.3f", event.values[1]) + ","
+                        + String.format("%.3f", event.values[2]) + "] "
+                        + String.format("%.3f", acceleration)))*/
+                //Log.d("ACCELERATION", String.format("%.3f", acceleration))
+                if (acceleration > ACCELERATION_THRESHOLD)
+                {
+                    Log.d("ACCELERATION", "You are moving at $acceleration")
+                    devicesListAdapter.refreshEverything()
+                }
+            }
+        })
+        detector.context = this
+        detector.init()
+        detector.start()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             101 -> if (resultCode == -1) {
-                    val uri = data!!.data
-                    filePath = uri.lastPathSegment.removePrefix("raw:")
-                }
+                val uri = data!!.data
+                filePath = uri.lastPathSegment.removePrefix("raw:")
+            }
         }
         if (!filePath.isNullOrEmpty()) {
             displayMap()
@@ -209,6 +244,7 @@ class FindMeActivity : AppCompatActivity() {
             bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
             editor.remove("filePath")
             editor.commit()
+            //detector.stop()
         }
     }
 
@@ -236,12 +272,12 @@ class FindMeActivity : AppCompatActivity() {
 
 
         // TEST: Creating a interest point and displaying it
-        val Room1 = PointOfInterest(Location(2.0, 1.0, testMap), 1.6,"Room1","Content for Room1")
+        val Room1 = PointOfInterest(Location(2.0, 1.0, testMap), 1.6, "Room1", "Content for Room1")
         Room1.image = zone_icon
         testMap.addPoI(Room1)
 
         // TEST: Creating a interest point and displaying it
-        val Living = PointOfInterest(Location(3.0, 1.0, testMap), 1.6,"Living", "Content for Living")
+        val Living = PointOfInterest(Location(3.0, 1.0, testMap), 1.6, "Living", "Content for Living")
         Living.image = zone_icon
         testMap.addPoI(Living)
 
@@ -325,11 +361,9 @@ class FindMeActivity : AppCompatActivity() {
 
     private fun updatePosition() {
         // We should slowly update the position in... 5 stages?
-        Log.d(TAG, "Updating current position")
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
-        Log.d("UPDATING VIEW DRAW", "${positionView.layoutParams}")
         positionView.layoutParams = layoutParams
 
         for (point in floorMap.pointsOfInterest) {
@@ -362,29 +396,61 @@ class FindMeActivity : AppCompatActivity() {
         // Call this after currentPosition's x and y are updated
         val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
         if (resultLocation != null) {
-            if(currentPosition.position.equals(Location(-1.0,-1.0,floorMap))) {
+            if (currentPosition.position.equals(Location(-1.0, -1.0, floorMap))) {
                 //INITIAL LOCATION
                 drawQueue.add(resultLocation)
-            }
-            else {
+            } else {
                 // We will update the position slowly
                 val startLocation = currentPosition.position
                 val finishLocation = resultLocation
-                val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
-                Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
-                Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
-                Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
-                pointsToDraw.forEach {
-                    drawQueue.add(it)
+                if (!isUselessMove(startLocation, finishLocation) && !isJump(startLocation, finishLocation)) {
+                    val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
+                    Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
+                    Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
+                    Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
+                    pointsToDraw.forEach {
+                        drawQueue.add(it)
+                    }
+                } else {
+                    Log.d("FINISH", "It is useless")
                 }
-
-                //Log.d("CURRENT PY","${floorMap.pointsOfInterest[0].position.y}")
-
             }
-        }
-        else {
+        } else {
             Toast.makeText(this, "Beacons out of range", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * Used to ignore points really close
+     */
+    fun isUselessMove(origin : Location, destination : Location) : Boolean {
+        if (Math.abs(origin.x - destination.x) < USELESS_MOVE_THRESHOLD && Math.abs(origin.y - destination.y) < USELESS_MOVE_THRESHOLD ) {
+            return true
+        }
+        return false
+    }
+
+    /**
+     * Checks that the new destination is not a "jump"
+     * A location is considered a jump when it is really far from the origin point
+     * and it is not repeated over time (if we get 3 consecutive jumps, we should perform the jump)
+     */
+
+    fun isJump(origin: Location, destination: Location) : Boolean {
+        Log.d("JUMP", "Differences are ${Math.abs(origin.x - destination.x)}m and ${Math.abs(origin.y - destination.y)}m")
+        if (Math.abs(origin.x - destination.x) >= JUMP_THRESHOLD ||  Math.abs(origin.y - destination.y) >= JUMP_THRESHOLD) {
+            jumpCounter++
+        } else {
+            jumpCounter = 0
+            Log.d("JUMP", "Not a jump, update")
+            return false
+        }
+        if (jumpCounter > 3) {
+            Log.d("JUMP", "Repeated jump, let's do it")
+            return false
+        }
+        Log.d("JUMP", "It's a jump, do not update")
+        return true
     }
 
     /**
@@ -404,18 +470,18 @@ class FindMeActivity : AppCompatActivity() {
     /**
      * Used to obtain 5 points between two given locations ir order to draw the movement step by step
      */
-    fun calculatePointsBetweenPositions(a : Location, b : Location) : List<Location> {
-            val count = 6
-            val d : Double = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)) / count;
-            val fi : Double = Math.atan2(b.y - a.y, b.x - a.x);
+    fun calculatePointsBetweenPositions(a: Location, b: Location): List<Location> {
+        val count = 6
+        val d: Double = Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)) / count;
+        val fi: Double = Math.atan2(b.y - a.y, b.x - a.x);
 
-            val points = mutableListOf<Location>()
+        val points = mutableListOf<Location>()
 
-            for (i : Int in 1..5) {
-                points.add(Location((a.x + i * d * Math.cos(fi)).roundTo2DecimalPlaces(), (a.y + i * d * Math.sin(fi)).roundTo2DecimalPlaces(), currentPosition.position.map))
-            }
+        for (i: Int in 1..5) {
+            points.add(Location((a.x + i * d * Math.cos(fi)).roundTo2DecimalPlaces(), (a.y + i * d * Math.sin(fi)).roundTo2DecimalPlaces(), currentPosition.position.map))
+        }
 
-            return points
+        return points
     }
 
     fun Double.roundTo2DecimalPlaces() =
