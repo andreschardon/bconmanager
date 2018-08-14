@@ -58,9 +58,6 @@ class FindMeActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
 
 
-
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_find_me)
@@ -76,19 +73,19 @@ class FindMeActivity : AppCompatActivity() {
             //clean extra???
         }
         //Log.d("SAVEDMAPS","THE PATH OF THE MAPS IS $mapPath")
-       else if (!bluetoothScanner.isRunningOnBackground) {
-           val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-           val intent: Intent
-           chooseFile.type = "application/octet-stream" //as close to only Json as possible
-           intent = Intent.createChooser(chooseFile, "Choose a file")
-           startActivityForResult(intent, 101)
-       } else {
-           backgroundSwitch.toggle()
-           val settings = getSharedPreferences(TAG, 0)
-           filePath = settings.getString("filePath", "")
-           Log.d("DESTROY", "Path is $filePath")
-           displayMap()
-       }
+        else if (!bluetoothScanner.isRunningOnBackground) {
+            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+            val intent: Intent
+            chooseFile.type = "application/octet-stream" //as close to only Json as possible
+            intent = Intent.createChooser(chooseFile, "Choose a file")
+            startActivityForResult(intent, 101)
+        } else {
+            backgroundSwitch.toggle()
+            val settings = getSharedPreferences(TAG, 0)
+            filePath = settings.getString("filePath", "")
+            Log.d("DESTROY", "Path is $filePath")
+            displayMap()
+        }
         if (!bluetoothScanner.isRunningOnBackground) {
             val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
             val intent: Intent

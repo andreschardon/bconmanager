@@ -120,4 +120,9 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, MyMapsActivity::class.java)
         startActivity(intent)
     }
+
+    fun goToOfflineActivity(view: View) {
+        val intent = Intent(this, OfflineActivity::class.java)
+        startActivity(intent)
+    }
 }

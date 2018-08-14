@@ -16,6 +16,12 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
         return 0
     }
 
+    fun setX(pixelsX : Int) {
+        if (map != null) {
+            x = (pixelsX / map.widthMtsToPixelsRatio )
+        }
+    }
+
     fun getY() : Int{
 //        Log.d("POSITION - HEIGHT MTS", "${y.toString()} meters")
 //        Log.d("POSITION - HEIGHT PX", "${((map.heightMtsToPixelsRatio * y ).toInt()).toString()} pixels")
@@ -23,6 +29,13 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
             return (map.heightMtsToPixelsRatio * y ).toInt()
         }
         return 0
+    }
+
+
+    fun setY(pixelsY : Int) {
+        if (map != null) {
+            y = (pixelsY / map.widthMtsToPixelsRatio )
+        }
     }
 
     override fun toString(): String {

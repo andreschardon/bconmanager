@@ -8,20 +8,20 @@
 
     <Button
         android:id="@+id/button"
-        android:layout_width="120dp"
+        android:layout_width="128dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_marginStart="16dp"
         android:onClick="goToMyBeaconsActivity"
-        android:text="My Beacons"
+        android:text="Beacons"
         app:layout_constraintBottom_toTopOf="@+id/button3"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button2"
-        android:layout_width="120dp"
+        android:layout_width="145dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:layout_marginEnd="16dp"
         android:onClick="goToMyMapsActivity"
         android:text="My Maps"
@@ -30,12 +30,12 @@
 
     <Button
         android:id="@+id/button3"
-        android:layout_width="0dp"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="200dp"
         android:layout_marginStart="16dp"
         android:onClick="goToFindMeActivity"
-        android:text="Find Me"
+        android:text="Trilateration"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="@+id/button"
         app:layout_constraintHorizontal_bias="0.0"
@@ -43,11 +43,12 @@
 
     <Button
         android:id="@+id/button4"
-        android:layout_width="0dp"
+        android:layout_width="149dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="200dp"
         android:layout_marginEnd="16dp"
-        android:text="Settings"
+        android:onClick="goToOfflineActivity"
+        android:text="Fingerprinting"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/button2" />

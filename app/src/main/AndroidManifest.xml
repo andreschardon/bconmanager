@@ -24,9 +24,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Controller.MyBeaconsActivity"></activity>
-        <activity android:name=".Controller.FindMeActivity"></activity>
-        <activity android:name=".Controller.MyMapsActivity"></activity>
+        <activity android:name=".Controller.MyBeaconsActivity" />
+        <activity android:name=".Controller.FindMeActivity" />
+        <activity android:name=".Controller.MyMapsActivity" />
+        <activity android:name=".Controller.OfflineActivity"></activity>
     </application>
 
 </manifest>

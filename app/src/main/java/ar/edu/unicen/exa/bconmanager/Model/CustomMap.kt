@@ -10,6 +10,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
+    var fingerprintZones : MutableList<FingerZone> = mutableListOf<FingerZone>()
     var pointsOfInterest : MutableList<PointOfInterest> = mutableListOf<PointOfInterest>()
     var widthMtsToPixelsRatio : Double = 0.0
     var heightMtsToPixelsRatio : Double = 0.0
