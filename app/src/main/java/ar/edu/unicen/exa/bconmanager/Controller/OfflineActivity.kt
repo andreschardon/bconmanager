@@ -12,16 +12,14 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
-import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
-import kotlinx.android.synthetic.main.activity_find_me.*
+import kotlinx.android.synthetic.main.activity_offline.*
 import java.math.BigDecimal
-import java.util.*
+
 
 class OfflineActivity : AppCompatActivity() {
 
@@ -37,7 +35,9 @@ class OfflineActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_offline)
-
+        startBtn.isEnabled = false
+        deleteBtn.isEnabled = false
+        createBtn.isEnabled = false
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
@@ -79,22 +79,31 @@ class OfflineActivity : AppCompatActivity() {
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView
         img.setImageBitmap(bitmap)
-        img.setOnTouchListener(object: View.OnTouchListener {
-            override fun onTouch(v:View, event:MotionEvent):Boolean {
-                val screenX = event.x
-                val screenY = event.y
-                val viewX = screenX - v.left
-                val viewY = screenY - v.top
-                Log.d(TAG, "Touching x: $viewX y: $viewY")
-                // check if point exists
+        img.setOnTouchListener { v, event ->
+            val screenX = event.x
+            val screenY = event.y
+            val viewX = screenX - v.left
+            val viewY = screenY - v.top
 
-                // if it does, click it
-                //openFingerprintingMenu()
-                // otherwise, create a new point there
-                createFingerprintingPoint(viewX, viewY)
-                return false
+            startBtn.isEnabled = false
+            deleteBtn.isEnabled = false
+            createBtn.isEnabled = false
+
+            Log.d(TAG, "Touching x: $viewX y: $viewY")
+            // check if point exists
+            // if it does, click it
+            var alreadyExists = false
+            floorMap.fingerprintZones.forEach {
+                if (it.isTouched(viewX, viewY) && !alreadyExists) {
+                    openFingerprintingMenu(it)
+                    alreadyExists = true
+                }
             }
-        })
+            // otherwise, create a new point there
+            if (!alreadyExists)
+                createFingerprintingPoint(viewX, viewY)
+            false
+        }
 
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
@@ -133,6 +142,21 @@ class OfflineActivity : AppCompatActivity() {
         **/
     }
 
+    private fun openFingerprintingMenu(touchedZone: FingerZone) {
+        Log.d(TAG, "About to open finger menu")
+        // color as blue
+        if (touchedZone.hasData) {
+            // is green
+            deleteBtn.isEnabled = true
+        } else {
+            // is red
+            deleteBtn.isEnabled = true
+            startBtn.isEnabled = true
+        }
+
+    }
+
+
     private fun createFingerprintingPoint(viewX: Float, viewY: Float) {
         val loc = Location(0.0, 0.0, floorMap)
         loc.setX(viewX.toInt())
@@ -142,6 +166,10 @@ class OfflineActivity : AppCompatActivity() {
         val imageView = ImageView(this)
         zone.image = R.drawable.zone_icon
         setupResource(zone, imageView)
+        floorMap.fingerprintZones.add(zone)
+        createBtn.isEnabled = true
+        deleteBtn.isEnabled = true
+        startBtn.isEnabled = true
 
     }
 
