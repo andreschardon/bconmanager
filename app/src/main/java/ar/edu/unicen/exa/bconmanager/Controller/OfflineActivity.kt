@@ -164,7 +164,7 @@ class OfflineActivity : AppCompatActivity() {
         val zone = FingerZone(loc)
         Log.d(TAG, "Touching ${zone.toString()}")
         val imageView = ImageView(this)
-        zone.image = R.drawable.zone_icon
+        zone.image = R.drawable.finger_zone_blue
         setupResource(zone, imageView)
         floorMap.fingerprintZones.add(zone)
         createBtn.isEnabled = true
