@@ -8,6 +8,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
     var name : String = address
     var brand : String = "Unknown"
     var approxDistance: Double = 999.0
+    var averageRssi : Double = 0.0
     var average: Double = 0.0
     var averageAmount = 0
     var txPower : Int = -60
@@ -31,6 +32,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         val approxDistance = ((Math.pow(10.toDouble(), ((txPower - rssi)/30f).toDouble())))
                 .roundTo2DecimalPlaces()
         average = (((average * averageAmount) + approxDistance ) / (averageAmount+1))
+        averageRssi = (((averageRssi * averageAmount) + rssi) / (averageAmount+1))
         averageAmount++
         this.approxDistance = average.roundTo2DecimalPlaces()
         //Log.d("Beacon : ", "$name ::: $average ::: $averageAmount")
@@ -40,7 +42,9 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
 
     fun cleanAverages() {
         Log.d("Beacon", "Setting to 0")
-        averageAmount = 1
+        averageAmount = 0
+        average = 0.0
+        averageRssi = 0.0
     }
 
 }

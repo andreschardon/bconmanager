@@ -2,6 +2,7 @@ package ar.edu.unicen.exa.bconmanager.Model
 
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonBeacon
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonFingerprintZone
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
 import ar.edu.unicen.exa.bconmanager.R
@@ -10,7 +11,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
-    var fingerprintZones : MutableList<FingerZone> = mutableListOf<FingerZone>()
+    var fingerprintZones : MutableList<FingerprintZone> = mutableListOf<FingerprintZone>()
     var pointsOfInterest : MutableList<PointOfInterest> = mutableListOf<PointOfInterest>()
     var widthMtsToPixelsRatio : Double = 0.0
     var heightMtsToPixelsRatio : Double = 0.0
@@ -45,12 +46,20 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         for (point in this.pointsOfInterest) {
             pointsList.add(point.toJson())
         }
+        val fingerprintList = mutableListOf<JsonFingerprintZone>()
+        for (zone in this.fingerprintZones) {
+            fingerprintList.add(zone.toJson())
+        }
         var map : JsonMap
-        if (pointsList.size == 0) {
+        if (pointsList.size == 0 && fingerprintList.size == 0) {
             map = JsonMap(image, width, height, beaconList)
         }
-        else {
+        else if (fingerprintList.size == 0) {
             map = JsonMap(image, width, height, beaconList, pointsList)
+        } else if (pointsList.size == 0) {
+            map = JsonMap(image, width, height, beaconList, null, fingerprintList)
+        } else {
+            map = JsonMap(image, width, height, beaconList, pointsList, fingerprintList)
         }
         return map
 
