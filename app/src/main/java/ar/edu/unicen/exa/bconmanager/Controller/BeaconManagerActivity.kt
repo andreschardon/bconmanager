@@ -125,4 +125,9 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, OfflineActivity::class.java)
         startActivity(intent)
     }
+
+    fun goToPDRActivity(view: View) {
+        val intent = Intent(this, PDRActivity::class.java)
+        startActivity(intent)
+    }
 }
