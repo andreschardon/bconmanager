@@ -23,12 +23,27 @@ class CustomMap constructor(var image : String, var width : Double , var height 
             testBeacon.image = R.drawable.beacon_icon
             this.addBeacon(testBeacon)
         }
-        if(jsonMap.pointsOfInterest != null) {
+        if (jsonMap.pointsOfInterest != null) {
             for (p in jsonMap.pointsOfInterest!!) {
                 val point = PointOfInterest(Location(p.x, p.y, this), p.r, p.content,p.id)
                 point.image = R.drawable.zone_icon
                 this.addPoI(point)
             }
+        }
+        if (jsonMap.fingerprintZones != null) {
+           for (z in jsonMap.fingerprintZones!!) {
+               Log.d("JSONTEST", z.toString())
+               val zone = FingerprintZone(Location(z.x!!, z.y!!, this))
+               val fingerprints = mutableListOf<Fingerprint>()
+               for (f in z.fingerprints!!) {
+                   Log.d("JSONTEST", f.toString())
+                   fingerprints.add(Fingerprint(f.mac!!, f.rssi!!))
+               }
+               zone.fingerprints = fingerprints
+               zone.hasData = true
+               zone.unTouch()
+               this.fingerprintZones.add(zone)
+           }
         }
         this.image = jsonMap.image!!
         this.width = jsonMap.width!!

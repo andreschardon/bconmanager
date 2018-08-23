@@ -122,7 +122,12 @@ class BeaconManagerActivity : AppCompatActivity() {
     }
 
     fun goToOfflineActivity(view: View) {
-        val intent = Intent(this, OfflineActivity::class.java)
+        val intent = Intent(this, FingerprintOfflineActivity::class.java)
+        startActivity(intent)
+    }
+
+    fun goToOnlineActivity(view: View) {
+        val intent = Intent(this, FingerprintOnlineActivity::class.java)
         startActivity(intent)
     }
 }

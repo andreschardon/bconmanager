@@ -11,7 +11,7 @@ class FingerprintZone constructor (position : Location) : Resource(position){
     private val red_image = R.drawable.finger_zone_red
     private val green_image = R.drawable.finger_zone_green
     private val blue_image = R.drawable.finger_zone_blue
-    private var fingerprints = mutableListOf<Fingerprint>()
+    var fingerprints = mutableListOf<Fingerprint>()
     var view : ImageView? = null
     var hasData : Boolean = false
 
@@ -34,6 +34,14 @@ class FingerprintZone constructor (position : Location) : Resource(position){
 
     fun touch()  {
         this.image = blue_image
+    }
+
+    fun unTouch() {
+        if (hasData) {
+            this.image = green_image
+        } else {
+            this.image = red_image
+        }
     }
 
 

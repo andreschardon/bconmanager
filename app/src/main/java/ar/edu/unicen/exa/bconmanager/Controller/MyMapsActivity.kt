@@ -65,8 +65,8 @@ class MyMapsActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun obtieneLocalizacion(){
-        fusedLocationClient.lastLocation
-                .addOnSuccessListener { location: android.location.Location? ->
+                    fusedLocationClient.lastLocation
+                            .addOnSuccessListener { location: android.location.Location? ->
                     var latitude = location?.latitude
                     var longitude = location?.longitude
                     val coords = Pair(latitude as Double,longitude as Double)

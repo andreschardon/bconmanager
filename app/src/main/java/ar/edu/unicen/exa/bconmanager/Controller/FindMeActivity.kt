@@ -36,19 +36,15 @@ import java.math.BigDecimal
 import java.util.*
 
 
-class FindMeActivity : AppCompatActivity() {
+class FindMeActivity : OnMapActivity() {
 
-    private val TAG = "FindMeActivity"
-    private val bluetoothScanner = BluetoothScanner.instance
+    override var TAG = "FindMeActivity"
     private var trilaterationCalculator = TrilaterationCalculator.instance
-    private var filePath: String = ""
     private var drawQueue: Queue<Location> = ArrayDeque<Location>()
 
-    private lateinit var floorMap: CustomMap
     lateinit var devicesListAdapter: BeaconsAdapter
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
-    private var inZoneOfInterest = false
     private var jumpCounter = 0
     private val detector = MovementDetector(this)
     private val ACCELERATION_THRESHOLD = 1.5
@@ -121,21 +117,6 @@ class FindMeActivity : AppCompatActivity() {
         detector.start()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            101 -> if (resultCode == -1) {
-                val uri = data!!.data
-                filePath = uri.lastPathSegment.removePrefix("raw:")
-            }
-        }
-        if (!filePath.isNullOrEmpty()) {
-            displayMap()
-        } else {
-            Log.e(TAG, "The file path is incorrect")
-        }
-    }
-
     private fun setupNotifications() {
 
         // Create a notification builder for each point of interest
@@ -171,7 +152,7 @@ class FindMeActivity : AppCompatActivity() {
      * This method is called after getting the json file's path
      * It displays the map's image, the beacons and the current location
      */
-    private fun displayMap() {
+    override fun displayMap() {
 
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
@@ -282,32 +263,6 @@ class FindMeActivity : AppCompatActivity() {
 
     }
 
-    private fun saveMapToFile(testMap: CustomMap, filePath: String) {
-        val jsonMap = testMap.toJson()
-        JsonUtility.saveToFile(filePath, jsonMap)
-        Log.d(TAG, "Map saved to JSON file in $filePath")
-    }
-
-    private fun loadMapFromFile(filePath: String): CustomMap {
-        val jsonMap = JsonUtility.readFromFile(filePath)
-        val fileMap = CustomMap("", 0.0, 0.0)
-        fileMap.startFromFile(jsonMap)
-        Log.d(TAG, "Map loaded from JSON file in $filePath")
-        return fileMap
-    }
-
-
-
-    private fun getRealMapSize(): Point {
-        val realSize = Point()
-        val size = Point()
-        windowManager.defaultDisplay.getSize(size)
-        val width = size.x
-        realSize.x = width
-        realSize.y = floorPlan.drawable.intrinsicHeight * width / floorPlan.drawable.intrinsicWidth
-        return realSize
-    }
-
     private fun printDisplayProperties() {
         val display = windowManager.defaultDisplay
         val size = Point()
@@ -327,26 +282,6 @@ class FindMeActivity : AppCompatActivity() {
         Log.d("POSITION", "-----------------------------")
 
     }
-
-    private fun setupResource(resource: Resource, imageView: ImageView) {
-
-        // Set up the resource image size and position
-        val layoutParams: LinearLayout.LayoutParams
-        if (resource is PointOfInterest) {
-            val loc = Location(resource.zone * 2, resource.zone * 2, floorMap)
-            layoutParams = LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
-        } else {
-            layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
-        }
-        layoutParams.leftMargin = resource.position.getX() - (layoutParams.width / 2)
-        layoutParams.topMargin = resource.position.getY() - (layoutParams.height / 2)
-        imageView.setImageResource(resource.image!!)
-
-        // Add ImageView to LinearLayout
-        floorLayout.addView(imageView, layoutParams)
-
-    }
-
 
     fun refreshButtonClicked(view: View) {
         // For now we don't need this
@@ -377,12 +312,6 @@ class FindMeActivity : AppCompatActivity() {
         // Demo to obtain current distance to a particular beacon
         //Log.d("DISTANCE NOW", "${floorMap.savedBeacons.get(0).beacon.approxDistance}")
 
-    }
-
-    fun threeClosestBeacons(): List<BeaconOnMap> {
-        // TO DO
-        var closestList = mutableListOf<BeaconOnMap>()
-        return closestList
     }
 
     /**
@@ -480,7 +409,4 @@ class FindMeActivity : AppCompatActivity() {
 
         return points
     }
-
-    fun Double.roundTo2DecimalPlaces() =
-            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 }

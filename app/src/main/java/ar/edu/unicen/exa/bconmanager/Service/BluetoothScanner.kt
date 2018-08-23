@@ -97,6 +97,7 @@ class BluetoothScanner : AppCompatActivity() {
                 if (!devicesList.contains(detectedBeacon)) {
                     devicesList.add(detectedBeacon)
                     detectedBeacon.calculateDistance(rssi)
+                    detectedBeacon.intensity = rssi
                 } else {
                     val index = devicesList.indexOf(detectedBeacon)
                     devicesList[index].intensity = rssi

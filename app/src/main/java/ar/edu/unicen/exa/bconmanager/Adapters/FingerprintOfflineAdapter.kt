@@ -1,19 +1,17 @@
 package ar.edu.unicen.exa.bconmanager.Adapters
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import ar.edu.unicen.exa.bconmanager.Controller.OfflineActivity
+import ar.edu.unicen.exa.bconmanager.Controller.FingerprintOfflineActivity
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
 
-class FingerprintAdapter(context : OfflineActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
+class FingerprintOfflineAdapter(context : FingerprintOfflineActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
 
     var context = context
     val beacons = beacons
-    var counter = 0
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val beaconView : View
@@ -37,7 +35,6 @@ class FingerprintAdapter(context : OfflineActivity, beacons : List<BeaconDevice>
     override fun notifyDataSetChanged() {
         super.notifyDataSetChanged()
         //printBeaconsDistance()
-        counter++
         var dialogMessage = ""
         beacons.forEach {
             dialogMessage += "${it.address} - ${it.averageRssi} \n"
