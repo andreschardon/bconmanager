@@ -29,8 +29,9 @@
         <activity android:name=".Controller.MyBeaconsActivity" />
         <activity android:name=".Controller.FindMeActivity" />
         <activity android:name=".Controller.MyMapsActivity" />
-        <activity android:name=".Controller.OfflineActivity"/>
-        <activity android:name=".Controller.PDRActivity"></activity>
+        <activity android:name=".Controller.PDRActivity" />
+        <activity android:name=".Controller.FingerprintOfflineActivity" />
+        <activity android:name=".Controller.FingerprintOnlineActivity"></activity>
     </application>
 
 </manifest>
