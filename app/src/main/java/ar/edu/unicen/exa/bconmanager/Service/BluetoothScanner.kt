@@ -15,12 +15,11 @@ import kotlinx.android.synthetic.main.activity_my_beacons.*
 class BluetoothScanner : AppCompatActivity() {
 
     private val TAG = "BluetoothScanner"
-    private val REFRESH_RATE = 70
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothHandler: Handler = Handler()
-    private var isScanning: Boolean = false
-    private var refreshCounter = 0
+    var isScanning: Boolean = false
+    private val SCAN_PERIOD:Long = 10000 // 100 seconds
 
     lateinit var devicesListAdapter: BaseAdapter
     var devicesList = mutableListOf<BeaconDevice>()
@@ -38,13 +37,21 @@ class BluetoothScanner : AppCompatActivity() {
      * Activity for scanning and displaying available BLE devices.
      */
 
-    fun scanLeDevice(enable: Boolean, adapter: BaseAdapter) {
+    fun scanLeDevice(enable: Boolean, adapter: BaseAdapter, isFingerprint : Boolean = false) {
         devicesListAdapter = adapter
 
         if (enable) {
             Log.d(TAG, "Starting BluetoothLowEnergy scan")
             // Stops scanning after a pre-defined scan period.
             isScanning = true
+            if (isFingerprint) {
+                bluetoothHandler.postDelayed({
+                    isScanning = false
+                    bluetoothAdapter.stopLeScan(mLeScanCallback)
+                    Log.d("BLE", "It finished")
+                    devicesListAdapter.notifyDataSetInvalidated()
+                }, SCAN_PERIOD)
+            }
             bluetoothAdapter.startLeScan(mLeScanCallback)
         } else {
             isScanning = false
@@ -87,17 +94,16 @@ class BluetoothScanner : AppCompatActivity() {
             }
 
             if (!detectedBeacon.name.equals("Unknown")) {
-                refreshCounter++
                 if (!devicesList.contains(detectedBeacon)) {
                     devicesList.add(detectedBeacon)
                     detectedBeacon.calculateDistance(rssi)
+                    detectedBeacon.intensity = rssi
                 } else {
                     val index = devicesList.indexOf(detectedBeacon)
                     devicesList[index].intensity = rssi
                     devicesList[index].calculateDistance(rssi)
                     devicesList[index].txPower = detectedBeacon.txPower
                 }
-                //Log.d("Beacon", "Refresh counter is $refreshCounter")
                 devicesListAdapter.notifyDataSetChanged()
                 //clearAverages()
             }
@@ -111,15 +117,5 @@ class BluetoothScanner : AppCompatActivity() {
         (devicesListAdapter as BeaconsAdapter).context = context
     }
 
-    /**
-     * Refreshes the counters for each beacon
-     */
-    fun clearAverages() {
-        if (refreshCounter == REFRESH_RATE) {
-            Log.d("Beacon", "Entro a borrar todo $refreshCounter")
-            refreshCounter = 0
-            devicesList.forEach { it.cleanAverages() }
-        }
-    }
 }
 

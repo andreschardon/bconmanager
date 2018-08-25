@@ -16,6 +16,21 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
         return 0
     }
 
+    fun getXMeters() : Double {
+        if (map != null) {
+            return x
+        }
+        return 0.0
+    }
+
+    fun getYMeters() : Double {
+        if (map != null) {
+            return y
+        }
+        return 0.0
+    }
+
+
     fun setX(pixelsX : Int) {
         if (map != null) {
             x = (pixelsX / map.widthMtsToPixelsRatio )

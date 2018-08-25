@@ -1,57 +1,41 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
 
-import android.Manifest
-import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
-
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GooglePlayServicesUtil
-import com.google.android.gms.maps.model.LatLng
-
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.graphics.Point
 import android.hardware.SensorManager
 import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
-import android.os.Environment
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentActivity
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
-import android.widget.LinearLayout
-import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
+import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Model.*
-
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
+import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
-import kotlinx.android.synthetic.main.activity_find_me.*
-import java.math.BigDecimal
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GooglePlayServicesUtil
+import com.google.android.gms.maps.model.LatLng
 
-class PDRActivity : AppCompatActivity() {
+class PDRActivity : OnMapActivity() {
 
     private var sm: SensorManager? = null
     private var sdh: StepDetectionHandler? = null
     private var sph: StepPositioningHandler? = null
     private var dah: DeviceAttitudeHandler? = null
-    private var isWalking = false
+    private var isWalking = true
     private var lKloc: Location? = null
     private var lastKnown: LatLng? = null
-    private var filePath: String = ""
-    private val  TAG = "PDRActivity"
-    private lateinit var floorMap: CustomMap
+    override var  TAG = "PDRActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
-    private lateinit var startingLocation : ar.edu.unicen.exa.bconmanager.Model.Location
+    lateinit var currentPosition: PositionOnMap
+    //private lateinit var notificationManager: NotificationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -80,6 +64,7 @@ class PDRActivity : AppCompatActivity() {
         }
     }
 
+    /*
     fun  getLocation(): Location? {
         Log.d("SM", "ADENTRO DE GET LOCATION")
         val locationManager = this
@@ -110,16 +95,10 @@ class PDRActivity : AppCompatActivity() {
             return null
         }
     }
+    */
 
-    private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = sph!!.computeNextStep(stepSize, dah!!.orientationVals[0])
-        Log.d("LATLNG", newloc.latitude.toString() + " " + newloc.longitude + " " + dah!!.orientationVals[0])
-        if (isWalking) {
-            //update position on map
-        }
-    }
 
-    private fun displayMap() {
+    override fun displayMap() {
         Log.d(TAG,"DISPLAY MAP")
 
         // This method will create a test map on the downloads directory.
@@ -144,7 +123,7 @@ class PDRActivity : AppCompatActivity() {
 
                     // if it does, click it
                     // otherwise, create a new point there
-                    createFingerprintingPoint(viewX, viewY)
+                    setStartingPoint(viewX, viewY)
                     startingPoint = true
                 }
                 return false
@@ -163,7 +142,7 @@ class PDRActivity : AppCompatActivity() {
         }
 
 
-        if (servicesConnected()) {
+        /*if (servicesConnected()) {
             lKloc = getLocation()
             Log.d("SM", "lKloc: " + lKloc!!)
             lastKnown = LatLng(lKloc!!.latitude,
@@ -171,76 +150,10 @@ class PDRActivity : AppCompatActivity() {
             Log.d("SM", "AFTER lAST KNOWN ASSIGNED, LastK: $lastKnown")
         }
         Log.d("SM", "ANTES DE SENSOR MANAGER")
-        val sm = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        sdh = StepDetectionHandler(sm)
-        sdh!!.setStepListener(mStepDetectionListener)
-        dah = DeviceAttitudeHandler(sm)
-        sph = StepPositioningHandler()
-        sph!!.setmCurrentLocation(lKloc)
+        */
 
     }
 
-    private fun loadMapFromFile(filePath: String): CustomMap {
-        val jsonMap = JsonUtility.readFromFile(filePath)
-        val fileMap = CustomMap("", 0.0, 0.0)
-        fileMap.startFromFile(jsonMap)
-        Log.d(TAG, "Map loaded from JSON file in $filePath")
-        return fileMap
-    }
-
-
-
-    private fun getRealMapSize(): Point {
-        val realSize = Point()
-        val size = Point()
-        windowManager.defaultDisplay.getSize(size)
-        val width = size.x
-        realSize.x = width
-        realSize.y = floorPlan.drawable.intrinsicHeight * width / floorPlan.drawable.intrinsicWidth
-        return realSize
-    }
-
-    private fun printDisplayProperties() {
-        val display = windowManager.defaultDisplay
-        val size = Point()
-        display.getSize(size)
-        val width = size.x
-        val height = size.y
-        Log.d("POSITION", "TOTAL WIDTH IS : $width")
-        Log.d("POSITION", "TOTAL HEIGHT IS : $height")
-        Log.d("POSITION", "-----------------------------")
-        Log.d("POSITION", "WIDTH IS : ${floorPlan.drawable.intrinsicWidth}")
-        Log.d("POSITION", "HEIGHT IS :  ${floorPlan.drawable.intrinsicHeight}")
-        val real_width = width
-        val real_height = floorPlan.drawable.intrinsicHeight * width / floorPlan.drawable.intrinsicWidth
-        Log.d("POSITION", "-----------------------------")
-        Log.d("POSITION", "WIDTH IS : $width")
-        Log.d("POSITION", "HEIGHT IS :  ${real_height}")
-        Log.d("POSITION", "-----------------------------")
-
-    }
-
-    private fun setupResource(resource: Resource, imageView: ImageView) {
-
-        // Set up the resource image size and position
-        val layoutParams: LinearLayout.LayoutParams
-        if (resource is PointOfInterest) {
-            val loc = Location(resource.zone * 2, resource.zone * 2, floorMap)
-            layoutParams = LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
-        } else {
-            layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
-        }
-        layoutParams.leftMargin = resource.position.getX() - (layoutParams.width / 2)
-        layoutParams.topMargin = resource.position.getY() - (layoutParams.height / 2)
-        imageView.setImageResource(resource.image!!)
-
-        // Add ImageView to LinearLayout
-        floorLayout.addView(imageView, layoutParams)
-
-    }
-
-    fun Double.roundTo2DecimalPlaces() =
-            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -273,18 +186,64 @@ class PDRActivity : AppCompatActivity() {
             dah!!.stop()
         }
     }
-    private fun createFingerprintingPoint(viewX: Float, viewY: Float) {
+    private fun setStartingPoint(viewX: Float, viewY: Float) {
         val loc = Location(0.0, 0.0, floorMap)
         loc.setX(viewX.toInt())
         loc.setY(viewY.toInt())
-        val zone = FingerZone(loc)
-        startingLocation = loc
-        Log.d(TAG,"Starting Location ${startingLocation.toString()}")
-        Log.d(TAG, "Touching ${zone.toString()}")
-        val imageView = ImageView(this)
-        zone.image = R.drawable.zone_icon
-        setupResource(zone, imageView)
+        val zone = FingerprintZone(loc)
 
+        // Starting point
+        currentPosition = PositionOnMap(loc)
+        currentPosition.image = R.drawable.location_icon
+        positionView = ImageView(this)
+        setupResource(currentPosition, positionView)
+        Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
+        //Log.d(TAG, "Touching ${zone.toString()}")
+
+        sm = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sdh = StepDetectionHandler(sm)
+        sdh!!.setStepListener(mStepDetectionListener)
+        dah = DeviceAttitudeHandler(sm)
+        sph = StepPositioningHandler()
+        sph!!.setmCurrentLocation(loc)
+        sdh!!.start()
+        dah!!.start()
     }
+
+
+    private fun updatePosition() {
+        // We should slowly update the position in... 5 stages?
+        val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        Log.d(TAG, "Location before update: "+ sph!!.getmCurrentLocation().toString())
+        currentPosition.position = sph!!.getmCurrentLocation()
+        layoutParams.leftMargin = currentPosition.position.getX() - 35
+        layoutParams.topMargin = currentPosition.position.getY() - 35
+        positionView.layoutParams = layoutParams
+
+        Log.d(TAG,"LAYOUT PARAMS LEFT MARGIN: "+layoutParams.leftMargin)
+        Log.d(TAG,"LAYOUT PARAMS RIGHT MARGIN: "+layoutParams.rightMargin)
+
+        /*for (point in floorMap.pointsOfInterest) {
+            if (point.isInside(currentPosition)) {
+                if (!point.alreadyInside) {
+                    point.alreadyInside = true
+                    notificationManager.notify(floorMap.pointsOfInterest.indexOf(point), point.notification.build())
+                }
+            } else {
+                point.alreadyInside = false
+            }
+        }*/
+    }
+
+
+    private val mStepDetectionListener = StepDetectionListener { stepSize ->
+        val newloc = sph!!.computeNextStep(stepSize, dah!!.orientationVals[0])
+        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + dah!!.orientationVals[0])
+        if (isWalking) {
+            Log.d(TAG,"IS WALKING")
+            updatePosition()
+        }
+    }
+
 
 }
