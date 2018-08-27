@@ -45,7 +45,7 @@ class MovementDetector (var context: Context) : SensorEventListener {
             val z = event.values[2]
 
             val diff = Math.sqrt((x * x + y * y + z * z).toDouble()).toFloat()
-            if (diff > 0.5)
+            if (diff > 0.1)
             // 0.5 is a threshold, you can test it and change it
                 Log.d(TAG, "Device motion detected!!!!")
             for (listener in mListeners) {

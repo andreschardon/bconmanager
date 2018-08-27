@@ -86,9 +86,11 @@ class FingerprintOnlineActivity : OnMapActivity() {
             updateZone(currentFingerprintingZone!!)
         }
         // Using the current RSSI of the beacons, we need to get the closest zone
-        currentFingerprintingZone = bestZone(beacons, floorMap.fingerprintZones)
-        currentFingerprintingZone!!.touch()
-        updateZone(currentFingerprintingZone!!)
+        if (!floorMap.fingerprintZones.isEmpty()) {
+            currentFingerprintingZone = bestZone(beacons, floorMap.fingerprintZones)
+            currentFingerprintingZone!!.touch()
+            updateZone(currentFingerprintingZone!!)
+        }
     }
 
     /**

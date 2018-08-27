@@ -25,7 +25,7 @@ public class StepDetectionHandler extends AppCompatActivity implements
     }
 
     public void start() {
-        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
 
     }
 
@@ -54,7 +54,7 @@ public class StepDetectionHandler extends AppCompatActivity implements
 
     public void onNewStepDetected() {
         Log.d(TAG,"ON NEW STEP DETECTED");
-        float distanceStep = 0.8f;
+        float distanceStep = 0.2f;
         step++;
         mStepDetectionListener.newStep(distanceStep);
     }

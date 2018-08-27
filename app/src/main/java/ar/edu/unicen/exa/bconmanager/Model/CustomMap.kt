@@ -21,6 +21,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
             val testBeacon = BeaconOnMap(Location(beacon.x!!, beacon.y!!, this),
                     BeaconDevice(beacon.mac!!, 80, null))
             testBeacon.image = R.drawable.beacon_icon
+            testBeacon.beacon.name = beacon.name
             this.addBeacon(testBeacon)
         }
         if (jsonMap.pointsOfInterest != null) {
