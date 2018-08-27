@@ -6,10 +6,11 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 public class StepDetectionHandler extends AppCompatActivity implements
         SensorEventListener {
-
+    private String  TAG = "PDRActivity";
     SensorManager sm;
     Sensor sensor;
 
@@ -41,10 +42,9 @@ public class StepDetectionHandler extends AppCompatActivity implements
     @Override
     public void onSensorChanged(SensorEvent e) {
         float y;
-
         if (e.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
             y = e.values[1];
-            // seuil � partir duquel on consid�re qu'il s'agit bien d'un pas
+            //threshold from which it is considered that it is a step
             if (y > 1 && mStepDetectionListener != null) {
                 onNewStepDetected();
 
@@ -53,6 +53,7 @@ public class StepDetectionHandler extends AppCompatActivity implements
     }
 
     public void onNewStepDetected() {
+        Log.d(TAG,"ON NEW STEP DETECTED");
         float distanceStep = 0.8f;
         step++;
         mStepDetectionListener.newStep(distanceStep);
