@@ -1,8 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Service;
 
-
 import android.util.Log;
-
 import ar.edu.unicen.exa.bconmanager.Model.Location;
 
 

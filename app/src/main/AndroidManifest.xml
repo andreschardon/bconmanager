@@ -15,8 +15,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyClaJY_Aswms8hBTkJx26w2-EycBXQLqII" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyClaJY_Aswms8hBTkJx26w2-EycBXQLqII" />
+
         <activity
             android:name=".Controller.BeaconManagerActivity"
             android:screenOrientation="portrait">
@@ -27,11 +32,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".Controller.MyBeaconsActivity" />
-        <activity android:name=".Controller.FindMeActivity" />
+        <activity android:name=".Controller.TrilaterationActivity" />
         <activity android:name=".Controller.MyMapsActivity" />
         <activity android:name=".Controller.PDRActivity" />
         <activity android:name=".Controller.FingerprintOfflineActivity" />
-        <activity android:name=".Controller.FingerprintOnlineActivity"></activity>
+        <activity android:name=".Controller.FingerprintOnlineActivity" />
+        <activity android:name=".Controller.FindMeActivity"></activity>
     </application>
 
 </manifest>

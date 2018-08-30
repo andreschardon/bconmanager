@@ -1,15 +1,13 @@
 package ar.edu.unicen.exa.bconmanager.Service
 
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
-import ar.edu.unicen.exa.bconmanager.Controller.FindMeActivity
+import ar.edu.unicen.exa.bconmanager.Controller.TrilaterationActivity
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import kotlinx.android.synthetic.main.activity_my_beacons.*
 
 
 class BluetoothScanner : AppCompatActivity() {
@@ -113,7 +111,7 @@ class BluetoothScanner : AppCompatActivity() {
     /**
      * Used when running on background and returning to the map screen
      */
-    fun changeContext(context: FindMeActivity) {
+    fun changeContext(context: TrilaterationActivity) {
         (devicesListAdapter as BeaconsAdapter).context = context
     }
 

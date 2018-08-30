@@ -5,10 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import ar.edu.unicen.exa.bconmanager.Controller.FindMeActivity
+import ar.edu.unicen.exa.bconmanager.Controller.TrilaterationActivity
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
-class BeaconsAdapter(context : FindMeActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
+class BeaconsAdapter(context : TrilaterationActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
 
     var context = context
     val beacons = beacons

@@ -111,8 +111,8 @@ class BeaconManagerActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun goToFindMeActivity(view : View) {
-        val intent = Intent(this, FindMeActivity::class.java)
+    fun goToTrilaterationActivity(view : View) {
+        val intent = Intent(this, TrilaterationActivity::class.java)
         startActivity(intent)
     }
 
@@ -133,6 +133,11 @@ class BeaconManagerActivity : AppCompatActivity() {
 
     fun goToPDRActivity(view: View) {
         val intent = Intent(this, PDRActivity::class.java)
+        startActivity(intent)
+    }
+
+    fun goToFindMeActivity(view : View) {
+        val intent = Intent(this, FindMeActivity::class.java)
         startActivity(intent)
     }
 }

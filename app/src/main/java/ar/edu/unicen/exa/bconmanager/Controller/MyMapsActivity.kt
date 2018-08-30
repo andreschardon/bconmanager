@@ -5,22 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.view.View
-import android.widget.ArrayAdapter
 import ar.edu.unicen.exa.bconmanager.Model.SavedMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import kotlinx.android.synthetic.main.activity_my_beacons.*
-import android.app.Activity
 import android.app.AlertDialog
-import android.app.PendingIntent.getActivity
 import android.content.DialogInterface
-import android.R.string.cancel
-import android.R.string.ok
-
-
 
 
 class MyMapsActivity : AppCompatActivity() {
@@ -40,8 +31,8 @@ class MyMapsActivity : AppCompatActivity() {
     }
 
 
-    private fun goToFindMeActivity( name : String) {
-        val intent = Intent(this, FindMeActivity::class.java)
+    private fun goToTrilaterationActivity( name : String) {
+        val intent = Intent(this, TrilaterationActivity::class.java)
         intent.putExtra("path",relativePath+name)
         startActivity(intent)
     }
@@ -53,7 +44,7 @@ class MyMapsActivity : AppCompatActivity() {
         builder.setMessage("Do you want to see the map?")
                 .setTitle("Map found!")
         builder.setPositiveButton("Go!", DialogInterface.OnClickListener { dialog, id ->
-            goToFindMeActivity(name)
+            goToTrilaterationActivity(name)
         })
         builder.setNegativeButton("Cancel", DialogInterface.OnClickListener { dialog, id ->
             // User cancelled the dialog
