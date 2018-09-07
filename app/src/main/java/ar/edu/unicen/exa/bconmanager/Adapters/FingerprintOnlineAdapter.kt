@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Controller.FingerprintOfflineActivity
 import ar.edu.unicen.exa.bconmanager.Controller.FingerprintOnlineActivity
+import ar.edu.unicen.exa.bconmanager.Controller.OnMapActivity
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 
 
-class FingerprintOnlineAdapter(context : FingerprintOnlineActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
+class FingerprintOnlineAdapter(context : OnMapActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
 
     var context = context
     val beacons = beacons

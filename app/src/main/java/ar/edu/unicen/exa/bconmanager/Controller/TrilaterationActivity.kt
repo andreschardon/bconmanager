@@ -197,6 +197,11 @@ class TrilaterationActivity : OnMapActivity() {
 
     }
 
+    override fun updatePosition(beacons: List<BeaconDevice>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
     private fun restoreBeacon(mapBeacon: BeaconOnMap, devicesList: MutableList<BeaconDevice>) {
         devicesList.forEach {
             if (it == mapBeacon.beacon) mapBeacon.beacon = it

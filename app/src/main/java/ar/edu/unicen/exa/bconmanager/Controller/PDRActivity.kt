@@ -154,7 +154,9 @@ class PDRActivity : OnMapActivity() {
 
     }
 
-
+    override fun updatePosition(beacons: List<BeaconDevice>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         Log.d(TAG, "Touching ${event.toString()}")

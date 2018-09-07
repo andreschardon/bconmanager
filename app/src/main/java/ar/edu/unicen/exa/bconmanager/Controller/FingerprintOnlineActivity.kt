@@ -79,7 +79,7 @@ class FingerprintOnlineActivity : OnMapActivity() {
         bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
     }
 
-    fun updatePosition(beacons: List<BeaconDevice>) {
+    override fun updatePosition(beacons: List<BeaconDevice>) {
         // Un-touch the previous zone
         if (currentFingerprintingZone != null) {
             currentFingerprintingZone!!.unTouch()

@@ -20,6 +20,7 @@ import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 
 class FingerprintOfflineActivity : OnMapActivity() {
 
+
     override var TAG = "FingerprintOfflineActivity"
 
     private lateinit var fingerprintScanDialog: AlertDialog
@@ -121,6 +122,9 @@ class FingerprintOfflineActivity : OnMapActivity() {
             startBtn.isEnabled = true
         }
 
+    }
+    override fun updatePosition(beacons: List<BeaconDevice>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     /**

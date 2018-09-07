@@ -61,6 +61,8 @@ abstract class OnMapActivity  : AppCompatActivity() {
 
     protected abstract fun displayMap()
 
+    abstract fun updatePosition(beacons: List<BeaconDevice>)
+
 
     protected fun saveMapToFile(testMap: CustomMap, filePath: String) {
         val jsonMap = testMap.toJson()

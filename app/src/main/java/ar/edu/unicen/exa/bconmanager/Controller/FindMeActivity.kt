@@ -1,37 +1,31 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
-import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOfflineAdapter
+import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOnlineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
-import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 
 class FindMeActivity : OnMapActivity() {
 
-    override var TAG = "FindMeActivity"
+    override var TAG = "FingerprintOnlineActivity"
 
-    private lateinit var fingerprintScanDialog: AlertDialog
-    private lateinit var devicesListOfflineAdapter: FingerprintOfflineAdapter
+    private lateinit var devicesListOnlineAdapter: FingerprintOnlineAdapter
     private var currentFingerprintingZone: FingerprintZone? = null
+    private var startingPoint = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_fingerprint_offline)
-        startBtn.isEnabled = false
-        deleteBtn.isEnabled = false
-        createBtn.isEnabled = false
+        setContentView(R.layout.activity_fingerprint_online)
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
@@ -54,37 +48,6 @@ class FindMeActivity : OnMapActivity() {
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView
         img.setImageBitmap(bitmap)
-        img.setOnTouchListener { v, event ->
-            val screenX = event.x
-            val screenY = event.y
-            val viewX = (screenX - v.left).toDouble().roundTo2DecimalPlaces()
-            val viewY = (screenY - v.top).toDouble().roundTo2DecimalPlaces()
-
-
-            startBtn.isEnabled = false
-            deleteBtn.isEnabled = false
-            createBtn.isEnabled = false
-
-            // check if point exists
-            // if it does, click it
-            var touchedPoint: FingerprintZone? = null
-            floorMap.fingerprintZones.forEach {
-                if (it.isTouched(viewX, viewY) && touchedPoint == null) {
-                    touchedPoint = it
-                    it.touch()
-                }
-                updateZone(it)
-            }
-            // otherwise, create a new point there
-            if (touchedPoint == null) {
-                Log.d("ZONE", "Creating new point")
-                createFingerprintingPoint(viewX, viewY)
-            } else {
-                Log.d("ZONE", "Opening point $touchedPoint")
-                openFingerprintingMenu(touchedPoint!!)
-            }
-            false
-        }
 
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
@@ -101,57 +64,69 @@ class FindMeActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(point, imageView)
         }
-    }
 
-    /**
-     * Set as ´selected´ the touched fingerprinting zone and
-     * enables the corresponding buttons (start, delete)
-     */
-    private fun openFingerprintingMenu(touchedZone: FingerprintZone) {
-        // Removes the 'selected' status from previous selected point
-        if (currentFingerprintingZone != null && !floorMap.fingerprintZones.contains(currentFingerprintingZone!!)) {
-            floorLayout.removeView(currentFingerprintingZone!!.view)
+        // Drawing all fingerprinting zones for this map
+        for (zone in floorMap.fingerprintZones) {
+            val imageView = ImageView(this)
+            setupResource(zone, imageView)
         }
-        currentFingerprintingZone = touchedZone
-        if (touchedZone.hasData) {
-            deleteBtn.isEnabled = true
-        } else {
-            deleteBtn.isEnabled = true
-            startBtn.isEnabled = true
-        }
-
-    }
-
-    /**
-     * Sets the current point as a possible fingerprinting zone
-     */
-    private fun createFingerprintingPoint(viewX: Double, viewY: Double) {
-        // Removes the 'selected' status from previous selected point
-        if (currentFingerprintingZone != null && !floorMap.fingerprintZones.contains(currentFingerprintingZone!!)) {
-            floorLayout.removeView(currentFingerprintingZone!!.view)
-        }
-        val loc = Location(0.0, 0.0, floorMap)
-        loc.setX(viewX.toInt())
-        loc.setY(viewY.toInt())
-        loc.x = loc.x.roundTo2DecimalPlaces()
-        loc.y = loc.y.roundTo2DecimalPlaces()
-        val zone = FingerprintZone(loc)
-        val imageView = ImageView(this)
-        zone.view = imageView
-        zone.image = R.drawable.finger_zone_blue
-        setupResource(zone, imageView)
-        createBtn.isEnabled = true
-        deleteBtn.isEnabled = true
-        startBtn.isEnabled = true
-        currentFingerprintingZone = zone
-
-
+        devicesListOnlineAdapter = FingerprintOnlineAdapter(this, bluetoothScanner.devicesList)
+        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
     }
 
     override fun onPause() {
         super.onPause()
         bluetoothScanner.stopScan()
         bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
+    }
+
+    override fun updatePosition(beacons: List<BeaconDevice>) {
+        // Un-touch the previous zone
+        if (currentFingerprintingZone != null) {
+            currentFingerprintingZone!!.unTouch()
+            updateZone(currentFingerprintingZone!!)
+        }
+        // Using the current RSSI of the beacons, we need to get the closest zone
+        if (!floorMap.fingerprintZones.isEmpty()) {
+            currentFingerprintingZone = bestZone(beacons, floorMap.fingerprintZones)
+            currentFingerprintingZone!!.touch()
+            updateZone(currentFingerprintingZone!!)
+            if (!startingPoint) {
+                //setStartingPoint(currentFingerprintingZone!!.position.getX(), currentFingerprintingZone!!.position.getY())
+                startingPoint = true
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    private fun bestZone(beacons: List<BeaconDevice>, fingerprintZones: MutableList<FingerprintZone>): FingerprintZone? {
+        val fingerprintRating = mutableListOf<Double>()
+        Log.d("RATINGS", beacons.toString())
+        Log.d("RATINGS", fingerprintZones.toString())
+        for (zone in fingerprintZones) {
+            // For each fingerprinting zone, calculate the "rating"
+            var differenceRating = 0.0
+            zone.fingerprints.forEach {
+                val index = beacons.indexOf(BeaconDevice(it.mac, 0, null))
+                if (index != -1) {
+                    val beacon = beacons.get(index)
+                    differenceRating += Math.abs(beacon.averageRssi - it.rssi)
+                }
+            }
+            fingerprintRating.add(differenceRating)
+        }
+        Log.d("RATINGS", fingerprintRating.toString())
+
+        // Get the one with less rating
+        val index = fingerprintRating.indexOf(fingerprintRating.min())
+        Log.d("RATINGS", "$index")
+
+        val bestZone = fingerprintZones.get(index)
+        Log.d("RATINGS", "Best zone is $bestZone")
+
+        return bestZone
     }
 
     /**
@@ -166,95 +141,6 @@ class FindMeActivity : OnMapActivity() {
         layoutParams.leftMargin = zone.position.getX() - (layoutParams.width / 2)
         layoutParams.topMargin = zone.position.getY() - (layoutParams.height / 2)
         floorLayout.addView(imageView, layoutParams)
-    }
-
-    /**
-     * Starts the fingerprinting scan for the selected zone
-     */
-    fun startFingerprint(view: View) {
-        Log.d(TAG, "Current zone is $currentFingerprintingZone")
-        createFingerprint(view)
-        bluetoothScanner.devicesList.clear()
-        floorMap.savedBeacons.forEach {
-            it.beacon.cleanAverages()
-            bluetoothScanner.devicesList.add(it.beacon)
-        }
-        devicesListOfflineAdapter = FingerprintOfflineAdapter(this, bluetoothScanner.devicesList)
-        bluetoothScanner.scanLeDevice(true, devicesListOfflineAdapter, true)
-        // Loading popup (display averages for each beacon?)
-        deleteBtn.isEnabled = false
-        createBtn.isEnabled = false
-        startBtn.isEnabled = false
-        noBtn.isEnabled = false
-        showDialog()
-
-    }
-
-    /**
-     * Shows a popup dialog displaying the information of the current scan
-     */
-    private fun showDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage("   ").setTitle("Obtaining data, please wait...")
-
-        fingerprintScanDialog = builder.create()
-        fingerprintScanDialog.show()
-        fingerprintScanDialog.setMessage("   ")
-    }
-
-    /**
-     * Creates a new fingerprinting zone
-     */
-    fun createFingerprint(view: View) {
-        Log.d(TAG, "Creating fingerpriting zone in $currentFingerprintingZone")
-        if (!floorMap.fingerprintZones.contains(currentFingerprintingZone)) {
-            floorMap.fingerprintZones.add(currentFingerprintingZone!!)
-        }
-
-    }
-
-    /**
-     * Used to update the current fingerpriting dialog
-     */
-    fun updateFingerprintDialog(text: String) {
-        Log.d(TAG, text)
-        fingerprintScanDialog.setMessage(text)
-    }
-
-    /**
-     * Deletes the current fingerprinting zone
-     */
-    fun deleteFingerprint(view: View) {
-        Log.d(TAG, "Deleting fingerpriting zone in $currentFingerprintingZone")
-        floorMap.fingerprintZones.remove(currentFingerprintingZone)
-        floorLayout.removeView(currentFingerprintingZone!!.view)
-
-        currentFingerprintingZone = null
-        deleteBtn.isEnabled = false
-        createBtn.isEnabled = false
-        startBtn.isEnabled = false
-    }
-
-    /**
-     * Fingerprinting data collection finished, save that data
-     */
-    fun finishFingerprint() {
-        fingerprintScanDialog.hide()
-        currentFingerprintingZone!!.updateFingerprints(devicesListOfflineAdapter.beacons)
-        deleteBtn.isEnabled = true
-        createBtn.isEnabled = false
-        startBtn.isEnabled = true
-        noBtn.isEnabled = true
-    }
-
-    /**
-     * Saves all the fingerprinting information to the JSON file
-     */
-    fun saveFingerprint(view: View) {
-        saveMapToFile(floorMap, filePath)
-        Toast.makeText(this, "Saved to $filePath", Toast.LENGTH_SHORT).show()
-
-
     }
 
 }
