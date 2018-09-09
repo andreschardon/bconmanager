@@ -239,8 +239,8 @@ class PDRActivity : OnMapActivity() {
 
 
     private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = sph!!.computeNextStep(stepSize, dah!!.orientationVals[0])
-        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + dah!!.orientationVals[0])
+        val newloc = sph!!.computeNextStep(stepSize, (dah!!.orientationVals[0] - 2.26893f + 3.14159f))
+        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (dah!!.orientationVals[0] - 2.26893f + 3.14159f)*57.2958)
         if (isWalking) {
             Log.d(TAG,"IS WALKING")
             updatePosition()
