@@ -41,13 +41,29 @@ public class StepDetectionHandler extends AppCompatActivity implements
 
     @Override
     public void onSensorChanged(SensorEvent e) {
-        float y;
-        if (e.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-            y = e.values[1];
-            //threshold from which it is considered that it is a step
-            if (y > 1 && mStepDetectionListener != null) {
-                onNewStepDetected();
+        float z;
+        /*float y;
+        float x;
+        double acc;
+        double exp;*/
 
+        if (e.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+
+            z = e.values[2];
+            /*y = e.values[1];
+            x = e.values[0];
+
+            exp = (x*x+y*y+z*z);
+            acc = Math.sqrt(exp);
+
+            Log.d(TAG, "Aceleration in y : "+ y);
+            Log.d(TAG, "Aceleration in x : "+ x );*/
+
+            Log.d(TAG, "Aceleration in z : "+ z );
+
+            //threshold from which it is considered that it is a step
+            if (z > 1 && mStepDetectionListener != null) {
+                onNewStepDetected();
             }
         }
     }
