@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -232,12 +231,14 @@ class PDRActivity : OnMapActivity() {
     private fun updatePosition() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         Log.d(TAG, "Location before update: "+ sph!!.getmCurrentLocation().toString())
-        currentPosition.position = sph!!.getmCurrentLocation()
+        currentPosition.position = validatePosition(sph!!.getmCurrentLocation())
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
+    }
 
-
+    private fun validatePosition(newPosition : Location): Location {
+        return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
 
