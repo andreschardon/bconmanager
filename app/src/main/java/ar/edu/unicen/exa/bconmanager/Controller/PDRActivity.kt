@@ -5,13 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
@@ -21,6 +21,7 @@ import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.android.synthetic.main.activity_pdr.*
 
 class PDRActivity : OnMapActivity() {
 
@@ -34,8 +35,11 @@ class PDRActivity : OnMapActivity() {
     override var  TAG = "PDRActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
+    private var isRecordingAngle = false
+    private var isPDREnabled = false
     lateinit var currentPosition: PositionOnMap
-    //private lateinit var notificationManager: NotificationManager
+    private var bearingAdjustment = 0.0f
+    private var recordCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -113,7 +117,7 @@ class PDRActivity : OnMapActivity() {
         img.setImageBitmap(bitmap)
         img.setOnTouchListener(object: View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent):Boolean {
-                if(!startingPoint) {
+                if(isRecordingAngle || (isPDREnabled && !startingPoint)) {
                     val screenX = event.x
                     val screenY = event.y
                     val viewX = screenX - v.left
@@ -192,7 +196,6 @@ class PDRActivity : OnMapActivity() {
         val loc = Location(0.0, 0.0, floorMap)
         loc.setX(viewX.toInt())
         loc.setY(viewY.toInt())
-        val zone = FingerprintZone(loc)
 
         // Starting point
         currentPosition = PositionOnMap(loc)
@@ -210,41 +213,73 @@ class PDRActivity : OnMapActivity() {
         sph!!.setmCurrentLocation(loc)
         sdh!!.start()
         dah!!.start()
+
+        if (isRecordingAngle) {
+            Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
+        }
+    }
+    private fun unsetStartingPoint() {
+        floorLayout.removeView(positionView)
+        dah!!.stop()
+        sdh!!.stop()
+        startingPoint = false
     }
 
 
     private fun updatePosition() {
-        // We should slowly update the position in... 5 stages?
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         Log.d(TAG, "Location before update: "+ sph!!.getmCurrentLocation().toString())
-        currentPosition.position = sph!!.getmCurrentLocation()
+        currentPosition.position = validatePosition(sph!!.getmCurrentLocation())
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
+    }
 
-        Log.d(TAG,"LAYOUT PARAMS LEFT MARGIN: "+layoutParams.leftMargin)
-        Log.d(TAG,"LAYOUT PARAMS RIGHT MARGIN: "+layoutParams.rightMargin)
-
-        /*for (point in floorMap.pointsOfInterest) {
-            if (point.isInside(currentPosition)) {
-                if (!point.alreadyInside) {
-                    point.alreadyInside = true
-                    notificationManager.notify(floorMap.pointsOfInterest.indexOf(point), point.notification.build())
-                }
-            } else {
-                point.alreadyInside = false
-            }
-        }*/
+    private fun validatePosition(newPosition : Location): Location {
+        return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
 
     private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = sph!!.computeNextStep(stepSize, dah!!.orientationVals[0])
-        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + dah!!.orientationVals[0])
-        if (isWalking) {
+        val newloc = sph!!.computeNextStep(stepSize, (dah!!.orientationVals[0] + bearingAdjustment))
+        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (dah!!.orientationVals[0] + bearingAdjustment)*57.2958)
+        if (isWalking && !isRecordingAngle) {
             Log.d(TAG,"IS WALKING")
             updatePosition()
+        } else if (isWalking && isRecordingAngle) {
+            recordCount++
+            if (recordCount == 3) {
+                setAdjustedBearing(dah!!.orientationVals[0])
+                recordCount = 0
+                Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
+            }
+
         }
+    }
+
+    private fun setAdjustedBearing(measuredAngle : Float) {
+        val adjustmentFactor = 0 // 90 degrees
+        Log.d("ADJUSTMENT", "Measured angle is ${measuredAngle*57.2958}")
+        Log.d("ADJUSTMENT", "It should be ${adjustmentFactor*57.2958}")
+        bearingAdjustment = -measuredAngle
+        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
+        isRecordingAngle = false
+        unsetStartingPoint()
+
+    }
+
+    fun startPDR(view: View) {
+        isPDREnabled = true
+        Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
+    }
+
+    fun startAngleMeasurement(view: View) {
+        isRecordingAngle = true
+        Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
+
+
     }
 
 

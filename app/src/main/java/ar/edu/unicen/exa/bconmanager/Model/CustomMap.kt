@@ -104,4 +104,22 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         return "CustomMap: $image - width: $width - height: $height /n" +
                 "Beacons: ${savedBeacons.toString()}"
     }
+
+    fun restrictPosition(newPosition : PositionOnMap) : PositionOnMap {
+        val restrictedPosition = newPosition
+
+        if (restrictedPosition.position.getX() > this.widthPixels) {
+            restrictedPosition.position.setX(this.widthPixels)
+        } else if (restrictedPosition.position.getX() < 0) {
+            restrictedPosition.position.setX(0)
+        }
+
+        if (restrictedPosition.position.getY() > this.heightPixels) {
+            restrictedPosition.position.setY(this.heightPixels)
+        } else if (restrictedPosition.position.getY() < 0) {
+            restrictedPosition.position.setY(0)
+        }
+
+        return restrictedPosition
+    }
 }
