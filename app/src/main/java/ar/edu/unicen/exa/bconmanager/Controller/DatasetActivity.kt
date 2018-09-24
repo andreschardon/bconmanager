@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
@@ -21,7 +20,7 @@ import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_pdr.*
 
-class DatasetActivityActivity : OnMapActivity() {
+class DatasetActivity : OnMapActivity() {
 
     private var sensorManager: SensorManager? = null
     private var stepDetectionHandler: StepDetectionHandler? = null
@@ -41,7 +40,7 @@ class DatasetActivityActivity : OnMapActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.dataset_activity)
+        setContentView(R.layout.activity_dataset)
 
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent

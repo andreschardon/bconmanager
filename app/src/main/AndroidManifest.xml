@@ -38,7 +38,7 @@
         <activity android:name=".Controller.FingerprintOfflineActivity" />
         <activity android:name=".Controller.FingerprintOnlineActivity" />
         <activity android:name=".Controller.FindMeActivity" />
-        <activity android:name=".Controller.DatasetActivityActivity"></activity>
+        <activity android:name=".Controller.DatasetActivity"></activity>
     </application>
 
 </manifest>
