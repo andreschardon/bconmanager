@@ -25,10 +25,10 @@ import kotlinx.android.synthetic.main.activity_pdr.*
 
 class PDRActivity : OnMapActivity() {
 
-    private var sm: SensorManager? = null
-    private var sdh: StepDetectionHandler? = null
-    private var sph: StepPositioningHandler? = null
-    private var dah: DeviceAttitudeHandler? = null
+    private var sensorManager: SensorManager? = null
+    private var stepDetectionHandler: StepDetectionHandler? = null
+    private var stepPositioningHandler: StepPositioningHandler? = null
+    private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
     private var lKloc: Location? = null
     private var lastKnown: LatLng? = null
@@ -178,18 +178,18 @@ class PDRActivity : OnMapActivity() {
 
     override fun onResume() {
         super.onResume()
-        if((sdh != null) && (dah != null)) {
-            sdh!!.start()
-            dah!!.start()
+        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
+            stepDetectionHandler!!.start()
+            deviceAttitudeHandler!!.start()
         }
 
     }
 
     override fun onPause() {
         super.onPause()
-        if((sdh != null) && (dah != null)) {
-            sdh!!.stop()
-            dah!!.stop()
+        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
+            stepDetectionHandler!!.stop()
+            deviceAttitudeHandler!!.stop()
         }
     }
     private fun setStartingPoint(viewX: Float, viewY: Float) {
@@ -205,14 +205,14 @@ class PDRActivity : OnMapActivity() {
         Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
         //Log.d(TAG, "Touching ${zone.toString()}")
 
-        sm = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        sdh = StepDetectionHandler(sm)
-        sdh!!.setStepListener(mStepDetectionListener)
-        dah = DeviceAttitudeHandler(sm)
-        sph = StepPositioningHandler()
-        sph!!.setmCurrentLocation(loc)
-        sdh!!.start()
-        dah!!.start()
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        stepDetectionHandler = StepDetectionHandler(sensorManager)
+        stepDetectionHandler!!.setStepListener(mStepDetectionListener)
+        deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
+        stepPositioningHandler = StepPositioningHandler()
+        stepPositioningHandler!!.setmCurrentLocation(loc)
+        stepDetectionHandler!!.start()
+        deviceAttitudeHandler!!.start()
 
         if (isRecordingAngle) {
             Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
@@ -222,16 +222,16 @@ class PDRActivity : OnMapActivity() {
     }
     private fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
-        dah!!.stop()
-        sdh!!.stop()
+        deviceAttitudeHandler!!.stop()
+        stepDetectionHandler!!.stop()
         startingPoint = false
     }
 
 
     private fun updatePosition() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
-        Log.d(TAG, "Location before update: "+ sph!!.getmCurrentLocation().toString())
-        currentPosition.position = validatePosition(sph!!.getmCurrentLocation())
+        Log.d(TAG, "Location before update: "+ stepPositioningHandler!!.getmCurrentLocation().toString())
+        currentPosition.position = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
@@ -243,15 +243,15 @@ class PDRActivity : OnMapActivity() {
 
 
     private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = sph!!.computeNextStep(stepSize, (dah!!.orientationVals[0] + bearingAdjustment))
-        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (dah!!.orientationVals[0] + bearingAdjustment)*57.2958)
+        val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
+        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958)
         if (isWalking && !isRecordingAngle) {
             Log.d(TAG,"IS WALKING")
             updatePosition()
         } else if (isWalking && isRecordingAngle) {
             recordCount++
             if (recordCount == 3) {
-                setAdjustedBearing(dah!!.orientationVals[0])
+                setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
                 recordCount = 0
                 Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
             }
