@@ -13,10 +13,14 @@ import android.widget.ImageView
 import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Adapters.DatasetCaptureAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataBeacon
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import kotlinx.android.synthetic.main.activity_pdr.*
@@ -39,6 +43,7 @@ class DatasetActivity : OnMapActivity() {
     private var startupTime : Long = 0L
     private lateinit var devicesListOnlineAdapter: DatasetCaptureAdapter
     private var dataCollectionHandler = Handler()
+    private var datalist = mutableListOf<JsonData>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -230,13 +235,17 @@ class DatasetActivity : OnMapActivity() {
      */
     fun collectData(currentTime : Long) {
         val timestamp = currentTime - startupTime
+        val beaconData = mutableListOf<JsonDataBeacon>()
         Log.d("DATACOLLECT", "Current timestamp is $timestamp ms")
         Log.d("DATACOLLECT", "Current angle is $angle º")
         Log.d("DATACOLLECT", "Current speed is $acceleration ")
         devicesListOnlineAdapter.beacons.forEach {
+            val beacon = JsonDataBeacon(it.address, it.intensity)
+            beaconData.add(beacon)
             Log.d("DATACOLLECT", it.toString())
-
         }
+        val data = JsonData(beaconData, angle, acceleration, timestamp)
+        datalist.add(data)
     }
 
     /**
@@ -246,6 +255,10 @@ class DatasetActivity : OnMapActivity() {
         // Stops the postDelayed runnable
         dataCollectionHandler.removeCallbacksAndMessages(null)
         bluetoothScanner.stopScan()
+        val dataset = JsonDataset(datalist)
+        JsonUtility.saveDatasetToFile("$filePath.data", dataset)
+        Log.d(TAG, "Map saved to JSON file in $filePath.data")
+        Toast.makeText(this, "Saved to $filePath.data", Toast.LENGTH_SHORT).show()
     }
 
 }

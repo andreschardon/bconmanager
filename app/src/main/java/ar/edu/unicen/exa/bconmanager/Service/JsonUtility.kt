@@ -1,6 +1,7 @@
 package ar.edu.unicen.exa.bconmanager.Service
 
 import android.util.Log
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSavedMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSavedMaps
@@ -14,6 +15,14 @@ class JsonUtility {
         fun saveToFile(path: String, jsonMap: JsonMap) {
             var gson = Gson()
             var jsonString:String = gson.toJson(jsonMap)
+            Log.d("SAVING", jsonString)
+            val file= File(path)
+            file.writeText(jsonString)
+        }
+
+        fun saveDatasetToFile(path: String, jsonDataset: JsonDataset) {
+            var gson = Gson()
+            var jsonString:String = gson.toJson(jsonDataset)
             Log.d("SAVING", jsonString)
             val file= File(path)
             file.writeText(jsonString)
