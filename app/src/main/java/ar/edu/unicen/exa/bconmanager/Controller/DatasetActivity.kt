@@ -16,19 +16,14 @@ import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
-import com.google.android.gms.maps.model.LatLng
+import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class DatasetActivity : OnMapActivity() {
 
     private var sensorManager: SensorManager? = null
     private var stepDetectionHandler: StepDetectionHandler? = null
-    private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
-    private var isWalking = true
-    private var lKloc: Location? = null
-    private var lastKnown: LatLng? = null
     override var  TAG = "DatasetActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
@@ -37,6 +32,8 @@ class DatasetActivity : OnMapActivity() {
     lateinit var currentPosition: PositionOnMap
     private var bearingAdjustment = 0.0f
     private var recordCount = 0
+    private var angle = 0.0
+    private var acceleration = 0.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +55,7 @@ class DatasetActivity : OnMapActivity() {
             }
         }
         if (!filePath.isNullOrEmpty()) {
+            Log.d(TAG,"FILE PATH NOT EMPTY")
             displayMap()
         } else {
             Log.e(TAG, "The file path is incorrect")
@@ -123,7 +121,6 @@ class DatasetActivity : OnMapActivity() {
             stepDetectionHandler!!.start()
             deviceAttitudeHandler!!.start()
         }
-
     }
 
     override fun onPause() {
@@ -147,15 +144,11 @@ class DatasetActivity : OnMapActivity() {
         //Log.d(TAG, "Touching ${zone.toString()}")
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        //REPLACE WITH MOVEMENT DETECTION HANDLER
-        /*stepDetectionHandler = StepDetectionHandler(sensorManager)
+        stepDetectionHandler = StepDetectionHandler(sensorManager,true)
         stepDetectionHandler!!.setStepListener(mStepDetectionListener)
         deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
-        stepPositioningHandler = StepPositioningHandler()
-        stepPositioningHandler!!.setmCurrentLocation(loc)
         stepDetectionHandler!!.start()
-        deviceAttitudeHandler!!.start()*/
+        deviceAttitudeHandler!!.start()
 
 
         if (isRecordingAngle) {
@@ -166,28 +159,25 @@ class DatasetActivity : OnMapActivity() {
     }
     private fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
-        deviceAttitudeHandler!!.stop()
-        stepDetectionHandler!!.stop()
         startingPoint = false
     }
 
-    /*private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
-        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958)
-        if (isWalking && !isRecordingAngle) {
-            Log.d(TAG,"IS WALKING")
-        } else if (isWalking && isRecordingAngle) {
+
+    private val mStepDetectionListener = StepDetectionListener { acc ->
+        //convert radians to degrees multiplying by 57.2958
+        val angl = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
+        if (isRecordingAngle) {
             recordCount++
             if (recordCount == 3) {
                 setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
                 recordCount = 0
                 Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
             }
-
         }
-
-
-    }*/
+        angle = angl
+        acceleration = acc
+        Log.d("SDATA", "Acceleration: $acceleration  angle: $angle")
+    }
 
     private fun setAdjustedBearing(measuredAngle : Float) {
         val adjustmentFactor = 0 // 90 degrees
@@ -197,7 +187,11 @@ class DatasetActivity : OnMapActivity() {
         Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
         isRecordingAngle = false
         unsetStartingPoint()
+    }
 
+    fun startAngleMeasurement(view: View) {
+        isRecordingAngle = true
+        Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
 }

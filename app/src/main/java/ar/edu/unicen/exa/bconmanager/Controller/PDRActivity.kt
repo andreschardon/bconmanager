@@ -18,9 +18,6 @@ import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GooglePlayServicesUtil
-import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class PDRActivity : OnMapActivity() {
@@ -30,8 +27,6 @@ class PDRActivity : OnMapActivity() {
     private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
-    private var lKloc: Location? = null
-    private var lastKnown: LatLng? = null
     override var  TAG = "PDRActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
@@ -44,7 +39,7 @@ class PDRActivity : OnMapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_pdr) //CHANGE LAYOUT
+        setContentView(R.layout.activity_pdr)
 
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent
@@ -68,40 +63,6 @@ class PDRActivity : OnMapActivity() {
         }
     }
 
-    /*
-    fun  getLocation(): Location? {
-        Log.d("SM", "ADENTRO DE GET LOCATION")
-        val locationManager = this
-                .getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-        if (locationManager != null) {
-            Log.d("SM", locationManager.toString())
-            Log.d("SM", "LOCATION NO ES NULL")
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return null
-            }
-            Log.d("SM", "GET LOCATION BEFORE LAST KNOWN LOCATIOON")
-            val lastKnownLocationGPS = locationManager
-                    .getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            Log.d("SM", "GET LOCATION AFTER LAST KNOWN LOCATIOON")
-            if (lastKnownLocationGPS != null) {
-                Log.d("SM", "GET LOCATION LASTKNOWN LOCATION GPS")
-                Log.d("SM", "lastKnownLocationGPS: $lastKnownLocationGPS")
-                return lastKnownLocationGPS
-            } else {
-                val loc = locationManager
-                        .getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
-                Log.d("SM", "LAST KNOWN GPS NULL, LOC: $loc")
-                return loc
-            }
-        } else {
-            Log.d("SM", "LOCATION ES NULL")
-            return null
-        }
-    }
-    */
-
-
     override fun displayMap() {
         Log.d(TAG,"DISPLAY MAP")
 
@@ -113,7 +74,7 @@ class PDRActivity : OnMapActivity() {
 
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView //CHECK
+        val img = findViewById<View>(R.id.floorPlan) as ImageView
         img.setImageBitmap(bitmap)
         img.setOnTouchListener(object: View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent):Boolean {
@@ -144,18 +105,6 @@ class PDRActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(point, imageView)
         }
-
-
-        /*if (servicesConnected()) {
-            lKloc = getLocation()
-            Log.d("SM", "lKloc: " + lKloc!!)
-            lastKnown = LatLng(lKloc!!.latitude,
-                    lKloc!!.longitude)
-            Log.d("SM", "AFTER lAST KNOWN ASSIGNED, LastK: $lastKnown")
-        }
-        Log.d("SM", "ANTES DE SENSOR MANAGER")
-        */
-
     }
 
     override fun updatePosition(beacons: List<BeaconDevice>) {
@@ -165,15 +114,6 @@ class PDRActivity : OnMapActivity() {
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         Log.d(TAG, "Touching ${event.toString()}")
         return super.onTouchEvent(event)
-    }
-
-
-    private fun servicesConnected(): Boolean {
-        val resultCode = GooglePlayServicesUtil
-                .isGooglePlayServicesAvailable(this)
-        return if (ConnectionResult.SUCCESS == resultCode) {
-            true
-        } else false
     }
 
     override fun onResume() {
@@ -206,7 +146,7 @@ class PDRActivity : OnMapActivity() {
         //Log.d(TAG, "Touching ${zone.toString()}")
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepDetectionHandler = StepDetectionHandler(sensorManager)
+        stepDetectionHandler = StepDetectionHandler(sensorManager,false)
         stepDetectionHandler!!.setStepListener(mStepDetectionListener)
         deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
         stepPositioningHandler = StepPositioningHandler()
@@ -278,8 +218,6 @@ class PDRActivity : OnMapActivity() {
     fun startAngleMeasurement(view: View) {
         isRecordingAngle = true
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
-
-
     }
 
 

@@ -6,16 +6,12 @@ import ar.edu.unicen.exa.bconmanager.Model.Location;
 
 public class StepPositioningHandler {
 
-    //CHANGE FOR LOCATION
     private Location mCurrentLocation;
-    private static final int eRadius = 6371000; //rayon de la terre en m
-    private String TAG = "PDRActivity";
-    //CHANGE FOR LOCATION
+    private String TAG = "StepPositioningHandler";
     public Location getmCurrentLocation() {
         return mCurrentLocation;
     }
 
-        //CHANGE FOR LOCATION
     public void setmCurrentLocation(Location mCurrentLocation) {
         Log.d(TAG,"CURRENT LOCATION IS : "+ mCurrentLocation.toString());
         this.mCurrentLocation = mCurrentLocation;
@@ -26,15 +22,10 @@ public class StepPositioningHandler {
      * @param bearing the angle of direction
      * @return new location
      */
-    //CHANGE FOR LOCATION
     public Location computeNextStep(float stepSize, float bearing) {
         Log.d(TAG,"COMPUTE NEXT STEP");
-        //CHANGE FOR LOCATION
         Location newLoc = mCurrentLocation;
-        // What radious?
-        //float angDistance = stepSize / eRadius;
 
-        //Get X
         double oldX = mCurrentLocation.getXMeters();
         double oldY = mCurrentLocation.getYMeters();
 
@@ -61,18 +52,6 @@ public class StepPositioningHandler {
         double newY = oldY + Math.sin(bearing) * stepSize;
         newLoc.setY(newY);
 
-
-        /*
-        newLoc.setLatitude(Math.toDegrees(newLat));
-        newLoc.setLongitude(Math.toDegrees(newLon));
-        */
-        Log.d(TAG,"OLD X: " + oldX);
-        Log.d(TAG,"OLD Y: " + oldY);
-
-        Log.d(TAG,"NEW X: " + newLoc.getX());
-        Log.d(TAG,"NEW Y: " + newLoc.getY());
-
-        //newLoc.setBearing((mCurrentLocation.getBearing()+180)% 360);
         mCurrentLocation = newLoc;
 
         return newLoc;

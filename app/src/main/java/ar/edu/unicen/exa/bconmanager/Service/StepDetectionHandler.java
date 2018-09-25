@@ -1,6 +1,5 @@
 package ar.edu.unicen.exa.bconmanager.Service;
 
-import android.app.Activity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,17 +9,19 @@ import android.util.Log;
 
 public class StepDetectionHandler extends AppCompatActivity implements
         SensorEventListener {
-    private String  TAG = "PDRActivity";
+    private String  TAG = "StepDetectionHandler";
     SensorManager sm;
     Sensor sensor;
+    boolean rawData;
 
     private StepDetectionListener mStepDetectionListener;
 
     int step = 0;
 
-    public StepDetectionHandler(SensorManager sm) {
+    public StepDetectionHandler(SensorManager sm, boolean rawData) {
         super();
         this.sm = sm;
+        this.rawData = rawData;
         sensor = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
     }
 
@@ -42,29 +43,19 @@ public class StepDetectionHandler extends AppCompatActivity implements
     @Override
     public void onSensorChanged(SensorEvent e) {
         float z;
-        /*float y;
-        float x;
-        double acc;
-        double exp;*/
 
         if (e.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
 
             z = e.values[2];
-            /*y = e.values[1];
-            x = e.values[0];
-
-            exp = (x*x+y*y+z*z);
-            acc = Math.sqrt(exp);
-
-            Log.d(TAG, "Aceleration in y : "+ y);
-            Log.d(TAG, "Aceleration in x : "+ x );*/
-
-            Log.d(TAG, "Aceleration in z : "+ z );
 
             //threshold from which it is considered that it is a step
-            if (z > 1 && mStepDetectionListener != null) {
+            if (z > 1 && mStepDetectionListener != null && !rawData) {
                 onNewStepDetected();
             }
+            else if(rawData) {
+                mStepDetectionListener.newStep(z);
+            }
+
         }
     }
 
@@ -75,13 +66,13 @@ public class StepDetectionHandler extends AppCompatActivity implements
         mStepDetectionListener.newStep(distanceStep);
     }
 
+
     public void setStepListener(StepDetectionListener listener) {
         mStepDetectionListener = listener;
     }
 
     public interface StepDetectionListener {
         public void newStep(float stepSize);
-
     }
 
 }
