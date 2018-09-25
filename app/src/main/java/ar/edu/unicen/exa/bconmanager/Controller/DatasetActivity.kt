@@ -184,8 +184,8 @@ class DatasetActivity : OnMapActivity() {
 
     private val mStepDetectionListener = StepDetectionListener { acc ->
         //convert radians to degrees multiplying by 57.2958
-        val angl = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
-        if (isRecordingAngle) {
+        
+        if (isRecordingAngle && (acc > 1)) {
             recordCount++
             if (recordCount == 3) {
                 setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
@@ -193,9 +193,11 @@ class DatasetActivity : OnMapActivity() {
                 Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
             }
         }
-        angle = angl
-        acceleration = acc
-        Log.d("SDATA", "Acceleration: $acceleration  angle: $angle")
+        else if (!isRecordingAngle){
+            angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
+            acceleration = acc
+            Log.d("SDATA", "Acceleration: $acceleration  angle: $angle")
+        }
     }
 
     private fun setAdjustedBearing(measuredAngle : Float) {
