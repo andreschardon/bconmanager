@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -35,7 +36,9 @@ class DatasetActivity : OnMapActivity() {
     private var recordCount = 0
     private var angle = 0.0
     private var acceleration = 0.0f
+    private var startupTime : Long = 0L
     private lateinit var devicesListOnlineAdapter: DatasetCaptureAdapter
+    private var dataCollectionHandler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,7 +116,7 @@ class DatasetActivity : OnMapActivity() {
         }
 
         devicesListOnlineAdapter = DatasetCaptureAdapter(this, bluetoothScanner.devicesList)
-        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
+
 
     }
 
@@ -210,21 +213,39 @@ class DatasetActivity : OnMapActivity() {
      * and save it to some object
      */
     fun startDataCollection(view: View) {
+        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
+        val delay = 1000L //milliseconds
+        startupTime = System.currentTimeMillis()
+        dataCollectionHandler.postDelayed(object : Runnable {
+            override fun run() {
+                collectData(System.currentTimeMillis())
+                dataCollectionHandler.postDelayed(this, delay)
+            }
+        }, delay)
 
     }
 
     /**
      * TO DO: Should update an object with the data from PDR and BLE scanner
      */
-    fun collectData() {
+    fun collectData(currentTime : Long) {
+        val timestamp = currentTime - startupTime
+        Log.d("DATACOLLECT", "Current timestamp is $timestamp ms")
+        Log.d("DATACOLLECT", "Current angle is $angle º")
+        Log.d("DATACOLLECT", "Current speed is $acceleration ")
+        devicesListOnlineAdapter.beacons.forEach {
+            Log.d("DATACOLLECT", it.toString())
 
+        }
     }
 
     /**
      * TO DO: Stops data collection. Stops BLE service. Saves everything to some file (json?)
      */
     fun stopDataCollection(view: View) {
-
+        // Stops the postDelayed runnable
+        dataCollectionHandler.removeCallbacksAndMessages(null)
+        bluetoothScanner.stopScan()
     }
 
 }
