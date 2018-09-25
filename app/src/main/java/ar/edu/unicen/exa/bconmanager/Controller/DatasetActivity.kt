@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
+import ar.edu.unicen.exa.bconmanager.Adapters.DatasetCaptureAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
@@ -34,6 +35,7 @@ class DatasetActivity : OnMapActivity() {
     private var recordCount = 0
     private var angle = 0.0
     private var acceleration = 0.0f
+    private lateinit var devicesListOnlineAdapter: DatasetCaptureAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +105,15 @@ class DatasetActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(point, imageView)
         }
+
+        // Drawing all the beacons for this map
+        for (beacon in floorMap.savedBeacons) {
+            val imageView = ImageView(this)
+            setupResource(beacon, imageView)
+        }
+
+        devicesListOnlineAdapter = DatasetCaptureAdapter(this, bluetoothScanner.devicesList)
+        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
 
     }
 
@@ -192,6 +203,28 @@ class DatasetActivity : OnMapActivity() {
     fun startAngleMeasurement(view: View) {
         isRecordingAngle = true
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * TO DO: Starts data collection. Every 100ms it should collect data from PDR and BLE scanner
+     * and save it to some object
+     */
+    fun startDataCollection(view: View) {
+
+    }
+
+    /**
+     * TO DO: Should update an object with the data from PDR and BLE scanner
+     */
+    fun collectData() {
+
+    }
+
+    /**
+     * TO DO: Stops data collection. Stops BLE service. Saves everything to some file (json?)
+     */
+    fun stopDataCollection(view: View) {
+
     }
 
 }
