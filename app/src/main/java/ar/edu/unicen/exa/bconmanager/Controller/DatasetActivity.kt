@@ -44,6 +44,7 @@ class DatasetActivity : OnMapActivity() {
     private lateinit var devicesListOnlineAdapter: DatasetCaptureAdapter
     private var dataCollectionHandler = Handler()
     private var datalist = mutableListOf<JsonData>()
+    private val delay = 500L //milliseconds. Interval in which data will be captured
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -195,7 +196,7 @@ class DatasetActivity : OnMapActivity() {
         }
         else if (!isRecordingAngle){
             angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
-            acceleration = acc
+            acceleration = if (acc >= 0) acc else 0F // Only use positive acceleration values
             Log.d("SDATA", "Acceleration: $acceleration  angle: $angle")
         }
     }
@@ -221,7 +222,6 @@ class DatasetActivity : OnMapActivity() {
      */
     fun startDataCollection(view: View) {
         bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
-        val delay = 1000L //milliseconds
         startupTime = System.currentTimeMillis()
         dataCollectionHandler.postDelayed(object : Runnable {
             override fun run() {
