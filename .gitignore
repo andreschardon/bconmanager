@@ -32,6 +32,7 @@ local.properties
 .idea/vcs.xml
 *.iml
 .idea/dictionaries/Andres.xml
+.idea/caches/build_file_checksums.ser
 
 # OS-specific files
 .DS_Store
