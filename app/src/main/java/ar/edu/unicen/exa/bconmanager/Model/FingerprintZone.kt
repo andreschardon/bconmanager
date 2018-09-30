@@ -8,12 +8,13 @@ import ar.edu.unicen.exa.bconmanager.R
 
 class FingerprintZone constructor (position : Location) : Resource(position){
     private val MTS_ERROR = 1.5
-    private val red_image = R.drawable.finger_zone_red
-    private val green_image = R.drawable.finger_zone_green
-    private val blue_image = R.drawable.finger_zone_blue
+    private val red_image = R.drawable.finger_zone_red_xs
+    private val green_image = R.drawable.finger_zone_green_xs
+    private val blue_image = R.drawable.finger_zone_blue_xs
     var fingerprints = mutableListOf<Fingerprint>()
     var view : ImageView? = null
     var hasData : Boolean = false
+    var shouldRedraw : Boolean = false
 
 
 
@@ -34,6 +35,7 @@ class FingerprintZone constructor (position : Location) : Resource(position){
 
     fun touch()  {
         this.image = blue_image
+        this.shouldRedraw = true
     }
 
     fun unTouch() {
@@ -42,6 +44,7 @@ class FingerprintZone constructor (position : Location) : Resource(position){
         } else {
             this.image = red_image
         }
+        this.shouldRedraw = true
     }
 
 

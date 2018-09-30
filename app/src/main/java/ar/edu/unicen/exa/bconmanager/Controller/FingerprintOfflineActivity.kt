@@ -52,6 +52,10 @@ class FingerprintOfflineActivity : OnMapActivity() {
         // Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
 
+        // Just in case we are using the ones in the file
+        floorMap.fingerprintZones.clear()
+
+
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView
@@ -70,12 +74,15 @@ class FingerprintOfflineActivity : OnMapActivity() {
             // check if point exists
             // if it does, click it
             var touchedPoint: FingerprintZone? = null
+            if (currentFingerprintingZone != null) {
+                currentFingerprintingZone!!.unTouch()
+                updateZone(currentFingerprintingZone!!)
+            }
             floorMap.fingerprintZones.forEach {
                 if (it.isTouched(viewX, viewY) && touchedPoint == null) {
                     touchedPoint = it
                     it.touch()
                 }
-                updateZone(it)
             }
             // otherwise, create a new point there
             if (touchedPoint == null) {
@@ -83,6 +90,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
                 createFingerprintingPoint(viewX, viewY)
             } else {
                 Log.d("ZONE", "Opening point $touchedPoint")
+                updateZone(touchedPoint!!)
                 openFingerprintingMenu(touchedPoint!!)
             }
             false
@@ -163,14 +171,18 @@ class FingerprintOfflineActivity : OnMapActivity() {
      * Updates the color of the fingerprinting zones
      */
     private fun updateZone(zone: FingerprintZone) {
-        val imageView = zone.view!!
-        floorLayout.removeView(imageView)
-        imageView.setImageResource(zone.image!!)
-        val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(70, 70)
-        // value is in pixels
-        layoutParams.leftMargin = zone.position.getX() - (layoutParams.width / 2)
-        layoutParams.topMargin = zone.position.getY() - (layoutParams.height / 2)
-        floorLayout.addView(imageView, layoutParams)
+
+        if (zone.shouldRedraw) {
+            val imageView = zone.view!!
+            floorLayout.removeView(imageView)
+            imageView.setImageResource(zone.image!!)
+            val layoutParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(70, 70)
+            // value is in pixels
+            layoutParams.leftMargin = zone.position.getX() - (layoutParams.width / 2)
+            layoutParams.topMargin = zone.position.getY() - (layoutParams.height / 2)
+            floorLayout.addView(imageView, layoutParams)
+            zone.shouldRedraw = false
+        }
     }
 
     /**
