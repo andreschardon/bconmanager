@@ -69,7 +69,7 @@ class TrilaterationCalculator : AppCompatActivity() {
 
                 if ((circle1.r < maxLength) && (circle2.r < maxLength) && (circle0.r < maxLength)) {
                     // We should consider some error margin
-                    Log.d(TAG, "Increasing beacon's distance by 0.1")
+                    //Log.d(TAG, "Increasing beacon's distance by 0.1")
                     circle0 = increaseCircleRadius(circle0)
                     circle1 = increaseCircleRadius(circle1)
                     circle2 = increaseCircleRadius(circle2)
@@ -78,7 +78,7 @@ class TrilaterationCalculator : AppCompatActivity() {
                     Log.d(TAG, circle2.toString())
                 } else {
                     // We are too far away
-                    Log.d(TAG, "We are too far away from at least one beacon")
+                    //Log.d(TAG, "We are too far away from at least one beacon")
                     return null
                 }
 
@@ -87,17 +87,17 @@ class TrilaterationCalculator : AppCompatActivity() {
                 intersection12 = circleCircleIntersectionPoints(circle1, circle2)
 
                 if (intersection01 == null && intersection02 == null && intersection12 == null) {
-                    Log.d(TAG, "No intersections yet, try again")
+                    //Log.d(TAG, "No intersections yet, try again")
                     counter++
                 } else {
-                    Log.d(TAG, "New intersection found! Continue")
+                    //Log.d(TAG, "New intersection found! Continue")
                     counter = 31
                 }
 
             }
             if (counter == 30) {
                 // We couldn't fix it by increasing the radius
-                Log.d(TAG, " :( We reached the maximum attempts")
+                //Log.d(TAG, " :( We reached the maximum attempts")
                 return null
             }
 
@@ -110,13 +110,13 @@ class TrilaterationCalculator : AppCompatActivity() {
         var continueForcing = true
         while (continueForcing) {
             if (intersection01 != null) {
-                Log.d(TAG, "Intersection01")
+                //Log.d(TAG, "Intersection01")
                 intersectionLocations = intersection01 as MutableList<Location>
                 location3 = Location(circle2.x, circle2.y, map)
                 furthestCircle = circle2
                 continueForcing = false
             } else if (intersection02 != null) {
-                Log.d(TAG, "Intersection02")
+                //Log.d(TAG, "Intersection02")
                 intersectionLocations = intersection02 as MutableList<Location>
                 location3 = Location(circle1.x, circle1.y, map)
                 furthestCircle = circle1
@@ -130,14 +130,14 @@ class TrilaterationCalculator : AppCompatActivity() {
                 location3 = Location(circle0.x,circle0.y,map)
                 furthestCircle = circle0*/
                 // Force an intersection between 0 and 1
-                Log.d(TAG, "Kernel panic ${circle1.r + 0.5}")
+                //Log.d(TAG, "Error ${circle1.r + 0.5}")
                 circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.5)
                 intersection01 = circleCircleIntersectionPoints(circle0, circle1)
                 if (intersection01 == null) {
-                    Log.d(TAG, "It is still null")
+                    //Log.d(TAG, "It is still null")
                 }
             } else {
-                Log.d(TAG, "There are no intersections")
+                //Log.d(TAG, "There are no intersections")
                 continueForcing = false
                 return null
             }
@@ -148,23 +148,21 @@ class TrilaterationCalculator : AppCompatActivity() {
         // We have the distance between our position and the furthest beacon
         // We need to calculate the distance between the two points and that beacon and choose the
         // one that is the closest to the "real" distance
-        Log.d("DISTANCE", "Real distance is ${furthestCircle!!.r}")
-        Log.d("DISTANCE", "First distance is ${euclideanDistance(intersectionLocations[0], location3!!)}")
+        //Log.d("DISTANCE", "Real distance is ${furthestCircle!!.r}")
+        //Log.d("DISTANCE", "First distance is ${euclideanDistance(intersectionLocations[0], location3!!)}")
 
         if (intersectionLocations.size == 1) {
-            Log.d("CRASH_FIX", "No second intersection, duplicate the first one")
+            //Log.d("CRASH_FIX", "No second intersection, duplicate the first one")
             intersectionLocations.add(intersectionLocations[0])
         }
 
-        Log.d("DISTANCE", "Second distance is ${euclideanDistance(intersectionLocations[1], location3!!)}")
+        //Log.d("DISTANCE", "Second distance is ${euclideanDistance(intersectionLocations[1], location3!!)}")
         val firstDistance = Math.abs((furthestCircle!!.r - (euclideanDistance(intersectionLocations[0], location3!!))))
         val secondDistance = Math.abs((furthestCircle!!.r - (euclideanDistance(intersectionLocations[1], location3!!))))
 
         if ((firstDistance <= secondDistance)) {
-            Log.d(TAG, "ES este")
             return forceInsideMap(intersectionLocations[0]!!)
         } else {
-            Log.d(TAG, "ES el otro este")
             return forceInsideMap(intersectionLocations[1]!!)
         }
 
