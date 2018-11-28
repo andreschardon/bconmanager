@@ -75,21 +75,6 @@ class TrilaterationActivity : OnMapActivity() {
             Log.d("DESTROY", "Path is $filePath")
             displayMap()
         }
-        if (!bluetoothScanner.isRunningOnBackground) {
-            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-            val intent: Intent
-            chooseFile.type = "application/octet-stream" //as close to only Json as possible
-            intent = Intent.createChooser(chooseFile, "Choose a file")
-            startActivityForResult(intent, 101)
-        } else {
-            backgroundSwitch.toggle()
-            val settings = getSharedPreferences(TAG, 0)
-            filePath = settings.getString("filePath", "")
-            Log.d("DESTROY", "Path is $filePath")
-            displayMap()
-        }
-
-
 
         detector.addListener(object:MovementDetector.Listener {
             override fun onMotionDetected(event:SensorEvent, acceleration:Float) {
@@ -108,6 +93,7 @@ class TrilaterationActivity : OnMapActivity() {
         detector.context = this
         detector.init()
         detector.start()
+        Log.d("DETECTOR", "Started")
     }
 
     private fun setupNotifications() {
@@ -192,7 +178,7 @@ class TrilaterationActivity : OnMapActivity() {
             devicesListAdapter = (bluetoothScanner.devicesListAdapter as BeaconsAdapter)
         }
 
-        setupNotifications()
+        //setupNotifications()
 
 
     }
@@ -220,7 +206,7 @@ class TrilaterationActivity : OnMapActivity() {
             bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
             editor.remove("filePath")
             editor.commit()
-            //detector.stop()
+            detector.stop()
         }
     }
 

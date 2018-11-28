@@ -13,8 +13,10 @@ class BeaconsAdapter(context : TrilaterationActivity, beacons : List<BeaconDevic
     var context = context
     val beacons = beacons
     var counter = 0
+    var ref_counter = 0
     var cleanAverages = false
     val REFRESH_RATE = 10
+    val CLEAN_RATE = 5
     val REFRESH_INTERMEDIATE = listOf(0, 2, 4, 6, 8)
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -44,18 +46,16 @@ class BeaconsAdapter(context : TrilaterationActivity, beacons : List<BeaconDevic
         super.notifyDataSetChanged()
         //printBeaconsDistance()
         counter++
-        if (cleanAverages) {
-            beacons.forEach {
-                it.cleanAverages()
-                Log.d("ACCELERATION: ", it.approxDistance.toString())
-            }
-            cleanAverages = false
-        }
+
         if (counter == REFRESH_RATE) {
 
             Log.d("REFRESH", context.toString())
             counter = 0
             context.trilateratePosition()
+            beacons.forEach {
+                it.cleanAverages()
+            }
+
         }
         if (counter in REFRESH_INTERMEDIATE) {
             context.updateIntermediate()
