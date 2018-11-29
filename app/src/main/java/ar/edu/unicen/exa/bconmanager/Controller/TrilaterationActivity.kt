@@ -58,10 +58,7 @@ class TrilaterationActivity : OnMapActivity() {
         if(!mapPath.isNullOrEmpty()) {
             filePath = mapPath
             displayMap()
-            Log.d("SAVEDMAPS","TENGO EXTRA")
-            //clean extra???
         }
-        //Log.d("SAVEDMAPS","THE PATH OF THE MAPS IS $mapPath")
         else if (!bluetoothScanner.isRunningOnBackground) {
             val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
             val intent: Intent
@@ -75,22 +72,8 @@ class TrilaterationActivity : OnMapActivity() {
             Log.d("DESTROY", "Path is $filePath")
             displayMap()
         }
-        if (!bluetoothScanner.isRunningOnBackground) {
-            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-            val intent: Intent
-            chooseFile.type = "application/octet-stream" //as close to only Json as possible
-            intent = Intent.createChooser(chooseFile, "Choose a file")
-            startActivityForResult(intent, 101)
-        } else {
-            backgroundSwitch.toggle()
-            val settings = getSharedPreferences(TAG, 0)
-            filePath = settings.getString("filePath", "")
-            Log.d("DESTROY", "Path is $filePath")
-            displayMap()
-        }
 
-
-
+        /* Not working
         detector.addListener(object:MovementDetector.Listener {
             override fun onMotionDetected(event:SensorEvent, acceleration:Float) {
                 /*Log.d("ACCELERATION", ("Acceleration: [" + String.format("%.3f", event.values[0])
@@ -108,6 +91,7 @@ class TrilaterationActivity : OnMapActivity() {
         detector.context = this
         detector.init()
         detector.start()
+        */
     }
 
     private fun setupNotifications() {
@@ -150,7 +134,7 @@ class TrilaterationActivity : OnMapActivity() {
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
         //createTestMap()
-        Log.d("FILEPATH",filePath)
+        //Log.d("FILEPATH",filePath)
         // Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
 
@@ -192,7 +176,7 @@ class TrilaterationActivity : OnMapActivity() {
             devicesListAdapter = (bluetoothScanner.devicesListAdapter as BeaconsAdapter)
         }
 
-        setupNotifications()
+        //setupNotifications()
 
 
     }
@@ -220,7 +204,7 @@ class TrilaterationActivity : OnMapActivity() {
             bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
             editor.remove("filePath")
             editor.commit()
-            //detector.stop()
+            detector.stop()
         }
     }
 
@@ -329,14 +313,14 @@ class TrilaterationActivity : OnMapActivity() {
                 val finishLocation = resultLocation
                 if (!isUselessMove(startLocation, finishLocation) && !isJump(startLocation, finishLocation)) {
                     val pointsToDraw = calculatePointsBetweenPositions(startLocation, finishLocation)
-                    Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
-                    Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
-                    Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
+                    //Log.d("START  CALCULATION", "(${startLocation.x},${startLocation.y})")
+                    //Log.d("MIDDLE CALCULATION", pointsToDraw.toString())
+                    //Log.d("FINISH CALCULATION", "(${finishLocation.x},${finishLocation.y})")
                     pointsToDraw.forEach {
                         drawQueue.add(it)
                     }
                 } else {
-                    Log.d("FINISH", "It is useless")
+                    //Log.d("FINISH", "It is useless")
                 }
             }
         } else {
@@ -361,19 +345,19 @@ class TrilaterationActivity : OnMapActivity() {
      */
 
     fun isJump(origin: Location, destination: Location) : Boolean {
-        Log.d("JUMP", "Differences are ${Math.abs(origin.x - destination.x)}m and ${Math.abs(origin.y - destination.y)}m")
+        //Log.d("JUMP", "Differences are ${Math.abs(origin.x - destination.x)}m and ${Math.abs(origin.y - destination.y)}m")
         if (Math.abs(origin.x - destination.x) >= JUMP_THRESHOLD ||  Math.abs(origin.y - destination.y) >= JUMP_THRESHOLD) {
             jumpCounter++
         } else {
             jumpCounter = 0
-            Log.d("JUMP", "Not a jump, update")
+            //Log.d("JUMP", "Not a jump, update")
             return false
         }
         if (jumpCounter > 3) {
-            Log.d("JUMP", "Repeated jump, let's do it")
+            //Log.d("JUMP", "Repeated jump, let's do it")
             return false
         }
-        Log.d("JUMP", "It's a jump, do not update")
+        //Log.d("JUMP", "It's a jump, do not update")
         return true
     }
 
