@@ -12,9 +12,11 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOfflineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import ar.edu.unicen.exa.bconmanager.Model.Fingerprint
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
+import ar.edu.unicen.exa.bconmanager.Service.FingerprintingService
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 
 
@@ -26,6 +28,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
     private lateinit var fingerprintScanDialog: AlertDialog
     private lateinit var devicesListOfflineAdapter: FingerprintOfflineAdapter
     private var currentFingerprintingZone: FingerprintZone? = null
+    private val fingerprinting = FingerprintingService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,6 +114,8 @@ class FingerprintOfflineActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(point, imageView)
         }
+
+        fingerprinting.map = floorMap
     }
 
     /**
@@ -190,14 +195,10 @@ class FingerprintOfflineActivity : OnMapActivity() {
      */
     fun startFingerprint(view: View) {
         Log.d(TAG, "Current zone is $currentFingerprintingZone")
-        createFingerprint(view)
-        bluetoothScanner.devicesList.clear()
-        floorMap.savedBeacons.forEach {
-            it.beacon.cleanAverages()
-            bluetoothScanner.devicesList.add(it.beacon)
-        }
+        fingerprinting.createFingerprint(currentFingerprintingZone!!)
         devicesListOfflineAdapter = FingerprintOfflineAdapter(this, bluetoothScanner.devicesList)
-        bluetoothScanner.scanLeDevice(true, devicesListOfflineAdapter, true)
+        fingerprinting.startScan(bluetoothScanner, devicesListOfflineAdapter)
+
         // Loading popup (display averages for each beacon?)
         deleteBtn.isEnabled = false
         createBtn.isEnabled = false
@@ -219,16 +220,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
         fingerprintScanDialog.setMessage("   ")
     }
 
-    /**
-     * Creates a new fingerprinting zone
-     */
-    fun createFingerprint(view: View) {
-        Log.d(TAG, "Creating fingerpriting zone in $currentFingerprintingZone")
-        if (!floorMap.fingerprintZones.contains(currentFingerprintingZone)) {
-            floorMap.fingerprintZones.add(currentFingerprintingZone!!)
-        }
 
-    }
 
     /**
      * Used to update the current fingerpriting dialog
@@ -243,7 +235,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
      */
     fun deleteFingerprint(view: View) {
         Log.d(TAG, "Deleting fingerpriting zone in $currentFingerprintingZone")
-        floorMap.fingerprintZones.remove(currentFingerprintingZone)
+        fingerprinting.removeFingerprint(currentFingerprintingZone!!)
         floorLayout.removeView(currentFingerprintingZone!!.view)
 
         currentFingerprintingZone = null
@@ -257,7 +249,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
      */
     fun finishFingerprint() {
         fingerprintScanDialog.hide()
-        currentFingerprintingZone!!.updateFingerprints(devicesListOfflineAdapter.beacons)
+        fingerprinting.finishScan(devicesListOfflineAdapter, currentFingerprintingZone!!)
         deleteBtn.isEnabled = true
         createBtn.isEnabled = false
         startBtn.isEnabled = true
@@ -272,6 +264,10 @@ class FingerprintOfflineActivity : OnMapActivity() {
         Toast.makeText(this, "Saved to $filePath", Toast.LENGTH_SHORT).show()
 
 
+    }
+
+    fun createFingerprint(view: View) {
+        fingerprinting.createFingerprint(currentFingerprintingZone!!)
     }
 
 

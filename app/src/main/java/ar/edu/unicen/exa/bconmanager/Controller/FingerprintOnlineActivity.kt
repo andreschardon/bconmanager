@@ -12,6 +12,7 @@ import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOnlineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.R
+import ar.edu.unicen.exa.bconmanager.Service.FingerprintingService
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 
 
@@ -21,6 +22,7 @@ class FingerprintOnlineActivity : OnMapActivity() {
 
     private lateinit var devicesListOnlineAdapter: FingerprintOnlineAdapter
     private var currentFingerprintingZone: FingerprintZone? = null
+    private val fingerprinting = FingerprintingService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +71,10 @@ class FingerprintOnlineActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(zone, imageView)
         }
+        fingerprinting.map = floorMap
         devicesListOnlineAdapter = FingerprintOnlineAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
+
     }
 
     override fun onPause() {
@@ -87,41 +91,10 @@ class FingerprintOnlineActivity : OnMapActivity() {
         }
         // Using the current RSSI of the beacons, we need to get the closest zone
         if (!floorMap.fingerprintZones.isEmpty()) {
-            currentFingerprintingZone = bestZone(beacons, floorMap.fingerprintZones)
+            currentFingerprintingZone = fingerprinting.getCurrentZone(beacons)
             currentFingerprintingZone!!.touch()
             updateZone(currentFingerprintingZone!!)
         }
-    }
-
-    /**
-     *
-     */
-    private fun bestZone(beacons: List<BeaconDevice>, fingerprintZones: MutableList<FingerprintZone>): FingerprintZone? {
-        val fingerprintRating = mutableListOf<Double>()
-        Log.d("RATINGS", beacons.toString())
-        Log.d("RATINGS", fingerprintZones.toString())
-        for (zone in fingerprintZones) {
-            // For each fingerprinting zone, calculate the "rating"
-            var differenceRating = 0.0
-            zone.fingerprints.forEach {
-                val index = beacons.indexOf(BeaconDevice(it.mac, 0, null))
-                if (index != -1) {
-                    val beacon = beacons.get(index)
-                    differenceRating += Math.abs(beacon.averageRssi - it.rssi)
-                }
-            }
-            fingerprintRating.add(differenceRating)
-        }
-        Log.d("RATINGS", fingerprintRating.toString())
-
-        // Get the one with less rating
-        val index = fingerprintRating.indexOf(fingerprintRating.min())
-        Log.d("RATINGS", "$index")
-
-        val bestZone = fingerprintZones.get(index)
-        Log.d("RATINGS", "Best zone is $bestZone")
-
-        return bestZone
     }
 
     /**
@@ -137,6 +110,5 @@ class FingerprintOnlineActivity : OnMapActivity() {
         layoutParams.topMargin = zone.position.getY() - (layoutParams.height / 2)
         floorLayout.addView(imageView, layoutParams)
     }
-
 }
 

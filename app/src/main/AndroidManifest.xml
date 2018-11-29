@@ -40,6 +40,7 @@
         <activity android:name=".Controller.FindMeActivity" />
         <activity android:name=".Controller.DatasetActivity" />
         <activity android:name=".Controller.ParticleFilterActivity"></activity>
+        <activity android:name=".Service.FingerprintingService" />
     </application>
 
 </manifest>
