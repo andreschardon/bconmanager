@@ -145,4 +145,8 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, DatasetActivity::class.java)
         startActivity(intent)
     }
+    fun goToParticleFilterActivity(view : View) {
+        val intent = Intent(this, ParticleFilterActivity::class.java)
+        startActivity(intent)
+    }
 }
