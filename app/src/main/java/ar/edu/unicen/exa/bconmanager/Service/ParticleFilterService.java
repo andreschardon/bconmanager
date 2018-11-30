@@ -1,8 +1,16 @@
 package ar.edu.unicen.exa.bconmanager.Service;
 
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap;
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap;
+import ar.edu.unicen.exa.bconmanager.Model.Location;
 import ar.edu.unicen.exa.bconmanager.Model.Particle;
 
 public class ParticleFilterService {
@@ -14,13 +22,14 @@ public class ParticleFilterService {
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
 
+    private AtomicBoolean isActive = new AtomicBoolean(false);
+    private Context context;
+
     //particles
     private List<Particle> particles = null;
 
-    /*
-    //access point list
-    private List<AccessPointResult> accessPointList;
-    */
+    //List of beacons obtained from Map
+    List<BeaconOnMap> beaconsList;
 
     private int curFrame;
     private double maxDist;
@@ -42,28 +51,20 @@ public class ParticleFilterService {
     private double estimateWY;
 
     //private constructor
-    //Replace with ParticleFilteService ??
-    //private ParticleFilterService(, double maxRangeWidth, double maxRangeHeight) {
-    /*private ParticleFilterService(Map<String, AccessPointResult> accessPointMap, double maxRangeWidth, double maxRangeHeight) {
+    private ParticleFilterService(Context context, CustomMap map) {
+        this.context = context;
+        Log.d("PARTICLEFILTERSERVICE","CONSTRUCTOR");
+        double maxRangeHeight = map.getHeight();
+        double maxRangeWidth = map.getWidth();
 
-        /*
-        //trasforma la mappa in lista
-        accessPointList = new ArrayList<AccessPointResult>(accessPointMap.values());
+        /** Calculate the three closest circles **/
+        Log.d("SAVED", "${map.savedBeacons}");
+        beaconsList = map.sortBeaconsByDistance();
 
+        maxDist = Math.floor(Math.sqrt(maxRangeWidth * maxRangeWidth + maxRangeHeight * maxRangeHeight));
 
-        //ordina in base al level
-        Collections.sort(accessPointList, new Comparator<AccessPointResult>() {
-            @Override
-            public int compare(AccessPointResult apr1, AccessPointResult apr2) {
-                return (apr1.getLevel() > apr2.getLevel() ? -1 : (apr1.getLevel() == apr2.getLevel() ? 0 : 1));
-            }
-        });
-        */
-      /*
-        maxDist = Math.floor(Math.sqrt(maxRangeWidth*maxRangeWidth + maxRangeHeight*maxRangeHeight));
-
-        xPos = Math.floor(Math.random()*maxRangeWidth);
-        yPos = Math.floor(Math.random()*maxRangeHeight);
+        xPos = Math.floor(Math.random() * maxRangeWidth);
+        yPos = Math.floor(Math.random() * maxRangeHeight);
 
         movedX = 0;
         movedY = 0;
@@ -75,26 +76,27 @@ public class ParticleFilterService {
 
         // set up particles
         particles = new ArrayList<Particle>();
-        for(int i = 0; i < NUM_PARTICLES; i++){
+        for (int i = 0; i < NUM_PARTICLES; i++) {
             Particle p = new Particle();
             p.randomize(maxRangeWidth, maxRangeHeight);
             particles.add(p);
         }
     }
-*/
+
     //singleton constructor
-    /*
-    private static ParticleFilterLocator instance = null;
-    public static ParticleFilterLocator getInstance(Context ctx, Map<String, AccessPointResult> accessPointMap, double maxRangeWidth, double maxRangeHeight, int algorithmSelection) {
-        if(instance == null) {
-            instance = new ParticleFilterLocator(ctx, accessPointMap, maxRangeWidth, maxRangeHeight, algorithmSelection);
+    private static ParticleFilterService instance = null;
+
+    public static ParticleFilterService getInstance(Context context,CustomMap map) {
+        if (instance == null) {
+            instance = new ParticleFilterService(context,map);
         }
 
         return instance;
     }
-    */
+
     /**
      * update user position witha new trilateratio position
+     *
      * @param xPos
      * @param yPos
      */
@@ -105,44 +107,43 @@ public class ParticleFilterService {
 
         // if mouse moved too much, consider it a jump (a jump will not update the
         //	movement of the particles)
-        if(Math.abs(this.movedX) > JUMP_DISTANCE || Math.abs(this.movedY) > JUMP_DISTANCE)
+        if (Math.abs(this.movedX) > JUMP_DISTANCE || Math.abs(this.movedY) > JUMP_DISTANCE)
             this.movedX = this.movedY = 0;
 
         this.xPos = xPos;
         this.yPos = yPos;
 
-        System.out.println("-> User position: "+this.xPos+" - "+this.yPos);
+        System.out.println("-> User position: " + this.xPos + " - " + this.yPos);
     }
 
     /**
      * return if the service is running
+     *
      * @return
      */
-    /*public boolean inRunning() {
+    public boolean inRunning() {
         return isActive.get();
     }
 
     /**
      * start thread update position
      */
-    /*public void start() {
-        if(isActive.get()) return;
+    public void start() {
+        if (isActive.get()) return;
         isActive.set(true);
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while(isActive.get())
-                {
+                while (isActive.get()) {
                     //applica il filtro ed invia il broadcast
                     applyFilter();
                     sendBroadcastUserPosition();
 
                     //controllo di disattivazione servizio ogni 500 frames
-                    if((curFrame % 500) == 0) {
-                        if(algorithmSelection == Integer.parseInt(preferences.getString(UserTrackerActivity.ALGORITHM_CHOOSE_USER_TRACKER, "0"))) {
+                    if ((curFrame % 500) == 0) {
+                        //CHECK!!
                             isActive.set(false);
-                        }
                     }
 
                     try {
@@ -159,15 +160,15 @@ public class ParticleFilterService {
     /**
      * stop thread update position
      */
-    /*public void stop() {
-        if(!isActive.get()) return;
+    public void stop() {
+        if (!isActive.get()) return;
         isActive.set(false);
     }
 
     /**
      * Particle Filter: run the actual particle filter algorithm here
      */
-    /*public void applyFilter() {
+    public void applyFilter() {
 
         //increment frame counter
         this.curFrame += 1;
@@ -178,7 +179,7 @@ public class ParticleFilterService {
         double totalWX = 0;
         double totalWY = 0;
         double totalW = 0;
-        for(int i = 0; i < particles.size(); i++){
+        for (int i = 0; i < particles.size(); i++) {
             totalX += particles.get(i).x;
             totalY += particles.get(i).y;
             double weight = particles.get(i).getWeight();
@@ -195,8 +196,8 @@ public class ParticleFilterService {
 
         // 1. if mouse moved (i.e. the "agent" moved), update all particles
         //	by the same amount as the mouse movement
-        if(this.movedX != 0 || this.movedY != 0) {
-            for(int i = 0; i < particles.size(); i++) {
+        if (this.movedX != 0 || this.movedY != 0) {
+            for (int i = 0; i < particles.size(); i++) {
 
                 //Replace movedX for distance un x, PDR next location¿?
                 particles.get(i).x += this.movedX;
@@ -208,10 +209,10 @@ public class ParticleFilterService {
 
         //UPDATES PARTICLE POSITION WITH RANDOM WALK ??
 
-        if(R_WALK_FREQUENCY != 0 && (this.curFrame % R_WALK_FREQUENCY) == 0) {
-            for(int i = 0; i < particles.size(); i++){
-                double dX = Math.floor(Math.random() * (R_WALK_MAX+1)) - R_WALK_MAX/2;
-                double dY = Math.floor(Math.random() * (R_WALK_MAX+1)) - R_WALK_MAX/2;
+        if (R_WALK_FREQUENCY != 0 && (this.curFrame % R_WALK_FREQUENCY) == 0) {
+            for (int i = 0; i < particles.size(); i++) {
+                double dX = Math.floor(Math.random() * (R_WALK_MAX + 1)) - R_WALK_MAX / 2;
+                double dY = Math.floor(Math.random() * (R_WALK_MAX + 1)) - R_WALK_MAX / 2;
                 particles.get(i).x += dX;
                 particles.get(i).y += dY;
             }
@@ -219,54 +220,53 @@ public class ParticleFilterService {
 
         // 3. estimate weights of every particle
         double maxWeight = 0;
-        for(int i = 0; i < particles.size(); i++){
+        for (int i = 0; i < particles.size(); i++) {
             double weightSum = 0;
             //for every beacon?
 
-            //for(int j = 0; j < beacons.size(); j++){
-            for(int j = 0; j < accessPointList.size(); j++){
+            for (int j = 0; j < beaconsList.size(); j++) {
 
                 // get distance to beacon of both the particle and the robot
                 //Replace with trilateration calculated position
-                //Location beaconLocation= beacons(j).position;
-
-                //ne
+                Location beaconLocation = beaconsList.get(j).getPosition();
 
 
                 //this.xPos and this.yPos are the position provided by trilateration
                 //apLocation is the position of the beacon
 
-                //double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getX(), beaconLocation(j).getY());
-                double userDistToBeacon = distance(this.xPos, this.yPos, apLocation.getX(), apLocation.getY());
-                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, apLocation.getX(), apLocation.getY());
+                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getX(), beaconLocation.getY());
+                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getX(), beaconLocation.getY());
 
                 //particle distance to beacon is known, userDistToBeacon
                 weightSum += getWeight(userDistToBeacon, particleDistToBeacon);
             }
             //beacons.size
-            double weight = weightSum / accessPointList.size();
+            double weight = weightSum / beaconsList.size();
             particles.get(i).degrade(weight);
-            if(weight > maxWeight)
+            if (weight > maxWeight)
                 maxWeight = weight;
         }
 
         // 4. normalize weights
         double weightSum = 0;
-        for(int i = 0; i < particles.size(); i++){
+        for (int i = 0; i < particles.size(); i++) {
             particles.get(i).normalize(maxWeight);
             weightSum += particles.get(i).getWeight();
         }
 
         // 5. resample: pick each particle based on probability
-        List<Particle> newParticles = new ArrayList<Particle>();
+        List<Particle> newParticles = new ArrayList<>();
         int numParticles = particles.size();
-        for(int i = 0; i < numParticles; i++){
+        Log.d("NUM","NUM PARTICLES: "+numParticles);
+        for (int i = 0; i < numParticles; i++) {
             double choice = Math.random() * weightSum;
-            int index = -1;
-            do {
-                index++;
+            int index = 0;
+            Log.d("NUM","INDEX: "+index);
+            while (index < numParticles && choice > 0)  {
+                Log.d("NUM","INDEX: "+index);
                 choice -= particles.get(index).getWeight();
-            } while(choice > 0);
+                index++;
+            }
             newParticles.add(particles.get(index).clone());
         }
         particles = newParticles;
@@ -278,25 +278,27 @@ public class ParticleFilterService {
 
     /**
      * Distance Formula: returns the distance between two given points
+     *
      * @param x1
      * @param y1
      * @param x2
      * @param y2
      * @return
      */
-    private double distance(double x1, double y1, double x2, double y2){
-        double distX = x1-x2;
-        double distY = y1-y2;
-        return Math.floor(Math.sqrt(distX*distX + distY*distY));
+    private double distance(double x1, double y1, double x2, double y2) {
+        double distX = x1 - x2;
+        double distY = y1 - y2;
+        return Math.floor(Math.sqrt(distX * distX + distY * distY));
     }
 
     /**
      * computes distance weight between a
+     *
      * @param robotDistToBeacon
      * @param particleDistToBeacon
      * @return
      */
-    private double getWeight(double robotDistToBeacon, double particleDistToBeacon){
+    private double getWeight(double robotDistToBeacon, double particleDistToBeacon) {
         double diff = Math.abs(robotDistToBeacon - particleDistToBeacon);
         return (maxDist - diff) / maxDist;
     }
@@ -304,74 +306,13 @@ public class ParticleFilterService {
     /**
      * send a broadcast with a new user position
      */
-    /*
     public void sendBroadcastUserPosition() {
         Intent broadcastReceiverIntent = new Intent();
-        broadcastReceiverIntent.putExtra("x", (float)estimateWX);
-        broadcastReceiverIntent.putExtra("y", (float)estimateWY);
+        broadcastReceiverIntent.putExtra("x", (float) estimateWX);
+        broadcastReceiverIntent.putExtra("y", (float) estimateWY);
         broadcastReceiverIntent.setAction("android.intent.action.UPDATE_USER_POSITION");
         context.sendBroadcast(broadcastReceiverIntent);
 
         System.out.println(String.format("posizione: %s - %s", estimateWX, estimateWY));
     }
-    */
-    /*
-    public static void main(String[] args) {
-
-
-
-
-        /*
-        double frameWidth  = 860;
-        double frameHeight = 540;
-
-        Map<String, AccessPointResult> accessPointMap = new HashMap<String, AccessPointResult>();
-        AccessPointResult apr = new AccessPointResult();
-        apr.setLocation(new Location());
-        apr.getLocation().setX(20);
-        apr.getLocation().setY(20);
-        accessPointMap.put("BEACON1", apr);
-        apr = new AccessPointResult();
-        apr.setLocation(new Location());
-        apr.getLocation().setX((float)frameWidth/2);
-        apr.getLocation().setY(20);
-        accessPointMap.put("BEACON2", apr);
-
-
-        //crea il filtro
-        ParticleFilterLocator pfl = ParticleFilterLocator.getInstance(null, accessPointMap, frameWidth, frameHeight, 9);*/
-
-        /*
-        //Replace with trilat position
-        double xPos = 100;
-        double yPos = 100;
-
-        //start del filtro
-        pfl.updatePosition(xPos, yPos);
-        pfl.start();
-        try {
-            Thread.sleep(1000 * 20);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //Replace with trilat position
-        xPos += 50;
-        pfl.updatePosition(xPos, yPos);
-        try {
-            Thread.sleep(1000 * 20);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        //Replace with trilat position
-        xPos += 50;
-        yPos += 80;
-        pfl.updatePosition(xPos, yPos);
-        try {
-            Thread.sleep(1000 * 20);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        pfl.stop();
-    }
-    */
 }

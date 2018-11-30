@@ -30,11 +30,11 @@ class TrilaterationCalculator : AppCompatActivity() {
      */
     fun getPositionInMap(map: CustomMap): Location? {
         mapHeight = map.height
-        mapWidth = map.width
+                mapWidth = map.width
 
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}")
-        val sortedList = map.savedBeacons.sortedWith(compareBy({ it.beacon.approxDistance }))
+        val sortedList = map.sortBeaconsByDistance()
 
         val beacon0 = sortedList[0]
         val beacon1 = sortedList[1]

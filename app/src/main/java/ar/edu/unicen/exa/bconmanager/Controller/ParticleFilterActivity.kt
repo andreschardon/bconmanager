@@ -13,23 +13,24 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.ParticleFilterService
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
 
+class ParticleFilterActivity : OnMapActivity() {
     private var sensorManager: SensorManager? = null
     private var stepDetectionHandler: StepDetectionHandler? = null
     private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
-    var  TAG = "ParticleFilterActivity"
+    override var  TAG = "ParticleFilterActivity"
     //lateinit var positionView: ImageView
     private var startingPoint = false
     private var isRecordingAngle = false
     private var isPDREnabled = false
     //lateinit var currentPosition: PositionOnMap
 
-
-class ParticleFilterActivity : OnMapActivity() {
+    lateinit var particleFilterService: ParticleFilterService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,9 +92,48 @@ class ParticleFilterActivity : OnMapActivity() {
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
+        particleFilterService = ParticleFilterService.getInstance(this.applicationContext,floorMap)
+        filter()
     }
 
     override fun updatePosition(beacons: List<BeaconDevice>) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
+
+//Change Name
+    fun filter () {
+        var frameWidth  = 860
+        var frameHeight = 540
+
+        //Replace with trilat position
+        var xPos = 100.0
+        var yPos = 100.0
+        particleFilterService.updatePosition(xPos,yPos)
+        particleFilterService.start()
+        try {
+            Thread.sleep(1000 * 20)
+        } catch (e : InterruptedException) {
+            e.printStackTrace()
+        }
+        //Replace with trilat position
+        xPos += 50
+        particleFilterService.updatePosition(xPos, yPos)
+        try {
+            Thread.sleep(1000 * 20)
+        } catch (e : InterruptedException) {
+            e.printStackTrace()
+        }
+        //Replace with trilat position
+        xPos += 50
+        yPos += 80
+        particleFilterService.updatePosition(xPos, yPos)
+        try {
+            Thread.sleep(1000 * 20);
+        } catch (e : InterruptedException) {
+            e.printStackTrace()
+        }
+        particleFilterService.stop()
     }
 }
