@@ -95,25 +95,27 @@ public class ParticleFilterService {
     }
 
     /**
-     * update user position witha new trilateratio position
+     * update user position witha new trilateratio position and PDR
      *
      * @param xPos
      * @param yPos
      */
-    public void updatePosition(double xPos, double yPos) {
+    public void updatePosition(double movedXPDR, double movedYPDR, double xPosTrilat, double yPosTrilat) {
 
-        this.movedX = xPos - this.xPos;
-        this.movedY = yPos - this.yPos;
+        this.movedX = movedXPDR;
+        this.movedY = movedYPDR;
 
         // if mouse moved too much, consider it a jump (a jump will not update the
         //	movement of the particles)
+        /*
         if (Math.abs(this.movedX) > JUMP_DISTANCE || Math.abs(this.movedY) > JUMP_DISTANCE)
             this.movedX = this.movedY = 0;
+            */
 
-        this.xPos = xPos;
-        this.yPos = yPos;
-
-        System.out.println("-> User position: " + this.xPos + " - " + this.yPos);
+        this.xPos = xPosTrilat;
+        this.yPos = yPosTrilat;
+        System.out.println("-> Moved using PDR       : " + this.movedX + " - " + this.movedY);
+        System.out.println("-> User position (trilat): " + this.xPos + " - " + this.yPos);
     }
 
     /**
@@ -170,6 +172,7 @@ public class ParticleFilterService {
      */
     public void applyFilter() {
 
+
         //increment frame counter
         this.curFrame += 1;
 
@@ -193,6 +196,7 @@ public class ParticleFilterService {
         // weighted average of all particles
         this.estimateWX = Math.floor(totalWX / totalW);
         this.estimateWY = Math.floor(totalWY / totalW);
+        System.out.println("Estamos en apply filter " + this.estimateWX + " " + this.estimateWY);
 
         // 1. if mouse moved (i.e. the "agent" moved), update all particles
         //	by the same amount as the mouse movement
@@ -255,6 +259,11 @@ public class ParticleFilterService {
         }
 
         // 5. resample: pick each particle based on probability
+
+
+
+        // Not what we expected
+        /*
         List<Particle> newParticles = new ArrayList<>();
         int numParticles = particles.size();
         Log.d("NUM","NUM PARTICLES: "+numParticles);
@@ -267,9 +276,12 @@ public class ParticleFilterService {
                 choice -= particles.get(index).getWeight();
                 index++;
             }
+            if (index < numParticles)
             newParticles.add(particles.get(index).clone());
         }
         particles = newParticles;
+        */
+
 
         // clear any movedX, movedY values
         this.movedX = 0;

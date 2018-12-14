@@ -10,12 +10,10 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
-import ar.edu.unicen.exa.bconmanager.Service.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
+import ar.edu.unicen.exa.bconmanager.Service.*
 
 class ParticleFilterActivity : OnMapActivity() {
     private var sensorManager: SensorManager? = null
@@ -30,7 +28,10 @@ class ParticleFilterActivity : OnMapActivity() {
     private var isPDREnabled = false
     //lateinit var currentPosition: PositionOnMap
 
-    lateinit var particleFilterService: ParticleFilterService
+
+    private var particleFilterService: ParticleFilterService? = null
+    private var trilaterationCalculator = TrilaterationCalculator.instance
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +55,12 @@ class ParticleFilterActivity : OnMapActivity() {
         } else {
             Log.e(TAG, "The file path is incorrect")
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (particleFilterService != null)
+            particleFilterService!!.stop()
     }
 
 
@@ -104,15 +111,15 @@ class ParticleFilterActivity : OnMapActivity() {
 
 //Change Name
     fun filter () {
-        var frameWidth  = 860
-        var frameHeight = 540
+        var frameWidth  = 860 // ??
+        var frameHeight = 540 // ??
 
         //Replace with trilat position
-        var xPos = 100.0
-        var yPos = 100.0
-        particleFilterService.updatePosition(xPos,yPos)
-        particleFilterService.start()
-        try {
+        var xPos = 2.0
+        var yPos = 2.0
+        particleFilterService!!.updatePosition(0.0, 0.0, xPos,yPos)
+        particleFilterService!!.start()
+        /*try {
             Thread.sleep(1000 * 20)
         } catch (e : InterruptedException) {
             e.printStackTrace()
@@ -133,7 +140,14 @@ class ParticleFilterActivity : OnMapActivity() {
             Thread.sleep(1000 * 20);
         } catch (e : InterruptedException) {
             e.printStackTrace()
-        }
-        particleFilterService.stop()
+        }*/
+        //particleFilterService.stop()
+    }
+
+    fun advanceStep(pdrPosition : Location) {
+        val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        particleFilterService!!.updatePosition(pdrPosition.getXMeters(), pdrPosition.getYMeters(),
+                trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
+
     }
 }
