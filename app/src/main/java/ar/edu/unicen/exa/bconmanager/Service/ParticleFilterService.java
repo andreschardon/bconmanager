@@ -26,7 +26,7 @@ public class ParticleFilterService {
     private Context context;
 
     //particles
-    private List<Particle> particles = null;
+    public List<Particle> particles = null;
 
     //List of beacons obtained from Map
     List<BeaconOnMap> beaconsList;
@@ -50,12 +50,16 @@ public class ParticleFilterService {
     private double estimateWX;
     private double estimateWY;
 
+    private double maxRangeWidth;
+    private double maxRangeHeight;
+
     //private constructor
     private ParticleFilterService(Context context, CustomMap map) {
         this.context = context;
         Log.d("PARTICLEFILTERSERVICE","CONSTRUCTOR");
-        double maxRangeHeight = map.getHeight();
-        double maxRangeWidth = map.getWidth();
+        this.maxRangeHeight = map.getHeight();
+        this.maxRangeWidth = map.getWidth();
+        Log.d("MAXRANGES", "Height " + maxRangeHeight + " Width " + maxRangeWidth);
 
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}");
@@ -97,8 +101,6 @@ public class ParticleFilterService {
     /**
      * update user position witha new trilateratio position and PDR
      *
-     * @param xPos
-     * @param yPos
      */
     public void updatePosition(double movedXPDR, double movedYPDR, double xPosTrilat, double yPosTrilat) {
 
@@ -131,6 +133,9 @@ public class ParticleFilterService {
      * start thread update position
      */
     public void start() {
+        applyFilter();
+        sendBroadcastUserPosition();
+        /*
         if (isActive.get()) return;
         isActive.set(true);
 
@@ -156,7 +161,7 @@ public class ParticleFilterService {
                 }
             }
         }).start();
-
+    */
     }
 
     /**
@@ -206,13 +211,14 @@ public class ParticleFilterService {
                 //Replace movedX for distance un x, PDR next location¿?
                 particles.get(i).x += this.movedX;
                 particles.get(i).y += this.movedY;
+                particles.get(i).restrictToMap(maxRangeWidth, maxRangeHeight);
             }
         }
 
         // 2. do a random walk if on random walk frame
 
         //UPDATES PARTICLE POSITION WITH RANDOM WALK ??
-
+        /*
         if (R_WALK_FREQUENCY != 0 && (this.curFrame % R_WALK_FREQUENCY) == 0) {
             for (int i = 0; i < particles.size(); i++) {
                 double dX = Math.floor(Math.random() * (R_WALK_MAX + 1)) - R_WALK_MAX / 2;
@@ -220,7 +226,7 @@ public class ParticleFilterService {
                 particles.get(i).x += dX;
                 particles.get(i).y += dY;
             }
-        }
+        }*/
 
         // 3. estimate weights of every particle
         double maxWeight = 0;
@@ -325,6 +331,6 @@ public class ParticleFilterService {
         broadcastReceiverIntent.setAction("android.intent.action.UPDATE_USER_POSITION");
         context.sendBroadcast(broadcastReceiverIntent);
 
-        System.out.println(String.format("posizione: %s - %s", estimateWX, estimateWY));
+        System.out.println(String.format("PARTICLE FILTER POSITION IS ", estimateWX, estimateWY));
     }
 }

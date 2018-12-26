@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
@@ -9,11 +10,14 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
+import android.widget.RelativeLayout
+import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.*
+import kotlin.math.floor
 
 class ParticleFilterActivity : OnMapActivity() {
     private var sensorManager: SensorManager? = null
@@ -27,6 +31,10 @@ class ParticleFilterActivity : OnMapActivity() {
     private var isRecordingAngle = false
     private var isPDREnabled = false
     //lateinit var currentPosition: PositionOnMap
+
+    lateinit var currentPosition: PositionOnMap
+    lateinit var positionView: ImageView
+    private var bearingAdjustment = 0.0f //should be in the map
 
 
     private var particleFilterService: ParticleFilterService? = null
@@ -107,18 +115,103 @@ class ParticleFilterActivity : OnMapActivity() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    private fun drawParticle(location: Location) {
+        val particle = PositionOnMap(location)
+        particle.image = R.drawable.finger_zone_green
+        var particleView = ImageView(this)
+        setupResource(particle, particleView)
+    }
+
+    private fun setStartingPoint(viewX: Double, viewY: Double) {
+        val loc = Location(0.0, 0.0, floorMap)
+        loc.x = viewX
+        loc.y = viewY
+
+        // Starting point
+        currentPosition = PositionOnMap(loc)
+        currentPosition.image = R.drawable.location_icon
+        positionView = ImageView(this)
+        setupResource(currentPosition, positionView)
+        Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
+        //Log.d(TAG, "Touching ${zone.toString()}")
+
+
+        // Should be elsewhere
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        stepDetectionHandler = StepDetectionHandler(sensorManager,false)
+        stepDetectionHandler!!.setStepListener(mStepDetectionListener)
+        deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
+        stepPositioningHandler = StepPositioningHandler()
+        stepPositioningHandler!!.setmCurrentLocation(loc)
+        stepDetectionHandler!!.start()
+        deviceAttitudeHandler!!.start()
+
+    }
+
+    // Should be elsewhere
+    private val mStepDetectionListener = StepDetectionHandler.StepDetectionListener { stepSize ->
+        // To correct previous invalid position
+        stepPositioningHandler!!.setmCurrentLocation(currentPosition.position)
+
+        val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
+        Log.d(TAG, "Location: " + newloc.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
+        if (isWalking) {
+            Log.d(TAG, "IS WALKING")
+            updatePosition()
+        }
+    }
+
+
+    // Should be an adapter
+    private fun updatePosition() {
+
+        Log.d(TAG, "Location before update: "+ stepPositioningHandler!!.getmCurrentLocation().toString())
+        currentPosition.position = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
+        advanceStep(currentPosition.position)
+
+
+        /*val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        layoutParams.leftMargin = currentPosition.position.getX() - 35
+        layoutParams.topMargin = currentPosition.position.getY() - 35
+        positionView.layoutParams = layoutParams*/
+    }
+
+    private fun validatePosition(newPosition : Location): Location {
+        return floorMap.restrictPosition(PositionOnMap(newPosition)).position
+    }
+
 
 
 //Change Name
     fun filter () {
-        var frameWidth  = 860 // ??
-        var frameHeight = 540 // ??
+        //var frameWidth  = 860 // ??
+        //var frameHeight = 540 // ??
 
         //Replace with trilat position
         var xPos = 2.0
         var yPos = 2.0
+        setStartingPoint(xPos, yPos)
         particleFilterService!!.updatePosition(0.0, 0.0, xPos,yPos)
         particleFilterService!!.start()
+
+        val particlesToDraw = particleFilterService!!.particles
+        particlesToDraw.forEach {
+            drawParticle(Location(it.x, it.y, floorMap))
+        }
+
+
+        /*
+        xPos = 2.3
+        yPos = 2.4
+        particleFilterService!!.updatePosition(0.5, 0.5, xPos,yPos)
+        particleFilterService!!.start()
+
+
+        xPos = 2.5
+        yPos = 2.6
+        particleFilterService!!.updatePosition(0.4, 0.4, xPos,yPos)
+        particleFilterService!!.start()
+        */
         /*try {
             Thread.sleep(1000 * 20)
         } catch (e : InterruptedException) {
@@ -145,9 +238,16 @@ class ParticleFilterActivity : OnMapActivity() {
     }
 
     fun advanceStep(pdrPosition : Location) {
+        val particlesToDraw = particleFilterService!!.particles
+        particlesToDraw.forEach {
+            drawParticle(Location(it.x, it.y, floorMap))
+        }
+
+
         val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
         particleFilterService!!.updatePosition(pdrPosition.getXMeters(), pdrPosition.getYMeters(),
                 trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
+        particleFilterService!!.start()
 
     }
 }

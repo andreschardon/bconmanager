@@ -11,8 +11,8 @@ public class Particle {
 
     // randomize particle position
     public void randomize(double maxWidth, double maxHeight) {
-        this.x = Math.floor(Math.random()*maxWidth);
-        this.y = Math.floor(Math.random()*maxHeight);
+        this.x = Math.random() * maxWidth;
+        this.y = Math.random() * maxHeight;
     }
 
     // degrade weight: multiply current weight by the given amount
@@ -25,12 +25,26 @@ public class Particle {
     //	the most weight will now have a weight of 1.0, and all other
     //	particles' weights will scale accordingly
     public boolean normalize(double maxWeight) {
-        if(maxWeight == 0) {
+        if (maxWeight == 0) {
             System.out.println("error - maxWeight 0 (check weight function)");
             return false;
         }
         this.weight /= maxWeight;
         return true;
+    }
+
+    public void restrictToMap(double maxWidth, double maxHeight) {
+        if (x > maxWidth) {
+            x = maxWidth;
+        } else if (x < 0) {
+            x = 0;
+        }
+
+        if (y > maxHeight) {
+            y = maxHeight;
+        } else if (y < 0) {
+            y = 0;
+        }
     }
 
     // returns this particle's weight
