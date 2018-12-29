@@ -44,6 +44,10 @@ abstract class OnMapActivity  : AppCompatActivity() {
         floorLayout.addView(imageView, layoutParams)
     }
 
+    protected fun removeResource(imageView: ImageView) {
+        floorLayout.removeView(imageView);
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {

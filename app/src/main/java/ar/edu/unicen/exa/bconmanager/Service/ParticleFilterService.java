@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter;
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap;
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap;
 import ar.edu.unicen.exa.bconmanager.Model.Location;
@@ -17,7 +18,7 @@ public class ParticleFilterService {
 
     //paramenters
     private static final int FPS = 10;
-    private static final int NUM_PARTICLES = 100;
+    private static final int NUM_PARTICLES = 60;
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
@@ -53,9 +54,12 @@ public class ParticleFilterService {
     private double maxRangeWidth;
     private double maxRangeHeight;
 
+    private ParticleFilterAdapter pfAdapter;
+
     //private constructor
-    private ParticleFilterService(Context context, CustomMap map) {
+    private ParticleFilterService(Context context, CustomMap map, ParticleFilterAdapter pfAdapter) {
         this.context = context;
+        this.pfAdapter = pfAdapter;
         Log.d("PARTICLEFILTERSERVICE","CONSTRUCTOR");
         this.maxRangeHeight = map.getHeight();
         this.maxRangeWidth = map.getWidth();
@@ -90,9 +94,9 @@ public class ParticleFilterService {
     //singleton constructor
     private static ParticleFilterService instance = null;
 
-    public static ParticleFilterService getInstance(Context context,CustomMap map) {
+    public static ParticleFilterService getInstance(Context context,CustomMap map, ParticleFilterAdapter pfAdapter) {
         if (instance == null) {
-            instance = new ParticleFilterService(context,map);
+            instance = new ParticleFilterService(context,map,pfAdapter);
         }
 
         return instance;
@@ -244,8 +248,8 @@ public class ParticleFilterService {
                 //this.xPos and this.yPos are the position provided by trilateration
                 //apLocation is the position of the beacon
 
-                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getX(), beaconLocation.getY());
-                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getX(), beaconLocation.getY());
+                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
+                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
 
                 //particle distance to beacon is known, userDistToBeacon
                 weightSum += getWeight(userDistToBeacon, particleDistToBeacon);
@@ -264,16 +268,30 @@ public class ParticleFilterService {
             weightSum += particles.get(i).getWeight();
         }
 
+
+        double lowestWeight = 9999.0;
+        double lowestX = 0.0;
+        double lowestY = 0.0;
+
+        for (int i = 0; i < particles.size(); i++) {
+            System.out.println("PFACTIVITY particle[" + i + "] weight is " + particles.get(i).weight);
+            if (particles.get(i).weight < lowestWeight) {
+                lowestWeight = particles.get(i).weight;
+                lowestX = particles.get(i).x;
+                lowestY = particles.get(i).y;
+            }
+        }
+
+        System.out.println("PFACTIVITY lowest point is (" + lowestX + ", " + lowestY + ") weight: " + lowestWeight);
+        calculateAveragePoint();
+
         // 5. resample: pick each particle based on probability
-
-
-
         // Not what we expected
-        /*
+
         List<Particle> newParticles = new ArrayList<>();
         int numParticles = particles.size();
-        Log.d("NUM","NUM PARTICLES: "+numParticles);
-        for (int i = 0; i < numParticles; i++) {
+        Log.d("PFACTIVITY","NUM PARTICLES: " + numParticles + " weight sum: " + weightSum);
+        /*for (int i = 0; i < numParticles; i++) {
             double choice = Math.random() * weightSum;
             int index = 0;
             Log.d("NUM","INDEX: "+index);
@@ -282,16 +300,68 @@ public class ParticleFilterService {
                 choice -= particles.get(index).getWeight();
                 index++;
             }
-            if (index < numParticles)
-            newParticles.add(particles.get(index).clone());
+            if (index < numParticles) {
+                newParticles.add(particles.get(index).clone());
+            }
+
+        }
+        Log.d("PFACTIVITY","NUM PARTICLES: " + newParticles.size());
+        particles = newParticles;*/
+
+        int previousValid = -1;
+        int accumToAdd = 0;
+
+        for (int i = 0; i < numParticles; i++) {
+            if (particles.get(i).weight < 0.5) {
+                newParticles.add(particles.get(i));
+                previousValid = i;
+            }   else {
+                accumToAdd++;
+                if (previousValid != -1) {
+                    while (accumToAdd != 0) {
+                        newParticles.add(particles.get(previousValid));
+                        accumToAdd--;
+                    }
+                }
+            }
+
         }
         particles = newParticles;
-        */
 
 
         // clear any movedX, movedY values
         this.movedX = 0;
         this.movedY = 0;
+
+        calculateAveragePoint();
+
+
+
+    }
+
+    private void calculateAveragePoint() {
+        // 0. approximate robot position using current particles
+        double totalX = 0;
+        double totalY = 0;
+        double totalWX = 0;
+        double totalWY = 0;
+        double totalW = 0;
+        for (int i = 0; i < particles.size(); i++) {
+            totalX += particles.get(i).x;
+            totalY += particles.get(i).y;
+            double weight = particles.get(i).getWeight();
+            totalWX += (weight * particles.get(i).x);
+            totalWY += (weight * particles.get(i).y);
+            totalW += weight;
+        }
+        // direct average location of all particles
+        this.estimateX = Math.floor(totalX / particles.size());
+        this.estimateY = Math.floor(totalY / particles.size());
+        // weighted average of all particles
+        this.estimateWX = Math.floor(totalWX / totalW);
+        this.estimateWY = Math.floor(totalWY / totalW);
+        System.out.println(String.format("PFACTIVITY Estimate X Y   " + estimateX + ", " + estimateY));
+        System.out.println(String.format("PFACTIVITY Estimate Wx Wy " + estimateWX + ", " + estimateWY));
     }
 
     /**
@@ -318,7 +388,7 @@ public class ParticleFilterService {
      */
     private double getWeight(double robotDistToBeacon, double particleDistToBeacon) {
         double diff = Math.abs(robotDistToBeacon - particleDistToBeacon);
-        return (maxDist - diff) / maxDist;
+        return diff; //(maxDist - diff) / maxDist;
     }
 
     /**
@@ -330,7 +400,10 @@ public class ParticleFilterService {
         broadcastReceiverIntent.putExtra("y", (float) estimateWY);
         broadcastReceiverIntent.setAction("android.intent.action.UPDATE_USER_POSITION");
         context.sendBroadcast(broadcastReceiverIntent);
-
-        System.out.println(String.format("PARTICLE FILTER POSITION IS ", estimateWX, estimateWY));
+        pfAdapter.setViewX(estimateWX);
+        pfAdapter.setViewY(estimateWY);
+        pfAdapter.notifyDataSetChanged();
+        System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateX + ", " + estimateY));
+        System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateWX + ", " + estimateWY));
     }
 }

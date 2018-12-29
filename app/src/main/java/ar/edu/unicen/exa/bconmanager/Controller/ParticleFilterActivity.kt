@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
+import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
@@ -25,7 +26,7 @@ class ParticleFilterActivity : OnMapActivity() {
     //private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
-    override var  TAG = "ParticleFilterActivity"
+    override var TAG = "ParticleFilterActivity"
     //lateinit var positionView: ImageView
     private var startingPoint = false
     private var isRecordingAngle = false
@@ -34,11 +35,15 @@ class ParticleFilterActivity : OnMapActivity() {
 
     lateinit var currentPosition: PositionOnMap
     lateinit var positionView: ImageView
+    private var particleViewList : MutableList<ImageView> = mutableListOf<ImageView>()
     private var bearingAdjustment = 0.0f //should be in the map
 
 
     private var particleFilterService: ParticleFilterService? = null
     private var trilaterationCalculator = TrilaterationCalculator.instance
+    private var pfAdapter = ParticleFilterAdapter(this)
+
+    private var times = 1
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +55,7 @@ class ParticleFilterActivity : OnMapActivity() {
         intent = Intent.createChooser(chooseFile, "Choose a file")
         startActivityForResult(intent, 101)
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -73,11 +79,11 @@ class ParticleFilterActivity : OnMapActivity() {
 
 
     override fun displayMap() {
-        Log.d(TAG,"DISPLAY MAP")
+        Log.d(TAG, "DISPLAY MAP")
 
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
-        Log.d("FILEPATH",filePath)
+        Log.d("FILEPATH", filePath)
         // Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
 
@@ -107,7 +113,7 @@ class ParticleFilterActivity : OnMapActivity() {
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
-        particleFilterService = ParticleFilterService.getInstance(this.applicationContext,floorMap)
+        particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)
         filter()
     }
 
@@ -119,6 +125,7 @@ class ParticleFilterActivity : OnMapActivity() {
         val particle = PositionOnMap(location)
         particle.image = R.drawable.finger_zone_green
         var particleView = ImageView(this)
+        particleViewList.add(particleView);
         setupResource(particle, particleView)
     }
 
@@ -132,13 +139,12 @@ class ParticleFilterActivity : OnMapActivity() {
         currentPosition.image = R.drawable.location_icon
         positionView = ImageView(this)
         setupResource(currentPosition, positionView)
-        Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
         //Log.d(TAG, "Touching ${zone.toString()}")
 
 
         // Should be elsewhere
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepDetectionHandler = StepDetectionHandler(sensorManager,false)
+        stepDetectionHandler = StepDetectionHandler(sensorManager, false)
         stepDetectionHandler!!.setStepListener(mStepDetectionListener)
         deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
         stepPositioningHandler = StepPositioningHandler()
@@ -156,18 +162,55 @@ class ParticleFilterActivity : OnMapActivity() {
         val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
         Log.d(TAG, "Location: " + newloc.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
         if (isWalking) {
-            Log.d(TAG, "IS WALKING")
             updatePosition()
         }
+    }
+
+    fun updateParticleFilterPosition(viewX: Double, viewY: Double) {
+        val loc = Location(0.0, 0.0, floorMap)
+        loc.x = viewX
+        loc.y = viewY
+
+        Log.d("PFACTIVITY", "Particle filter finished, remove old particles")
+
+        // Remove old particles
+        particleViewList.forEach { removeResource(it) }
+
+        // Draw particles
+        Log.d("PFACTIVITY", "Draw new particles")
+        val particlesToDraw = particleFilterService!!.particles
+        particlesToDraw.forEach {
+            drawParticle(Location(it.x, it.y, floorMap))
+        }
+
+        // Update old position to new
+        Log.d("PFACTIVITY", "Update new position to PF's middle point: $loc")
+
+        val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        Log.d(TAG, "Location before update: "+ currentPosition.toString())
+        currentPosition.position = validatePosition(loc)
+        Log.d(TAG, "Location after update: "+ currentPosition.toString())
+        layoutParams.leftMargin = currentPosition.position.getX() - 35
+        layoutParams.topMargin = currentPosition.position.getY() - 35
+        positionView.layoutParams = layoutParams
     }
 
 
     // Should be an adapter
     private fun updatePosition() {
 
-        Log.d(TAG, "Location before update: "+ stepPositioningHandler!!.getmCurrentLocation().toString())
+        Log.d("PFACTIVITY", "PDR detected an step. Calculate new position")
+
         currentPosition.position = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
-        advanceStep(currentPosition.position)
+
+        Log.d("PFACTIVITY", "New position according to PDR is ${currentPosition.position}")
+
+
+        if (times > 0) {
+            advanceStep(currentPosition.position)
+            times--
+        }
+
 
 
         /*val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
@@ -176,29 +219,25 @@ class ParticleFilterActivity : OnMapActivity() {
         positionView.layoutParams = layoutParams*/
     }
 
-    private fun validatePosition(newPosition : Location): Location {
+    private fun validatePosition(newPosition: Location): Location {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
 
-
-//Change Name
-    fun filter () {
+    //Change Name
+    fun filter() {
         //var frameWidth  = 860 // ??
         //var frameHeight = 540 // ??
 
         //Replace with trilat position
-        var xPos = 2.0
-        var yPos = 2.0
+        var xPos = 0.5
+        var yPos = 0.5
         setStartingPoint(xPos, yPos)
-        particleFilterService!!.updatePosition(0.0, 0.0, xPos,yPos)
-        particleFilterService!!.start()
 
-        val particlesToDraw = particleFilterService!!.particles
-        particlesToDraw.forEach {
-            drawParticle(Location(it.x, it.y, floorMap))
-        }
+        Log.d("PFACTIVITY", "Startup point set")
 
+        //particleFilterService!!.updatePosition(0.0, 0.0, xPos, yPos)
+        //particleFilterService!!.start()
 
         /*
         xPos = 2.3
@@ -237,16 +276,22 @@ class ParticleFilterActivity : OnMapActivity() {
         //particleFilterService.stop()
     }
 
-    fun advanceStep(pdrPosition : Location) {
-        val particlesToDraw = particleFilterService!!.particles
-        particlesToDraw.forEach {
-            drawParticle(Location(it.x, it.y, floorMap))
-        }
+    fun advanceStep(pdrPosition: Location) {
 
+        Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
 
-        val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        //val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        val trilaterationLocation = Location(0.42, 0.31, floorMap) // MOCK VALUE
+
+        Log.d("PFACTIVITY", "Trilateration location is $trilaterationLocation")
+        Log.d("PFACTIVITY", "Moved length is           (${pdrPosition.getXMeters()}, ${pdrPosition.getYMeters()})")
+
         particleFilterService!!.updatePosition(pdrPosition.getXMeters(), pdrPosition.getYMeters(),
                 trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
+
+
+        Log.d("PFACTIVITY", "Called pfService.updatePosition correctly. Lets start the pf.")
+
         particleFilterService!!.start()
 
     }
