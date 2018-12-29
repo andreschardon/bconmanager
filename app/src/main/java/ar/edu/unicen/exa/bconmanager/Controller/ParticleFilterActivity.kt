@@ -75,6 +75,12 @@ class ParticleFilterActivity : OnMapActivity() {
         super.onPause()
         if (particleFilterService != null)
             particleFilterService!!.stop()
+        if (stepDetectionHandler != null)
+            stepDetectionHandler!!.stop()
+        if (deviceAttitudeHandler != null)
+            deviceAttitudeHandler!!.stop()
+
+        Log.d("PFACTIVITY", "Stopped everything")
     }
 
 
@@ -117,6 +123,19 @@ class ParticleFilterActivity : OnMapActivity() {
         filter()
     }
 
+    //Change Name
+    fun filter() {
+
+        //Replace with trilat position
+        var xPos = 0.5
+        var yPos = 0.5
+        setStartingPoint(xPos, yPos)
+
+        Log.d("PFACTIVITY", "Startup point set")
+
+        //particleFilterService.stop()
+    }
+
     override fun updatePosition(beacons: List<BeaconDevice>) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -157,7 +176,7 @@ class ParticleFilterActivity : OnMapActivity() {
     // Should be elsewhere
     private val mStepDetectionListener = StepDetectionHandler.StepDetectionListener { stepSize ->
         // To correct previous invalid position
-        stepPositioningHandler!!.setmCurrentLocation(currentPosition.position)
+        stepPositioningHandler!!.setmCurrentLocation(Location(currentPosition.position.x, currentPosition.position.y, floorMap))
 
         val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
         Log.d(TAG, "Location: " + newloc.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
@@ -166,6 +185,64 @@ class ParticleFilterActivity : OnMapActivity() {
         }
     }
 
+    /**
+     *  This gets called when a new step is detected by the PDR service.
+     *  It obtains the "new position" that will be used to calculate the moved distance
+     *  in X and Y.
+     */
+    private fun updatePosition() {
+
+        Log.d("PFACTIVITY", "PDR detected an step. Calculate new position")
+
+        var pdrPosition = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
+
+        Log.d("PFACTIVITY", "New position according to PDR is $pdrPosition")
+
+
+        // Only for testing purposes
+        //if (times > 0) {
+            advanceStep(pdrPosition)
+            times--
+        //}
+
+        /*val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        layoutParams.leftMargin = currentPosition.position.getX() - 35
+        layoutParams.topMargin = currentPosition.position.getY() - 35
+        positionView.layoutParams = layoutParams*/
+    }
+
+    private fun validatePosition(newPosition: Location): Location {
+        return floorMap.restrictPosition(PositionOnMap(newPosition)).position
+    }
+
+
+    fun advanceStep(pdrPosition: Location) {
+
+        Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
+
+        //val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        val trilaterationLocation = Location(0.42, 0.31, floorMap) // MOCK VALUE
+
+        // Calculate real moved distance
+        val movedX = currentPosition.position.getXMeters() - pdrPosition.getXMeters()
+        val movedY = currentPosition.position.getYMeters() - pdrPosition.getYMeters()
+
+        Log.d("PFACTIVITY", "Trilateration location is $trilaterationLocation")
+        Log.d("PFACTIVITY", "PDR location is           (${pdrPosition.getXMeters()}, ${pdrPosition.getYMeters()})")
+        Log.d("PFACTIVITY", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
+        Log.d("PFACTIVITY", "Moved length is           ($movedX, $movedY)")
+
+        particleFilterService!!.updatePosition(movedX, movedY,
+                trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
+
+    }
+
+
+    /**
+     * This methods gets called when the particle filter service finishes its processing
+     * and has a new position to update the view (viewX, viewY). This position is the middle point
+     * between all the particles.
+     */
     fun updateParticleFilterPosition(viewX: Double, viewY: Double) {
         val loc = Location(0.0, 0.0, floorMap)
         loc.x = viewX
@@ -195,104 +272,4 @@ class ParticleFilterActivity : OnMapActivity() {
         positionView.layoutParams = layoutParams
     }
 
-
-    // Should be an adapter
-    private fun updatePosition() {
-
-        Log.d("PFACTIVITY", "PDR detected an step. Calculate new position")
-
-        currentPosition.position = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
-
-        Log.d("PFACTIVITY", "New position according to PDR is ${currentPosition.position}")
-
-
-        if (times > 0) {
-            advanceStep(currentPosition.position)
-            times--
-        }
-
-
-
-        /*val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
-        layoutParams.leftMargin = currentPosition.position.getX() - 35
-        layoutParams.topMargin = currentPosition.position.getY() - 35
-        positionView.layoutParams = layoutParams*/
-    }
-
-    private fun validatePosition(newPosition: Location): Location {
-        return floorMap.restrictPosition(PositionOnMap(newPosition)).position
-    }
-
-
-    //Change Name
-    fun filter() {
-        //var frameWidth  = 860 // ??
-        //var frameHeight = 540 // ??
-
-        //Replace with trilat position
-        var xPos = 0.5
-        var yPos = 0.5
-        setStartingPoint(xPos, yPos)
-
-        Log.d("PFACTIVITY", "Startup point set")
-
-        //particleFilterService!!.updatePosition(0.0, 0.0, xPos, yPos)
-        //particleFilterService!!.start()
-
-        /*
-        xPos = 2.3
-        yPos = 2.4
-        particleFilterService!!.updatePosition(0.5, 0.5, xPos,yPos)
-        particleFilterService!!.start()
-
-
-        xPos = 2.5
-        yPos = 2.6
-        particleFilterService!!.updatePosition(0.4, 0.4, xPos,yPos)
-        particleFilterService!!.start()
-        */
-        /*try {
-            Thread.sleep(1000 * 20)
-        } catch (e : InterruptedException) {
-            e.printStackTrace()
-        }
-        //Replace with trilat position
-        xPos += 50
-        particleFilterService.updatePosition(xPos, yPos)
-        try {
-            Thread.sleep(1000 * 20)
-        } catch (e : InterruptedException) {
-            e.printStackTrace()
-        }
-        //Replace with trilat position
-        xPos += 50
-        yPos += 80
-        particleFilterService.updatePosition(xPos, yPos)
-        try {
-            Thread.sleep(1000 * 20);
-        } catch (e : InterruptedException) {
-            e.printStackTrace()
-        }*/
-        //particleFilterService.stop()
-    }
-
-    fun advanceStep(pdrPosition: Location) {
-
-        Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
-
-        //val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
-        val trilaterationLocation = Location(0.42, 0.31, floorMap) // MOCK VALUE
-
-        Log.d("PFACTIVITY", "Trilateration location is $trilaterationLocation")
-        Log.d("PFACTIVITY", "Moved length is           (${pdrPosition.getXMeters()}, ${pdrPosition.getYMeters()})")
-
-        particleFilterService!!.updatePosition(pdrPosition.getXMeters(), pdrPosition.getYMeters(),
-                trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
-
-
-        Log.d("PFACTIVITY", "Called pfService.updatePosition correctly. Lets start the pf.")
-
-        particleFilterService!!.start()
-
-    }
 }

@@ -18,10 +18,11 @@ public class ParticleFilterService {
 
     //paramenters
     private static final int FPS = 10;
-    private static final int NUM_PARTICLES = 60;
+    private static final int NUM_PARTICLES = 100;
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
+    private static final double RESAMPLING_MINIMUM = 0.8;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -120,8 +121,9 @@ public class ParticleFilterService {
 
         this.xPos = xPosTrilat;
         this.yPos = yPosTrilat;
-        System.out.println("-> Moved using PDR       : " + this.movedX + " - " + this.movedY);
-        System.out.println("-> User position (trilat): " + this.xPos + " - " + this.yPos);
+        //System.out.println("-> Moved using PDR       : " + this.movedX + " - " + this.movedY);
+        //System.out.println("-> User position (trilat): " + this.xPos + " - " + this.yPos);
+        this.start();
     }
 
     /**
@@ -185,6 +187,7 @@ public class ParticleFilterService {
         //increment frame counter
         this.curFrame += 1;
 
+        /*
         // 0. approximate robot position using current particles
         double totalX = 0;
         double totalY = 0;
@@ -206,6 +209,8 @@ public class ParticleFilterService {
         this.estimateWX = Math.floor(totalWX / totalW);
         this.estimateWY = Math.floor(totalWY / totalW);
         System.out.println("Estamos en apply filter " + this.estimateWX + " " + this.estimateWY);
+        */
+
 
         // 1. if mouse moved (i.e. the "agent" moved), update all particles
         //	by the same amount as the mouse movement
@@ -274,11 +279,12 @@ public class ParticleFilterService {
         double lowestY = 0.0;
 
         for (int i = 0; i < particles.size(); i++) {
-            System.out.println("PFACTIVITY particle[" + i + "] weight is " + particles.get(i).weight);
-            if (particles.get(i).weight < lowestWeight) {
-                lowestWeight = particles.get(i).weight;
-                lowestX = particles.get(i).x;
-                lowestY = particles.get(i).y;
+            Particle it = particles.get(i);
+            System.out.println("PFACTIVITY particle[" + i + "]  loc (" + it.x + ", " +  it.y + ") weight " + it.weight);
+            if (it.weight < lowestWeight) {
+                lowestWeight = it.weight;
+                lowestX = it.x;
+                lowestY = it.y;
             }
         }
 
@@ -312,7 +318,7 @@ public class ParticleFilterService {
         int accumToAdd = 0;
 
         for (int i = 0; i < numParticles; i++) {
-            if (particles.get(i).weight < 0.5) {
+            if (particles.get(i).weight < RESAMPLING_MINIMUM) {
                 newParticles.add(particles.get(i));
                 previousValid = i;
             }   else {
