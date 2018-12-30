@@ -22,7 +22,7 @@ public class ParticleFilterService {
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
-    private static final double RESAMPLING_MINIMUM = 0.8;
+    private static final double RESAMPLING_MINIMUM = 0.5;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -382,7 +382,7 @@ public class ParticleFilterService {
     private double distance(double x1, double y1, double x2, double y2) {
         double distX = x1 - x2;
         double distY = y1 - y2;
-        return Math.floor(Math.sqrt(distX * distX + distY * distY));
+        return (Math.sqrt(distX * distX + distY * distY));
     }
 
     /**
@@ -408,7 +408,7 @@ public class ParticleFilterService {
         context.sendBroadcast(broadcastReceiverIntent);
         pfAdapter.setViewX(estimateWX);
         pfAdapter.setViewY(estimateWY);
-        pfAdapter.notifyDataSetChanged();
+        pfAdapter.notifyStepDetected();
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateX + ", " + estimateY));
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateWX + ", " + estimateWY));
     }

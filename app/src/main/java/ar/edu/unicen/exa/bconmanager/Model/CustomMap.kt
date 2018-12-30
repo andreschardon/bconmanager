@@ -132,11 +132,11 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     val beacon2 = sortedList[2]
     val beacon3 = sortedList[3]
 
-    Log.d("CLOSEST",
+    /*Log.d("CLOSEST",
     "1: ${beacon0.beacon.name} at ${beacon0.beacon.approxDistance}mts // " +
     "2: ${beacon1.beacon.name} at ${beacon1.beacon.approxDistance}mts // " +
     "3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts" +
-    "3: ${beacon3.beacon.name} at ${beacon3.beacon.approxDistance}mts")
+    "4: ${beacon3.beacon.name} at ${beacon3.beacon.approxDistance}mts")*/
         return sortedList
     }
 }

@@ -204,7 +204,7 @@ class TrilaterationActivity : OnMapActivity() {
             bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
             editor.remove("filePath")
             editor.commit()
-            detector.stop()
+            //detector.stop()
         }
     }
 

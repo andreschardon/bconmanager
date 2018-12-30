@@ -70,6 +70,7 @@ class BluetoothScanner : AppCompatActivity() {
         runOnUiThread {
             val detectedBeacon = BeaconDevice(device.address, rssi, device)
 
+
             // Hard-coded, this should be removed later
             when {
                 device.address.startsWith("0C:F3") -> {

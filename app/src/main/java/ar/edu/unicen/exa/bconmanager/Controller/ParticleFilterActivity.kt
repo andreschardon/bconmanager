@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
+import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
@@ -32,17 +33,22 @@ class ParticleFilterActivity : OnMapActivity() {
     private var isRecordingAngle = false
     private var isPDREnabled = false
     //lateinit var currentPosition: PositionOnMap
+    private var stop = false
 
     lateinit var currentPosition: PositionOnMap
     lateinit var positionView: ImageView
+
+    lateinit var currentTrilatPosition: PositionOnMap
+    lateinit var currentTrilatView: ImageView
+
+
     private var particleViewList : MutableList<ImageView> = mutableListOf<ImageView>()
-    private var bearingAdjustment = 0.0f //should be in the map
+    private var bearingAdjustment = -93.0f //should be in the map
 
 
     private var particleFilterService: ParticleFilterService? = null
     private var trilaterationCalculator = TrilaterationCalculator.instance
-    private var pfAdapter = ParticleFilterAdapter(this)
-
+    lateinit var pfAdapter: ParticleFilterAdapter
     private var times = 1
 
 
@@ -71,6 +77,11 @@ class ParticleFilterActivity : OnMapActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        stop = false
+    }
+
     override fun onPause() {
         super.onPause()
         if (particleFilterService != null)
@@ -79,8 +90,10 @@ class ParticleFilterActivity : OnMapActivity() {
             stepDetectionHandler!!.stop()
         if (deviceAttitudeHandler != null)
             deviceAttitudeHandler!!.stop()
-
+        stop = true
         Log.d("PFACTIVITY", "Stopped everything")
+        bluetoothScanner.stopScan()
+        bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
     }
 
 
@@ -119,8 +132,24 @@ class ParticleFilterActivity : OnMapActivity() {
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
+
+        startScan(bluetoothScanner)
+
         particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)
         filter()
+    }
+
+    /**
+     * Starts scanning the beacons
+     */
+    fun startScan(bluetoothScanner : BluetoothScanner) {
+        bluetoothScanner.devicesList.clear()
+        floorMap.savedBeacons.forEach {
+            it.beacon.cleanAverages()
+            bluetoothScanner.devicesList.add(it.beacon)
+        }
+        pfAdapter = ParticleFilterAdapter(this, bluetoothScanner.devicesList)
+        bluetoothScanner.scanLeDevice(true, pfAdapter)
     }
 
     //Change Name
@@ -148,6 +177,14 @@ class ParticleFilterActivity : OnMapActivity() {
         setupResource(particle, particleView)
     }
 
+    private fun drawTrilaterationPoint(location: Location) {
+        val particle = PositionOnMap(location)
+        particle.image = R.drawable.finger_zone_blue
+        var current = ImageView(this)
+        currentTrilatView = current;
+        setupResource(particle, currentTrilatView)
+    }
+
     private fun setStartingPoint(viewX: Double, viewY: Double) {
         val loc = Location(0.0, 0.0, floorMap)
         loc.x = viewX
@@ -159,6 +196,12 @@ class ParticleFilterActivity : OnMapActivity() {
         positionView = ImageView(this)
         setupResource(currentPosition, positionView)
         //Log.d(TAG, "Touching ${zone.toString()}")
+
+
+        currentTrilatPosition = PositionOnMap(Location(0.0, 0.0, floorMap))
+        currentTrilatPosition.image = R.drawable.finger_zone_blue
+        currentTrilatView = ImageView(this)
+        setupResource(currentTrilatPosition, currentTrilatView)
 
 
         // Should be elsewhere
@@ -180,7 +223,7 @@ class ParticleFilterActivity : OnMapActivity() {
 
         val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
         Log.d(TAG, "Location: " + newloc.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
-        if (isWalking) {
+        if (isWalking && !stop) {
             updatePosition()
         }
     }
@@ -215,25 +258,37 @@ class ParticleFilterActivity : OnMapActivity() {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
+    fun trilateratePosition() {
+
+        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        Log.d("PFACTIVITY", "Updating trilateration location to $resultLocation")
+        var trilatLocationOnMap : Location
+        if (resultLocation != null) {
+            trilatLocationOnMap = Location(resultLocation!!.x, resultLocation.y, floorMap)
+            currentTrilatPosition = PositionOnMap(trilatLocationOnMap!!)
+        }
+    }
+
 
     fun advanceStep(pdrPosition: Location) {
 
         Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
 
-        //val trilaterationLocation = trilaterationCalculator.getPositionInMap(floorMap)
-        val trilaterationLocation = Location(0.42, 0.31, floorMap) // MOCK VALUE
-
         // Calculate real moved distance
         val movedX = currentPosition.position.getXMeters() - pdrPosition.getXMeters()
         val movedY = currentPosition.position.getYMeters() - pdrPosition.getYMeters()
 
-        Log.d("PFACTIVITY", "Trilateration location is $trilaterationLocation")
-        Log.d("PFACTIVITY", "PDR location is           (${pdrPosition.getXMeters()}, ${pdrPosition.getYMeters()})")
-        Log.d("PFACTIVITY", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
-        Log.d("PFACTIVITY", "Moved length is           ($movedX, $movedY)")
+        removeResource(currentTrilatView)
+        drawTrilaterationPoint(currentTrilatPosition.position)
+
+        Log.d("PFACTIVITY-PRE", "Trilateration location is $currentTrilatPosition")
+        Log.d("PFACTIVITY-PRE", "PDR location is           (${pdrPosition.getXMeters()}, ${pdrPosition.getYMeters()})")
+        Log.d("PFACTIVITY-PRE", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
+        Log.d("PFACTIVITY-PRE", "Current location2 is       (${currentPosition.position.x}, ${currentPosition.position.y})")
+        Log.d("PFACTIVITY-PRE", "Moved length is           ($movedX, $movedY)")
 
         particleFilterService!!.updatePosition(movedX, movedY,
-                trilaterationLocation!!.getXMeters(), trilaterationLocation.getYMeters())
+                currentTrilatPosition.position.getXMeters(), currentTrilatPosition.position.getYMeters())
 
     }
 
