@@ -210,7 +210,7 @@ class TrilaterationActivity : OnMapActivity() {
 
     private fun createTestMap() {
         // Creating a test map
-        val testMap = CustomMap("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/TestPic.jpg", 6.3, 9.75) // in meters
+        val testMap = CustomMap("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/TestPic.jpg", 6.3, 9.75, 90.0) // in meters
 
         // TEST: Creating a test beacon and displaying it
         val testBeacon = BeaconOnMap(Location(1.2, 9.49, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))

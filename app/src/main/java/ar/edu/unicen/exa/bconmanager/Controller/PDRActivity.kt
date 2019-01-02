@@ -79,6 +79,9 @@ class PDRActivity : OnMapActivity() {
 
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
+        bearingAdjustment = (floorMap.angle /57.2958) .toFloat()
+        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment}")
+        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
         floorMap.calculateRatio(mapSize.x, mapSize.y)
 
         pdrAdapter = PDRAdapter(this)

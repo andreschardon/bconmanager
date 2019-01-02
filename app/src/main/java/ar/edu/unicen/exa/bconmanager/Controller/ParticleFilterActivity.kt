@@ -4,22 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.hardware.SensorManager
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
-import android.widget.Toast
-import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.*
-import kotlin.math.floor
 
 class ParticleFilterActivity : OnMapActivity() {
     private var sensorManager: SensorManager? = null
@@ -27,30 +22,22 @@ class ParticleFilterActivity : OnMapActivity() {
     //private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
-    override var TAG = "ParticleFilterActivity"
-    //lateinit var positionView: ImageView
-    private var startingPoint = false
-    private var isRecordingAngle = false
-    private var isPDREnabled = false
-    //lateinit var currentPosition: PositionOnMap
     private var stop = false
+    override var TAG = "ParticleFilterActivity"
+
 
     lateinit var currentPosition: PositionOnMap
     lateinit var positionView: ImageView
-
     lateinit var currentTrilatPosition: PositionOnMap
     lateinit var currentTrilatView: ImageView
 
 
     private var particleViewList : MutableList<ImageView> = mutableListOf<ImageView>()
-    private var bearingAdjustment = -93.0f //should be in the map
-
+    private var bearingAdjustment = 0.0f //should be in the map
 
     private var particleFilterService: ParticleFilterService? = null
     private var trilaterationCalculator = TrilaterationCalculator.instance
-    lateinit var pfAdapter: ParticleFilterAdapter
-    private var times = 1
-
+    private lateinit var pfAdapter: ParticleFilterAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,18 +78,12 @@ class ParticleFilterActivity : OnMapActivity() {
         if (deviceAttitudeHandler != null)
             deviceAttitudeHandler!!.stop()
         stop = true
-        Log.d("PFACTIVITY", "Stopped everything")
         bluetoothScanner.stopScan()
         bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
     }
 
 
     override fun displayMap() {
-        Log.d(TAG, "DISPLAY MAP")
-
-        // This method will create a test map on the downloads directory.
-        // Make sure the TestPic.jpg is on the same location
-        Log.d("FILEPATH", filePath)
         // Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
 
@@ -110,33 +91,18 @@ class ParticleFilterActivity : OnMapActivity() {
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView
         img.setImageBitmap(bitmap)
-        /*img.setOnTouchListener(object: View.OnTouchListener {
-            override fun onTouch(v: View, event: MotionEvent):Boolean {
-                if(isRecordingAngle || (isPDREnabled && !startingPoint)) {
-                    val screenX = event.x
-                    val screenY = event.y
-                    val viewX = screenX - v.left
-                    val viewY = screenY - v.top
-                    Log.d(TAG, "Touching x: $viewX y: $viewY")
-                    // check if point exists
-
-                    // if it does, click it
-                    // otherwise, create a new point there
-                    setStartingPoint(viewX, viewY)
-                    startingPoint = true
-                }
-                return false
-            }
-        })*/
 
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
+        bearingAdjustment = (floorMap.angle /57.2958) .toFloat()
+        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment}")
+        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
         floorMap.calculateRatio(mapSize.x, mapSize.y)
 
         startScan(bluetoothScanner)
 
         particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)
-        filter()
+        setUpParticleFilter()
     }
 
     /**
@@ -153,11 +119,11 @@ class ParticleFilterActivity : OnMapActivity() {
     }
 
     //Change Name
-    fun filter() {
+    fun setUpParticleFilter() {
 
-        //Replace with trilat position
-        var xPos = 0.5
-        var yPos = 0.5
+        //Replace with trilat / fingerprinting position
+        val xPos = 0.5
+        val yPos = 0.5
         setStartingPoint(xPos, yPos)
 
         Log.d("PFACTIVITY", "Startup point set")
@@ -240,24 +206,16 @@ class ParticleFilterActivity : OnMapActivity() {
         var pdrPosition = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
 
         Log.d("PFACTIVITY", "New position according to PDR is $pdrPosition")
-
-
-        // Only for testing purposes
-        //if (times > 0) {
-            advanceStep(pdrPosition)
-            times--
-        //}
-
-        /*val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
-        layoutParams.leftMargin = currentPosition.position.getX() - 35
-        layoutParams.topMargin = currentPosition.position.getY() - 35
-        positionView.layoutParams = layoutParams*/
+        advanceStep(pdrPosition)
     }
 
     private fun validatePosition(newPosition: Location): Location {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
+    /**
+     * Gets called by the adapter when the trilateration service has a new position
+     */
     fun trilateratePosition() {
 
         val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)

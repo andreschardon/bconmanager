@@ -7,7 +7,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
 import ar.edu.unicen.exa.bconmanager.R
 
-class CustomMap constructor(var image : String, var width : Double , var height : Double ) {
+class CustomMap constructor(var image : String, var width : Double , var height : Double, var angle : Double ) {
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
@@ -49,6 +49,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         this.image = jsonMap.image!!
         this.width = jsonMap.width!!
         this.height = jsonMap.height!!
+        this.angle = jsonMap.angle!!
         Log.d("LOADING", "Json parsed to CustomMap")
 
     }
@@ -68,14 +69,14 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         }
         var map : JsonMap
         if (pointsList.size == 0 && fingerprintList.size == 0) {
-            map = JsonMap(image, width, height, beaconList)
+            map = JsonMap(image, width, height, angle, beaconList)
         }
         else if (fingerprintList.size == 0) {
-            map = JsonMap(image, width, height, beaconList, pointsList)
+            map = JsonMap(image, width, height, angle, beaconList, pointsList)
         } else if (pointsList.size == 0) {
-            map = JsonMap(image, width, height, beaconList, null, fingerprintList)
+            map = JsonMap(image, width, height, angle, beaconList, null, fingerprintList)
         } else {
-            map = JsonMap(image, width, height, beaconList, pointsList, fingerprintList)
+            map = JsonMap(image, width, height, angle, beaconList, pointsList, fingerprintList)
         }
         return map
 
@@ -101,31 +102,30 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     }
 
     override fun toString(): String {
-        return "CustomMap: $image - width: $width - height: $height /n" +
+        return "CustomMap: $image - width: $width - height: $height - angle: $angle /n" +
                 "Beacons: ${savedBeacons.toString()}"
     }
 
     fun restrictPosition(newPosition : PositionOnMap) : PositionOnMap {
-        val restrictedPosition = newPosition
 
-        if (restrictedPosition.position.getX() > this.widthPixels) {
-            restrictedPosition.position.setX(this.widthPixels)
-        } else if (restrictedPosition.position.getX() < 0) {
-            restrictedPosition.position.setX(0)
+        if (newPosition.position.getX() > this.widthPixels) {
+            newPosition.position.setX(this.widthPixels)
+        } else if (newPosition.position.getX() < 0) {
+            newPosition.position.setX(0)
         }
 
-        if (restrictedPosition.position.getY() > this.heightPixels) {
-            restrictedPosition.position.setY(this.heightPixels)
-        } else if (restrictedPosition.position.getY() < 0) {
-            restrictedPosition.position.setY(0)
+        if (newPosition.position.getY() > this.heightPixels) {
+            newPosition.position.setY(this.heightPixels)
+        } else if (newPosition.position.getY() < 0) {
+            newPosition.position.setY(0)
         }
 
-        return restrictedPosition
+        return newPosition
     }
 
     fun sortBeaconsByDistance (): List<BeaconOnMap> {
             Log.d("SAVED", "${this.savedBeacons}")
-    val sortedList = this.savedBeacons.sortedWith(compareBy({ it.beacon.approxDistance }))
+    val sortedList = this.savedBeacons.sortedWith(compareBy { it.beacon.approxDistance })
 
     val beacon0 = sortedList[0]
     val beacon1 = sortedList[1]
