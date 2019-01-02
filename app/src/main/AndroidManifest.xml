@@ -39,8 +39,9 @@
         <activity android:name=".Controller.FingerprintOnlineActivity" />
         <activity android:name=".Controller.FindMeActivity" />
         <activity android:name=".Controller.DatasetActivity" />
-        <activity android:name=".Controller.ParticleFilterActivity"></activity>
+        <activity android:name=".Controller.ParticleFilterActivity" />
         <activity android:name=".Service.FingerprintingService" />
+        <activity android:name=".Controller.SimulationActivity"></activity>
     </application>
 
 </manifest>

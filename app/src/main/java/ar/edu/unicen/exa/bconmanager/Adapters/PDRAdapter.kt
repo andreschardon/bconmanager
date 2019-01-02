@@ -1,38 +1,31 @@
 package ar.edu.unicen.exa.bconmanager.Adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.Toast
-import ar.edu.unicen.exa.bconmanager.Controller.DatasetActivity
-import ar.edu.unicen.exa.bconmanager.Controller.OnMapActivity
-import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import ar.edu.unicen.exa.bconmanager.Controller.PDRActivity
 
-
-class DatasetCaptureAdapter(context : DatasetActivity, beacons : List<BeaconDevice>) : BaseAdapter() {
+class PDRAdapter(context: PDRActivity) : BaseAdapter(){
 
     var context = context
-    val beacons = beacons
     var firstTime = true
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val beaconView : View
         beaconView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_1, null)
         return beaconView
-
     }
-
     override fun getItem(position: Int): Any {
-        return beacons[position]
+        return 1
     }
-
     override fun getItemId(position: Int): Long {
         return 0
     }
-
     override fun getCount(): Int {
-        return beacons.count()
+        return 0
+        //return beacons.count()
     }
 
     override fun notifyDataSetChanged() {
@@ -41,6 +34,8 @@ class DatasetCaptureAdapter(context : DatasetActivity, beacons : List<BeaconDevi
             context.unsetStartingPoint()
             firstTime = false
         }
+        else {
+            context.updatePosition()
+        }
     }
-
 }

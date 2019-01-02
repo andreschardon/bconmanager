@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Adapters.DatasetCaptureAdapter
+import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataBeacon
@@ -21,23 +22,19 @@ import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class DatasetActivity : OnMapActivity() {
 
-    private var sensorManager: SensorManager? = null
-    private var stepDetectionHandler: StepDetectionHandler? = null
-    private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     override var  TAG = "DatasetActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
     private var isRecordingAngle = false
     private var isPDREnabled = false
     lateinit var currentPosition: PositionOnMap
-    private var bearingAdjustment = 0.0f
-    private var recordCount = 0
     private var angle = 0.0
     private var acceleration = 0.0f
     private var startupTime : Long = 0L
@@ -45,6 +42,8 @@ class DatasetActivity : OnMapActivity() {
     private var dataCollectionHandler = Handler()
     private var datalist = mutableListOf<JsonData>()
     private val delay = 500L //milliseconds. Interval in which data will be captured
+    private var pdrService = PDRService.instance
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,7 +107,6 @@ class DatasetActivity : OnMapActivity() {
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
 
-
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {
             val imageView = ImageView(this)
@@ -137,18 +135,12 @@ class DatasetActivity : OnMapActivity() {
 
     override fun onResume() {
         super.onResume()
-        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
-            stepDetectionHandler!!.start()
-            deviceAttitudeHandler!!.start()
-        }
+        pdrService.startSensorsHandlers()
     }
 
     override fun onPause() {
         super.onPause()
-        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
-            stepDetectionHandler!!.stop()
-            deviceAttitudeHandler!!.stop()
-        }
+        pdrService.stopSensorsHandlers()
     }
     private fun setStartingPoint(viewX: Float, viewY: Float) {
         val loc = Location(0.0, 0.0, floorMap)
@@ -163,12 +155,9 @@ class DatasetActivity : OnMapActivity() {
         Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
         //Log.d(TAG, "Touching ${zone.toString()}")
 
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepDetectionHandler = StepDetectionHandler(sensorManager,true)
-        stepDetectionHandler!!.setStepListener(mStepDetectionListener)
-        deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
-        stepDetectionHandler!!.start()
-        deviceAttitudeHandler!!.start()
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        pdrService.setupSensorsHandlers(loc,devicesListOnlineAdapter,sensorManager,true)
+
 
 
         if (isRecordingAngle) {
@@ -177,42 +166,16 @@ class DatasetActivity : OnMapActivity() {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
     }
-    private fun unsetStartingPoint() {
+    fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
+        pdrService.stopSensorsHandlers()
         startingPoint = false
     }
 
 
-    private val mStepDetectionListener = StepDetectionListener { acc ->
-        //convert radians to degrees multiplying by 57.2958
-        
-        if (isRecordingAngle && (acc > 1)) {
-            recordCount++
-            if (recordCount == 3) {
-                setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
-                recordCount = 0
-                Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
-            }
-        }
-        else if (!isRecordingAngle){
-            angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
-            acceleration = if (acc >= 0) acc else 0F // Only use positive acceleration values
-            Log.d("SDATA", "Acceleration: $acceleration  angle: $angle")
-        }
-    }
-
-    private fun setAdjustedBearing(measuredAngle : Float) {
-        val adjustmentFactor = 0 // 90 degrees
-        Log.d("ADJUSTMENT", "Measured angle is ${measuredAngle*57.2958}")
-        Log.d("ADJUSTMENT", "It should be ${adjustmentFactor*57.2958}")
-        bearingAdjustment = -measuredAngle
-        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
-        isRecordingAngle = false
-        unsetStartingPoint()
-    }
-
     fun startAngleMeasurement(view: View) {
         isRecordingAngle = true
+        pdrService.startRecordingAngle()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
@@ -223,6 +186,7 @@ class DatasetActivity : OnMapActivity() {
     fun startDataCollection(view: View) {
         bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
         startupTime = System.currentTimeMillis()
+        pdrService.startSensorsHandlers()
         dataCollectionHandler.postDelayed(object : Runnable {
             override fun run() {
                 collectData(System.currentTimeMillis())
@@ -238,6 +202,8 @@ class DatasetActivity : OnMapActivity() {
     fun collectData(currentTime : Long) {
         val timestamp = currentTime - startupTime
         val beaconData = mutableListOf<JsonDataBeacon>()
+        angle = pdrService.getAngle()
+        acceleration = pdrService.getAcc()
         Log.d("DATACOLLECT", "Current timestamp is $timestamp ms")
         Log.d("DATACOLLECT", "Current angle is $angle º")
         Log.d("DATACOLLECT", "Current speed is $acceleration ")
@@ -246,7 +212,7 @@ class DatasetActivity : OnMapActivity() {
             beaconData.add(beacon)
             Log.d("DATACOLLECT", it.toString())
         }
-        val data = JsonData(beaconData, angle, acceleration, timestamp)
+        val data = JsonData(beaconData, angle, acceleration, timestamp,0.0,0.0)
         datalist.add(data)
     }
 

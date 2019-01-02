@@ -60,7 +60,6 @@ public class StepDetectionHandler extends AppCompatActivity implements
     }
 
     public void onNewStepDetected() {
-        Log.d(TAG,"ON NEW STEP DETECTED");
         float distanceStep = 0.2f;
         step++;
         mStepDetectionListener.newStep(distanceStep);

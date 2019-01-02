@@ -18,7 +18,7 @@ import ar.edu.unicen.exa.bconmanager.Service.*
 class ParticleFilterActivity : OnMapActivity() {
     private var sensorManager: SensorManager? = null
     private var stepDetectionHandler: StepDetectionHandler? = null
-    private var stepPositioningHandler: StepPositioningHandler? = null
+    //private var stepPositioningHandler: StepPositioningHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
     override var  TAG = "ParticleFilterActivity"

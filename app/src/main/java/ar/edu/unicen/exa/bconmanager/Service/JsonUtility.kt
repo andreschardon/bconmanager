@@ -28,6 +28,15 @@ class JsonUtility {
             file.writeText(jsonString)
         }
 
+        fun readDatasetFromFile(path: String) : JsonDataset {
+            var gson = Gson()
+            val bufferedReader: BufferedReader = File(path).bufferedReader()
+            val inputString = bufferedReader.use { it.readText() }
+            var post = gson.fromJson(inputString, JsonDataset::class.java)
+            Log.d("LOADING", inputString)
+            return post
+        }
+
         fun readFromFile(path: String) : JsonMap {
             var gson = Gson()
             val bufferedReader: BufferedReader = File(path).bufferedReader()

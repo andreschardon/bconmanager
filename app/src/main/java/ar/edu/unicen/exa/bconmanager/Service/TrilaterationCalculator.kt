@@ -6,13 +6,13 @@ import ar.edu.unicen.exa.bconmanager.Model.Circle
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
-class TrilaterationCalculator : AppCompatActivity() {
+class TrilaterationCalculator : Algorithm() {
 
     private var mapHeight = 0.0
     private var mapWidth = 0.0
     // Let EPS (epsilon) be a small value
     private var EPS = 0.0000001
-    private val TAG = "INTERSECTION"
+    override var  TAG = "Trilateration Calculator"
     private val maxLength = 50.0
 
     private object Holder {
@@ -28,6 +28,7 @@ class TrilaterationCalculator : AppCompatActivity() {
      * Returns the current location on the map based on
      * the distance to all the beacons
      */
+    //REPLACE WITH getNextPosition()
     fun getPositionInMap(map: CustomMap): Location? {
         mapHeight = map.height
                 mapWidth = map.width
@@ -291,4 +292,7 @@ class TrilaterationCalculator : AppCompatActivity() {
         return distance
     }
 
+    override fun getNextPosition(): Location {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }

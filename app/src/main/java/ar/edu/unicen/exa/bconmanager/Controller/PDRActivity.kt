@@ -12,20 +12,16 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
-import ar.edu.unicen.exa.bconmanager.Model.*
+import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
+import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
+import ar.edu.unicen.exa.bconmanager.Model.Location
+import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
-import ar.edu.unicen.exa.bconmanager.Service.StepPositioningHandler
+import ar.edu.unicen.exa.bconmanager.Service.PDRService
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class PDRActivity : OnMapActivity() {
 
-    private var sensorManager: SensorManager? = null
-    private var stepDetectionHandler: StepDetectionHandler? = null
-    private var stepPositioningHandler: StepPositioningHandler? = null
-    private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
     override var  TAG = "PDRActivity"
     lateinit var positionView: ImageView
@@ -33,8 +29,9 @@ class PDRActivity : OnMapActivity() {
     private var isRecordingAngle = false
     private var isPDREnabled = false
     lateinit var currentPosition: PositionOnMap
-    private var bearingAdjustment = 0.0f
-    private var recordCount = 0
+
+    private var pdrService = PDRService.instance
+    lateinit var pdrAdapter: PDRAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -46,21 +43,6 @@ class PDRActivity : OnMapActivity() {
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
         intent = Intent.createChooser(chooseFile, "Choose a file")
         startActivityForResult(intent, 101)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            101 -> if (resultCode == -1) {
-                val uri = data!!.data
-                filePath = uri.lastPathSegment.removePrefix("raw:")
-            }
-        }
-        if (!filePath.isNullOrEmpty()) {
-            displayMap()
-        } else {
-            Log.e(TAG, "The file path is incorrect")
-        }
     }
 
     override fun displayMap() {
@@ -99,7 +81,7 @@ class PDRActivity : OnMapActivity() {
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
 
-
+        pdrAdapter = PDRAdapter(this)
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {
             val imageView = ImageView(this)
@@ -118,19 +100,12 @@ class PDRActivity : OnMapActivity() {
 
     override fun onResume() {
         super.onResume()
-        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
-            stepDetectionHandler!!.start()
-            deviceAttitudeHandler!!.start()
-        }
-
+        pdrService.startSensorsHandlers()
     }
 
     override fun onPause() {
         super.onPause()
-        if((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
-            stepDetectionHandler!!.stop()
-            deviceAttitudeHandler!!.stop()
-        }
+        pdrService.stopSensorsHandlers()
     }
     private fun setStartingPoint(viewX: Float, viewY: Float) {
         val loc = Location(0.0, 0.0, floorMap)
@@ -145,14 +120,9 @@ class PDRActivity : OnMapActivity() {
         Log.d(TAG, "STARTING POINT IS : "+currentPosition.toString())
         //Log.d(TAG, "Touching ${zone.toString()}")
 
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        stepDetectionHandler = StepDetectionHandler(sensorManager,false)
-        stepDetectionHandler!!.setStepListener(mStepDetectionListener)
-        deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
-        stepPositioningHandler = StepPositioningHandler()
-        stepPositioningHandler!!.setmCurrentLocation(loc)
-        stepDetectionHandler!!.start()
-        deviceAttitudeHandler!!.start()
+        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        pdrService.setupSensorsHandlers(loc,pdrAdapter,sensorManager,false)
 
         if (isRecordingAngle) {
             Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
@@ -160,18 +130,19 @@ class PDRActivity : OnMapActivity() {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
     }
-    private fun unsetStartingPoint() {
+    fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
-        deviceAttitudeHandler!!.stop()
-        stepDetectionHandler!!.stop()
+        pdrService.stopSensorsHandlers()
+        /*deviceAttitudeHandler!!.stop()
+        stepDetectionHandler!!.stop()*/
         startingPoint = false
+        isRecordingAngle = false
     }
 
 
-    private fun updatePosition() {
+     fun updatePosition() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
-        Log.d(TAG, "Location before update: "+ stepPositioningHandler!!.getmCurrentLocation().toString())
-        currentPosition.position = validatePosition(stepPositioningHandler!!.getmCurrentLocation())
+        currentPosition.position = validatePosition(pdrService.getmCurrentLocation())
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         positionView.layoutParams = layoutParams
@@ -181,42 +152,15 @@ class PDRActivity : OnMapActivity() {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
-
-    private val mStepDetectionListener = StepDetectionListener { stepSize ->
-        val newloc = stepPositioningHandler!!.computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
-        Log.d(TAG, "Location: "+ newloc.toString()+ "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958)
-        if (isWalking && !isRecordingAngle) {
-            Log.d(TAG,"IS WALKING")
-            updatePosition()
-        } else if (isWalking && isRecordingAngle) {
-            recordCount++
-            if (recordCount == 3) {
-                setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
-                recordCount = 0
-                Toast.makeText(this, "Adjustment angle saved: ${bearingAdjustment*57.2958}", Toast.LENGTH_SHORT).show()
-            }
-
-        }
-    }
-
-    private fun setAdjustedBearing(measuredAngle : Float) {
-        val adjustmentFactor = 0 // 90 degrees
-        Log.d("ADJUSTMENT", "Measured angle is ${measuredAngle*57.2958}")
-        Log.d("ADJUSTMENT", "It should be ${adjustmentFactor*57.2958}")
-        bearingAdjustment = -measuredAngle
-        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
-        isRecordingAngle = false
-        unsetStartingPoint()
-
-    }
-
     fun startPDR(view: View) {
         isPDREnabled = true
+        pdrService.startPDR()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
     fun startAngleMeasurement(view: View) {
         isRecordingAngle = true
+        pdrService.startRecordingAngle()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
