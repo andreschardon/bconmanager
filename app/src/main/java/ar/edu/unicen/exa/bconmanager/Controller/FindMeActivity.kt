@@ -40,18 +40,7 @@ class FindMeActivity : OnMapActivity() {
      */
     @SuppressLint("ClickableViewAccessibility")
     override fun displayMap() {
-
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
-
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageBitmap(bitmap)
-
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+        super.displayMap()
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {

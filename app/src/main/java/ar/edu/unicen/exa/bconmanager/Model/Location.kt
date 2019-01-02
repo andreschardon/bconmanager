@@ -54,7 +54,7 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
     }
 
     override fun toString(): String {
-        return "($x, $y)"
+        return "($x, $y) and (${this.getX()}, ${this.getY()})"
     }
 
     override fun equals(other: Any?): Boolean {

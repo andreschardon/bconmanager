@@ -5,11 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import ar.edu.unicen.exa.bconmanager.Controller.OnMapActivity
 import ar.edu.unicen.exa.bconmanager.Controller.PDRActivity
+import ar.edu.unicen.exa.bconmanager.Controller.PDRInterface
 
-class PDRAdapter(context: PDRActivity) : BaseAdapter(){
+class PDRAdapter(context: OnMapActivity, pdrContext: PDRInterface) : BaseAdapter(){
 
     var context = context
+    var pdrContext = pdrContext
     var firstTime = true
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -30,12 +33,13 @@ class PDRAdapter(context: PDRActivity) : BaseAdapter(){
 
     override fun notifyDataSetChanged() {
         super.notifyDataSetChanged()
+        Log.d("PFACTIVITY", "Detected a step in the adapter")
         if(firstTime) {
-            context.unsetStartingPoint()
+            pdrContext.unsetStartingPoint()
             firstTime = false
         }
         else {
-            context.updatePosition()
+            pdrContext.updatePosition()
         }
     }
 }

@@ -134,18 +134,7 @@ class TrilaterationActivity : OnMapActivity() {
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
         //createTestMap()
-        //Log.d("FILEPATH",filePath)
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
-
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageBitmap(bitmap)
-
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+        super.displayMap()
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {
@@ -204,13 +193,13 @@ class TrilaterationActivity : OnMapActivity() {
             bluetoothScanner.devicesList = mutableListOf<BeaconDevice>()
             editor.remove("filePath")
             editor.commit()
-            detector.stop()
+            //detector.stop()
         }
     }
 
     private fun createTestMap() {
         // Creating a test map
-        val testMap = CustomMap("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/TestPic.jpg", 6.3, 9.75) // in meters
+        val testMap = CustomMap("${getExternalStoragePublicDirectory(DIRECTORY_DOWNLOADS).absolutePath}/TestPic.jpg", 6.3, 9.75, 90.0) // in meters
 
         // TEST: Creating a test beacon and displaying it
         val testBeacon = BeaconOnMap(Location(1.2, 9.49, testMap), BeaconDevice("D3:B5:67:2B:92:DA", 80, null))

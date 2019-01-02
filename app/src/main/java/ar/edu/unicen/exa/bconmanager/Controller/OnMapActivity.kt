@@ -1,13 +1,16 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.nfc.Tag
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import ar.edu.unicen.exa.bconmanager.Model.*
+import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
@@ -19,6 +22,7 @@ abstract class OnMapActivity  : AppCompatActivity() {
     protected var filePath: String = ""
     protected open var TAG : String = ""
     protected lateinit var floorMap: CustomMap
+    protected var touchListener : View.OnTouchListener? = null
 
     fun Double.roundTo2DecimalPlaces() =
             BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
@@ -44,6 +48,10 @@ abstract class OnMapActivity  : AppCompatActivity() {
         floorLayout.addView(imageView, layoutParams)
     }
 
+    protected fun removeResource(imageView: ImageView) {
+        floorLayout.removeView(imageView);
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
@@ -59,7 +67,21 @@ abstract class OnMapActivity  : AppCompatActivity() {
         }
     }
 
-    protected abstract fun displayMap()
+    protected open fun displayMap() {
+        // Loading the map from a JSON file
+        floorMap = loadMapFromFile(filePath)
+
+        // Drawing the map's image
+        val bitmap = BitmapFactory.decodeFile(floorMap.image)
+        val img = findViewById<View>(R.id.floorPlan) as ImageView
+        img.setImageBitmap(bitmap)
+        if (this.touchListener != null)
+            img.setOnTouchListener(touchListener)
+
+        // Obtain real width and height of the map
+        val mapSize = getRealMapSize()
+        floorMap.calculateRatio(mapSize.x, mapSize.y)
+    }
 
     abstract fun updatePosition(beacons: List<BeaconDevice>)
 
@@ -72,7 +94,7 @@ abstract class OnMapActivity  : AppCompatActivity() {
 
     protected fun loadMapFromFile(filePath: String): CustomMap {
         val jsonMap = JsonUtility.readFromFile(filePath)
-        val fileMap = CustomMap("", 0.0, 0.0)
+        val fileMap = CustomMap("", 0.0, 0.0, 0.0)
         fileMap.startFromFile(jsonMap)
         Log.d(TAG, "Map loaded from JSON file in $filePath")
         return fileMap
