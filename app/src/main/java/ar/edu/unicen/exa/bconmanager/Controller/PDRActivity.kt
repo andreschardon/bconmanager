@@ -20,9 +20,8 @@ import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.PDRService
 import kotlinx.android.synthetic.main.activity_pdr.*
 
-class PDRActivity : OnMapActivity() {
+class PDRActivity : PDRInterface, OnMapActivity() {
 
-    private var isWalking = true
     override var  TAG = "PDRActivity"
     lateinit var positionView: ImageView
     private var startingPoint = false
@@ -46,19 +45,9 @@ class PDRActivity : OnMapActivity() {
     }
 
     override fun displayMap() {
-        Log.d(TAG,"DISPLAY MAP")
 
-        // This method will create a test map on the downloads directory.
-        // Make sure the TestPic.jpg is on the same location
-        Log.d("FILEPATH",filePath)
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
 
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageBitmap(bitmap)
-        img.setOnTouchListener(object: View.OnTouchListener {
+      this.touchListener = (object: View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent):Boolean {
                 if(isRecordingAngle || (isPDREnabled && !startingPoint)) {
                     val screenX = event.x
@@ -76,15 +65,13 @@ class PDRActivity : OnMapActivity() {
                 return false
             }
         })
+        super.displayMap()
 
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        bearingAdjustment = (floorMap.angle /57.2958) .toFloat()
-        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment}")
-        Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+        pdrService.bearingAdjustment = (floorMap.angle /57.2958) .toFloat()
+        Log.d("ADJUSTMENT", "SAVED Adjustment is ${pdrService.bearingAdjustment}")
+        Log.d("ADJUSTMENT", "SAVED Adjustment is ${pdrService.bearingAdjustment*57.2958}")
 
-        pdrAdapter = PDRAdapter(this)
+        pdrAdapter = PDRAdapter(this, this)
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {
             val imageView = ImageView(this)
@@ -133,7 +120,7 @@ class PDRActivity : OnMapActivity() {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
     }
-    fun unsetStartingPoint() {
+    override fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
         pdrService.stopSensorsHandlers()
         /*deviceAttitudeHandler!!.stop()
@@ -143,7 +130,7 @@ class PDRActivity : OnMapActivity() {
     }
 
 
-     fun updatePosition() {
+     override fun updatePosition() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
         currentPosition.position = validatePosition(pdrService.getmCurrentLocation())
         layoutParams.leftMargin = currentPosition.position.getX() - 35

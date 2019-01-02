@@ -51,19 +51,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
      */
     @SuppressLint("ClickableViewAccessibility")
     override fun displayMap() {
-
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
-
-        // Just in case we are using the ones in the file
-        floorMap.fingerprintZones.clear()
-
-
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageBitmap(bitmap)
-        img.setOnTouchListener { v, event ->
+        this.touchListener =  View.OnTouchListener { v, event ->
             val screenX = event.x
             val screenY = event.y
             val viewX = (screenX - v.left).toDouble().roundTo2DecimalPlaces()
@@ -98,10 +86,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
             }
             false
         }
-
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+        super.displayMap()
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {

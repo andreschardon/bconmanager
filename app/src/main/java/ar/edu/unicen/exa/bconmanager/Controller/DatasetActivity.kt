@@ -72,18 +72,8 @@ class DatasetActivity : OnMapActivity() {
         }
     }
     override fun displayMap() {
-        Log.d(TAG,"DISPLAY MAP")
-
-        // This method will create a test map on the downloads directory.
-        // Make sure the TestPic.jpg is on the same location
-        Log.d("FILEPATH",filePath)
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
-
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
+        super.displayMap()
         val img = findViewById<View>(R.id.floorPlan) as ImageView //CHECK
-        img.setImageBitmap(bitmap)
         img.setOnTouchListener(object: View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent):Boolean {
                 if(isRecordingAngle || (isPDREnabled && !startingPoint)) {
@@ -103,9 +93,7 @@ class DatasetActivity : OnMapActivity() {
             }
         })
 
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+
 
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {

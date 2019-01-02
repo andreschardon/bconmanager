@@ -134,18 +134,7 @@ class TrilaterationActivity : OnMapActivity() {
         // This method will create a test map on the downloads directory.
         // Make sure the TestPic.jpg is on the same location
         //createTestMap()
-        //Log.d("FILEPATH",filePath)
-        // Loading the map from a JSON file
-        floorMap = loadMapFromFile(filePath)
-
-        // Drawing the map's image
-        val bitmap = BitmapFactory.decodeFile(floorMap.image)
-        val img = findViewById<View>(R.id.floorPlan) as ImageView
-        img.setImageBitmap(bitmap)
-
-        // Obtain real width and height of the map
-        val mapSize = getRealMapSize()
-        floorMap.calculateRatio(mapSize.x, mapSize.y)
+        super.displayMap()
 
         // Drawing all the beacons for this map
         for (beacon in floorMap.savedBeacons) {

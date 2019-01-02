@@ -11,12 +11,15 @@ class PDRService : Algorithm(){
     private var stepDetectionHandler: StepDetectionHandler? = null
     private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
     private var isWalking = true
-    private var bearingAdjustment = 0.0f
+    var bearingAdjustment = 0.0f
     private var isRecordingAngle = false
     override var  TAG = "PDR Service"
     private var recordCount = 0
     private lateinit var nextPosition : Location
     private var mCurrentLocation: Location? = null
+    var advancedX = 0.0
+    var advancedY = 0.0
+
     lateinit var pdrAdapter: BaseAdapter
     private var PDREnabled = false
     private var angle = 0.0
@@ -106,6 +109,7 @@ class PDRService : Algorithm(){
         setmCurrentLocation(loc)
         stepDetectionHandler!!.start()
         deviceAttitudeHandler!!.start()
+        Log.d("PFACTIVITY", "Sensors handlers")
     }
 
 
@@ -136,9 +140,12 @@ class PDRService : Algorithm(){
         Log.d(TAG, "ANgle: $bearing")
         Log.d(TAG, "COS ANgle: " + Math.cos(bearing.toDouble()))
 
-        val newX = oldX + Math.cos(bearing.toDouble()) * stepSize
+        advancedX = Math.cos(bearing.toDouble()) * stepSize
+        advancedY = Math.sin(bearing.toDouble()) * stepSize
+
+        val newX = oldX + advancedX
         newLoc!!.x = newX
-        val newY = oldY + Math.sin(bearing.toDouble()) * stepSize
+        val newY = oldY + advancedY
         newLoc!!.y = newY
 
         mCurrentLocation = newLoc
