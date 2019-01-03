@@ -27,7 +27,7 @@ import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
 import kotlinx.android.synthetic.main.activity_pdr.*
 
-class DatasetActivity : OnMapActivity() {
+class DatasetActivity : PDRInterface,OnMapActivity() {
 
     override var  TAG = "DatasetActivity"
     lateinit var positionView: ImageView
@@ -43,6 +43,7 @@ class DatasetActivity : OnMapActivity() {
     private var datalist = mutableListOf<JsonData>()
     private val delay = 500L //milliseconds. Interval in which data will be captured
     private var pdrService = PDRService.instance
+    private lateinit var pdrAdapter: PDRAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -108,6 +109,7 @@ class DatasetActivity : OnMapActivity() {
         }
 
         devicesListOnlineAdapter = DatasetCaptureAdapter(this, bluetoothScanner.devicesList)
+        pdrAdapter = PDRAdapter(this)
 
 
     }
@@ -144,7 +146,7 @@ class DatasetActivity : OnMapActivity() {
         //Log.d(TAG, "Touching ${zone.toString()}")
 
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        pdrService.setupSensorsHandlers(loc,devicesListOnlineAdapter,sensorManager,true)
+        pdrService.setupSensorsHandlers(loc,pdrAdapter,sensorManager,true)
 
 
 
@@ -154,7 +156,7 @@ class DatasetActivity : OnMapActivity() {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
     }
-    fun unsetStartingPoint() {
+    override fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
         pdrService.stopSensorsHandlers()
         startingPoint = false
@@ -216,5 +218,7 @@ class DatasetActivity : OnMapActivity() {
         Log.d(TAG, "Map saved to JSON file in $filePath.data")
         Toast.makeText(this, "Saved to $filePath.data", Toast.LENGTH_SHORT).show()
     }
-
+    override fun updatePosition() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }

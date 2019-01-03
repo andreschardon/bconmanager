@@ -101,7 +101,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         pdrService.bearingAdjustment = (floorMap.angle / 57.2958).toFloat()
         Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment}")
         Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment * 57.2958}°")
-        pdrAdapter = PDRAdapter(this, this)
+        pdrAdapter = PDRAdapter(this)
         pdrService.startPDR()
 
         particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)

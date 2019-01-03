@@ -71,7 +71,7 @@ class PDRActivity : PDRInterface, OnMapActivity() {
         Log.d("ADJUSTMENT", "SAVED Adjustment is ${pdrService.bearingAdjustment}")
         Log.d("ADJUSTMENT", "SAVED Adjustment is ${pdrService.bearingAdjustment*57.2958}")
 
-        pdrAdapter = PDRAdapter(this, this)
+        pdrAdapter = PDRAdapter(this)
         // Drawing all the points of interest for this map
         for (point in floorMap.pointsOfInterest) {
             val imageView = ImageView(this)
@@ -123,12 +123,9 @@ class PDRActivity : PDRInterface, OnMapActivity() {
     override fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
         pdrService.stopSensorsHandlers()
-        /*deviceAttitudeHandler!!.stop()
-        stepDetectionHandler!!.stop()*/
         startingPoint = false
         isRecordingAngle = false
     }
-
 
      override fun updatePosition() {
         val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
@@ -142,7 +139,7 @@ class PDRActivity : PDRInterface, OnMapActivity() {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
-    fun startPDR(view: View) {
+    fun startPDR() {
         isPDREnabled = true
         pdrService.startPDR()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()

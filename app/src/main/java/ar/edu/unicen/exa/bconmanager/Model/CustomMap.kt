@@ -7,7 +7,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Json.JsonMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
 import ar.edu.unicen.exa.bconmanager.R
 
-class CustomMap constructor(var image : String, var width : Double , var height : Double, var angle : Double ) {
+class CustomMap constructor(var image : String, var width : Double , var height : Double, var angle : Double = 0.0 ) {
     var widthPixels : Int = 0
     var heightPixels : Int = 0
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()

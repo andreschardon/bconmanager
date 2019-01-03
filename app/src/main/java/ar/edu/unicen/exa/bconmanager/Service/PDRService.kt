@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Service
 import android.hardware.SensorManager
 import android.util.Log
 import android.widget.BaseAdapter
+import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
 class PDRService : Algorithm(){
@@ -20,7 +21,7 @@ class PDRService : Algorithm(){
     var advancedX = 0.0
     var advancedY = 0.0
 
-    lateinit var pdrAdapter: BaseAdapter
+    lateinit var pdrAdapter: PDRAdapter
     private var PDREnabled = false
     private var angle = 0.0
     private var acceleration = 0.0F
@@ -37,7 +38,7 @@ class PDRService : Algorithm(){
 
 
     private val mStepDetectionListener = StepDetectionHandler.StepDetectionListener { stepSize ->
-        Log.d("PDRActivity", "INSIDE LISTENR PDRSERVICE")
+        Log.d("PDRActivity", "INSIDE LISTENER PDRSERVICE")
         if (!isRecordingAngle) {
             Log.d("PDRActivity", "NOT RECORDING")
             angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
@@ -48,7 +49,7 @@ class PDRService : Algorithm(){
                 Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
                 Log.d("PDRActivity", "IS WALKING")
                 Log.d(TAG, "IS WALKING")
-                pdrAdapter.notifyDataSetChanged()
+                pdrAdapter.StepDetected()
             }
         } else if (isWalking && isRecordingAngle) {
             Log.d("PDRActivity","IS RECORDING")
@@ -69,7 +70,7 @@ class PDRService : Algorithm(){
         bearingAdjustment = -measuredAngle
         Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
         isRecordingAngle = false
-        pdrAdapter.notifyDataSetChanged()
+        pdrAdapter.stopRecordingAngle()
     }
 
     fun startRecordingAngle() {
@@ -100,7 +101,7 @@ class PDRService : Algorithm(){
          Log.d("PDRActivity","STOP SENSORS HANDLERS")
     }
 
-    fun setupSensorsHandlers(loc: Location, adapter: BaseAdapter, sm: SensorManager, rawData: Boolean){
+    fun setupSensorsHandlers(loc: Location, adapter: PDRAdapter, sm: SensorManager, rawData: Boolean){
         pdrAdapter = adapter
         this.sensorManager = sm
         stepDetectionHandler = StepDetectionHandler(sensorManager,rawData)
