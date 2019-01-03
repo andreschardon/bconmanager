@@ -139,7 +139,7 @@ class PDRActivity : PDRInterface, OnMapActivity() {
         return floorMap.restrictPosition(PositionOnMap(newPosition)).position
     }
 
-    fun startPDR() {
+    fun startPDR(view: View) {
         isPDREnabled = true
         pdrService.startPDR()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
