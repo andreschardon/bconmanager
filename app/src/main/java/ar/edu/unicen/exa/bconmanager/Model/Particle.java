@@ -1,5 +1,8 @@
 package ar.edu.unicen.exa.bconmanager.Model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public class Particle {
 
     public double x = 0;
@@ -45,6 +48,19 @@ public class Particle {
         } else if (y < 0) {
             y = 0;
         }
+    }
+
+    public void restrictDecimals() {
+        x = round(x, 2);
+        y = round(y, 2);
+    }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 
     // returns this particle's weight
