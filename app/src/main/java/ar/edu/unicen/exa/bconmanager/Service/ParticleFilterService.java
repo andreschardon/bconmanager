@@ -288,7 +288,7 @@ public class ParticleFilterService {
         if (newParticles.size() != 0)
             particles = newParticles;
         else
-            Log.e("PFACTIVITY", "NO MORE PARTICLES ------------------------------")
+            Log.e("PFACTIVITY", "NO MORE PARTICLES ------------------------------");
     }
 
 

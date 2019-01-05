@@ -10,7 +10,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -37,10 +37,8 @@
         <activity android:name=".Controller.PDRActivity" />
         <activity android:name=".Controller.FingerprintOfflineActivity" />
         <activity android:name=".Controller.FingerprintOnlineActivity" />
-        <activity android:name=".Controller.FindMeActivity" />
         <activity android:name=".Controller.DatasetActivity" />
         <activity android:name=".Controller.ParticleFilterActivity" />
-        <activity android:name=".Service.FingerprintingService" />
         <activity android:name=".Controller.SimulationActivity"></activity>
     </application>
 

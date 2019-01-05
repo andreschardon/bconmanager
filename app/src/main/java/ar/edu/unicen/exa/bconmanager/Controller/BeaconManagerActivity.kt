@@ -136,11 +136,6 @@ class BeaconManagerActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun goToFindMeActivity(view : View) {
-        val intent = Intent(this, FindMeActivity::class.java)
-        startActivity(intent)
-    }
-
     fun goToDatasetActivity(view : View) {
         val intent = Intent(this, DatasetActivity::class.java)
         startActivity(intent)
