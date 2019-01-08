@@ -6,7 +6,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Circle
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
-class TrilaterationCalculator : Algorithm() {
+class TrilaterationService : Algorithm() {
 
     // Let EPS (epsilon) be a small value
     private var EPS = 0.0000001
@@ -14,11 +14,11 @@ class TrilaterationCalculator : Algorithm() {
     private val maxLength = 50.0
 
     private object Holder {
-        val INSTANCE = TrilaterationCalculator()
+        val INSTANCE = TrilaterationService()
     }
 
     companion object {
-        val instance: TrilaterationCalculator by lazy { Holder.INSTANCE }
+        val instance: TrilaterationService by lazy { Holder.INSTANCE }
     }
 
     /**

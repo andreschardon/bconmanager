@@ -16,7 +16,7 @@ import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var stop = false
@@ -30,7 +30,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
     private var pdrService = PDRService.instance
     private var particleFilterService: ParticleFilterService? = null
-    private var trilaterationCalculator = TrilaterationCalculator.instance
+    private var trilaterationCalculator = TrilaterationService.instance
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
 

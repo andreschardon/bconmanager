@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -12,10 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter;
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap;
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap;
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData;
 import ar.edu.unicen.exa.bconmanager.Model.Location;
 import ar.edu.unicen.exa.bconmanager.Model.Particle;
 
-public class ParticleFilterService {
+public class ParticleFilterService extends Algorithm {
 
     //paramenters
     private static final int FPS = 10;
@@ -53,26 +56,23 @@ public class ParticleFilterService {
     private double estimateWX;
     private double estimateWY;
 
-    private double maxRangeWidth;
-    private double maxRangeHeight;
-
     private ParticleFilterAdapter pfAdapter;
+    private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
+    private PDRService pdrService = PDRService.Companion.getInstance();
 
     //private constructor
-    private ParticleFilterService(Context context, CustomMap map, ParticleFilterAdapter pfAdapter) {
+    private ParticleFilterService(Context context, ParticleFilterAdapter pfAdapter) {
         this.context = context;
         this.pfAdapter = pfAdapter;
-        this.maxRangeHeight = map.getHeight();
-        this.maxRangeWidth = map.getWidth();
 
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}");
-        beaconsList = map.sortBeaconsByDistance(map.getSavedBeacons());
+        beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
 
-        maxDist = Math.floor(Math.sqrt(maxRangeWidth * maxRangeWidth + maxRangeHeight * maxRangeHeight));
+        maxDist = Math.floor(Math.sqrt(customMap.getWidth() * customMap.getWidth() + customMap.getHeight() * customMap.getHeight()));
 
-        xPos = Math.floor(Math.random() * maxRangeWidth);
-        yPos = Math.floor(Math.random() * maxRangeHeight);
+        xPos = Math.floor(Math.random() * customMap.getWidth());
+        yPos = Math.floor(Math.random() * customMap.getHeight());
 
         movedX = 0;
         movedY = 0;
@@ -86,9 +86,11 @@ public class ParticleFilterService {
         particles = new ArrayList<Particle>();
         for (int i = 0; i < NUM_PARTICLES; i++) {
             Particle p = new Particle();
-            p.randomize(maxRangeWidth, maxRangeHeight);
+            p.randomize(customMap.getWidth(), customMap.getHeight());
             particles.add(p);
         }
+        trilaterationCalculator.startUp(customMap);
+        pdrService.startUp(customMap);
     }
 
     //singleton constructor
@@ -96,10 +98,23 @@ public class ParticleFilterService {
 
     public static ParticleFilterService getInstance(Context context,CustomMap map, ParticleFilterAdapter pfAdapter) {
         if (instance == null) {
-            instance = new ParticleFilterService(context,map,pfAdapter);
+            instance = new ParticleFilterService(context, pfAdapter);
+            instance.startUp(map);
         }
 
         return instance;
+    }
+
+    @Override
+    public Location getNextPosition(@NotNull JsonData data, @NotNull Number nextTimestamp) {
+        Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
+        Location pdrLocation = pdrService.getNextPosition(data, nextTimestamp);
+        double movedX = pdrService.getMovedX();
+        double movedY = pdrService.getMovedY();
+
+        this.updatePosition(movedX, movedY, trilatLocation.getXMeters(), trilatLocation.getYMeters());
+        Location result = new Location(estimateWX, estimateWY, customMap);
+        return result;
     }
 
     /**
@@ -217,7 +232,7 @@ public class ParticleFilterService {
                 //Replace movedX for distance un x, PDR next location¿?
                 particles.get(i).x += this.movedX;
                 particles.get(i).y += this.movedY;
-                particles.get(i).restrictToMap(maxRangeWidth, maxRangeHeight);
+                particles.get(i).restrictToMap(customMap.getWidth(), customMap.getHeight());
                 particles.get(i).restrictDecimals();
             }
         }
@@ -511,7 +526,7 @@ public class ParticleFilterService {
         System.out.println("Distortion is " + distortX + " and " + distortY);
         cloned.x += distortX;
         cloned.y += distortY;
-        cloned.restrictToMap(maxRangeWidth, maxRangeHeight);
+        cloned.restrictToMap(customMap.getWidth(), customMap.getHeight());
         cloned.restrictDecimals();
         return cloned;
 
@@ -584,4 +599,6 @@ public class ParticleFilterService {
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateX + ", " + estimateY));
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateWX + ", " + estimateWY));
     }
+
+
 }

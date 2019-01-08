@@ -2,7 +2,7 @@ package ar.edu.unicen.exa.bconmanager.Model
 
 import android.support.v4.app.NotificationCompat
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
 
 
 class PointOfInterest constructor (position : Location, zone : Double , id : String, content : String) : Resource(position) {
@@ -11,7 +11,7 @@ class PointOfInterest constructor (position : Location, zone : Double , id : Str
     var content = content
     var alreadyInside = false
     lateinit var notification : NotificationCompat.Builder
-    private var trilaterationCalculator = TrilaterationCalculator()
+    private var trilaterationCalculator = TrilaterationService()
 
     fun isInside(positionOnMap: PositionOnMap) : Boolean {
         return (trilaterationCalculator.euclideanDistance(positionOnMap.position,position)<= zone)

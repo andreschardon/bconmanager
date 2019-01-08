@@ -21,7 +21,7 @@ import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.*
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
 import kotlinx.android.synthetic.main.activity_trilateration.*
 import java.util.*
 
@@ -29,7 +29,7 @@ import java.util.*
 class TrilaterationActivity : OnMapActivity() {
 
     override var TAG = "TrilaterationActivity"
-    private var trilaterationCalculator = TrilaterationCalculator.instance
+    private var trilaterationCalculator = TrilaterationService.instance
     private var drawQueue: Queue<Location> = ArrayDeque<Location>()
 
     lateinit var devicesListAdapter: BeaconsAdapter
