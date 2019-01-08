@@ -8,6 +8,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
+import kotlin.math.roundToInt
 
 class PDRService : Algorithm(){
 
@@ -85,6 +86,7 @@ class PDRService : Algorithm(){
     }
 
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
+        Log.d("SIMULATION", "TIMESTAMP: ${dataEntry.timestamp}")
         if (initialPosition){
             this.mCurrentLocation = Location(dataEntry.posX,dataEntry.posY,customMap)
             initialPosition = false
@@ -93,12 +95,19 @@ class PDRService : Algorithm(){
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
-            customMap.restrictPosition(PositionOnMap(computeNextStep(stepSize,bearingAdjustment))).position
+            nextPosition= customMap.restrictPosition(PositionOnMap(computeNextStep(stepSize,bearingAdjustment))).position
             movedDistance()
             i++
         }
-
-        return nextPosition
+        if(steps == 0) {
+            Log.d("SIMULATION", "STEPS == 0 , TIMESTAMP: ${dataEntry.timestamp}")
+            return this.mCurrentLocation!!
+        }
+        else {
+            Log.d("SIMULATION", "STEPS: $steps")
+            Log.d("SIMULATION", "LOCATION IN SIMULATION: " + nextPosition.toString())
+            return nextPosition
+        }
     }
 
      fun startSensorsHandlers() {
@@ -186,7 +195,7 @@ class PDRService : Algorithm(){
         vel = t * acc
         var tsq = Math.pow(t.toDouble(), 2.0)
         var traveledDistance = vel*t + (0.5*acc*tsq)
-        return (traveledDistance / stepSize) as Int
+        return (traveledDistance / stepSize).roundToInt()
     }
     fun getMovedX(): Double {
         return this.movedX

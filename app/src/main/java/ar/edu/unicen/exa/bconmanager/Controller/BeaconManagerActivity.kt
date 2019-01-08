@@ -144,4 +144,8 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, ParticleFilterActivity::class.java)
         startActivity(intent)
     }
+    fun goToSimulationActivity(view : View) {
+        val intent = Intent(this, SimulationActivity::class.java)
+        startActivity(intent)
+    }
 }

@@ -16,7 +16,7 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    var simulationData : MutableList<JsonData>? = null
+    var simulationData : MutableList<JsonData> = mutableListOf()
     lateinit var algorithm : Algorithm
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,19 +34,31 @@ class SimulationActivity : OnMapActivity() {
     protected fun loadDatasetFromFile(filePath: String) {
         val dataset = JsonUtility.readDatasetFromFile(filePath)
         for(d in dataset.data!!) {
-            var data:JsonData = d
+            var data: JsonData = d
             simulationData!!.add(data)
         }
     }
+    fun runSimulationPF(view : View) {
+        algorithm =  ParticleFilterService()
+        runSimulation(1)
+    }
+    fun runSimulationPDR(view : View) {
+        algorithm =  PDRService.instance
+        runSimulation(1)
+    }
+    fun runSimulationTrilat(view : View) {
+        algorithm =  TrilaterationService.instance
+        runSimulation(1)
+    }
+    fun runSimulation (choice : Number) {
 
-    fun runSimulation(choice : Number) {
-
-        when(choice) {
+        /*when(choice) {
             1 -> algorithm = PDRService.instance
             2 -> algorithm = TrilaterationService.instance
             else
                 -> algorithm =  ParticleFilterService()
-        }
+        }*/
+        algorithm.startUp(floorMap)
         var i = 0
         while (i <simulationData!!.size) {
             var currentData = simulationData!!.get(i)
@@ -57,6 +69,7 @@ class SimulationActivity : OnMapActivity() {
             else
                 nextTimestamp = currentData.timestamp
             algorithm.getNextPosition(currentData,nextTimestamp)
+            i++
         }
 
     }
