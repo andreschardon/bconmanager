@@ -4,6 +4,7 @@ import android.hardware.SensorManager
 import android.util.Log
 import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
 class PDRService : Algorithm(){
@@ -25,6 +26,7 @@ class PDRService : Algorithm(){
     private var PDREnabled = false
     private var angle = 0.0
     private var acceleration = 0.0F
+    private var stepSize = 0.2F
 
 
 
@@ -81,7 +83,13 @@ class PDRService : Algorithm(){
         PDREnabled = true
     }
 
-    override fun getNextPosition(): Location {
+    override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
+       /* var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
+        var i =0
+        while (i<steps) {
+            computeNextStep(stepSize,bearingAdjustment)
+        }
+    */
         return nextPosition
     }
 
@@ -162,6 +170,15 @@ class PDRService : Algorithm(){
     fun getAngle() : Double {
         Log.d("PDRActivity", "ANGLE: $angle")
         return this.angle
+    }
+
+    fun getStepsDone(t1: Number, t2: Number, acc: Float) : Int {
+        var vel = 0.0F
+        var t= t2.toInt()-t1.toInt()
+        vel = t * acc
+        var tsq = Math.pow(t.toDouble(), 2.0)
+        var traveledDistance = vel*t + (0.5*acc*tsq)
+        return (traveledDistance / stepSize) as Int
     }
 
 }
