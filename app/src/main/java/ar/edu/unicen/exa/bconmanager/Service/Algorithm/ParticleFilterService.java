@@ -63,9 +63,18 @@ public class ParticleFilterService extends Algorithm {
     //private constructor
     public ParticleFilterService() {
         /** Calculate the three closest circles **/
-        Log.d("SAVED", "${map.savedBeacons}");
-        beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
 
+
+    }
+
+    @Override
+    public void startUp(CustomMap customMap) {
+        super.startUp(customMap);
+        beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
+        trilaterationCalculator.startUp(customMap);
+        pdrService.startUp(customMap);
+
+        Log.d("SAVED", "${map.savedBeacons}");
         maxDist = Math.floor(Math.sqrt(customMap.getWidth() * customMap.getWidth() + customMap.getHeight() * customMap.getHeight()));
 
         xPos = Math.floor(Math.random() * customMap.getWidth());
@@ -86,13 +95,12 @@ public class ParticleFilterService extends Algorithm {
             p.randomize(customMap.getWidth(), customMap.getHeight());
             particles.add(p);
         }
-        trilaterationCalculator.startUp(customMap);
-        pdrService.startUp(customMap);
     }
 
     private void setUpParticleFilter(Context context, ParticleFilterAdapter pfAdapter) {
         this.context = context;
         this.pfAdapter = pfAdapter;
+
     }
 
     //singleton constructor
@@ -101,8 +109,9 @@ public class ParticleFilterService extends Algorithm {
     public static ParticleFilterService getInstance(Context context,CustomMap map, ParticleFilterAdapter pfAdapter) {
         if (instance == null) {
             instance = new ParticleFilterService();
-            instance.setUpParticleFilter(context, pfAdapter);
             instance.startUp(map);
+            instance.setUpParticleFilter(context, pfAdapter);
+
         }
 
         return instance;

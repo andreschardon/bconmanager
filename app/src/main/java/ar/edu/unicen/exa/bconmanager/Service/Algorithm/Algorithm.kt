@@ -12,7 +12,7 @@ abstract class Algorithm : AppCompatActivity() {
     protected open var TAG : String = ""
     protected lateinit var customMap : CustomMap
 
-    fun startUp(map: CustomMap) {
+    open fun startUp(map: CustomMap) {
         customMap = map
     }
 
