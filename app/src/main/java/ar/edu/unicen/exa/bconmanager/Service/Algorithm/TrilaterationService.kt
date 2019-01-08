@@ -26,6 +26,7 @@ class TrilaterationService : Algorithm() {
      */
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
         val beaconList = getBeacons(data)
+        val next = getPositionInMap(beaconList) ?: return Location(-1.0, -1.0, customMap)
         return getPositionInMap(beaconList)!!
     }
 
@@ -36,18 +37,23 @@ class TrilaterationService : Algorithm() {
     fun getPositionInMap(beaconList: List<BeaconOnMap> = customMap.savedBeacons): Location? {
         /** Calculate the three closest circles **/
         Log.d("SAVED", "$beaconList")
+        beaconList.forEach {
+            it.beacon.calculateDistance(it.beacon.intensity)
+        }
         val sortedList = customMap.sortBeaconsByDistance(beaconList)
+        if (sortedList.size < 3) {
+            Log.e(TAG, "Not enough beacons detected")
+            return null
+        }
 
         val beacon0 = sortedList[0]
         val beacon1 = sortedList[1]
         val beacon2 = sortedList[2]
-        val beacon3 = sortedList[3]
 
         Log.d("CLOSEST",
                 "1: ${beacon0.beacon.name} at ${beacon0.beacon.approxDistance}mts // " +
                         "2: ${beacon1.beacon.name} at ${beacon1.beacon.approxDistance}mts // " +
-                        "3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts" +
-                        "4: ${beacon3.beacon.name} at ${beacon3.beacon.approxDistance}mts")
+                        "3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts")
 
         var circle0 = Circle.fromBeacon(beacon0)
         var circle1 = Circle.fromBeacon(beacon1)

@@ -1,6 +1,7 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
@@ -24,6 +25,10 @@ abstract class Algorithm : AppCompatActivity() {
      */
     protected fun getBeacons(data: JsonData) : List<BeaconOnMap> {
         var savedBeacons: MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
+        Log.d("GETBEACONS", "${data.beacons!!}")
+        Log.d("GETBEACONS", "${customMap.savedBeacons}")
+
+
         for (beacon in data.beacons!!) {
             var beaconDev = BeaconDevice(beacon.mac!!, beacon.rssi!!, null)
             var beaconLoc = Location(0.0, 0.0, customMap)

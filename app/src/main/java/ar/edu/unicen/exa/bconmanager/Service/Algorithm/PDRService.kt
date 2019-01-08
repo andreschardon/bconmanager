@@ -86,26 +86,31 @@ class PDRService : Algorithm(){
     }
 
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
-        Log.d("SIMULATION", "TIMESTAMP: ${dataEntry.timestamp}")
+        //Log.d("SIMULATION", "TIMESTAMP: ${dataEntry.timestamp}")
         if (initialPosition){
             this.mCurrentLocation = Location(dataEntry.posX,dataEntry.posY,customMap)
             initialPosition = false
         }
+        Log.d("SIMULATION", "Using ${dataEntry.timestamp} and $t2 with acc ${dataEntry.acceleration}")
         var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
+        Log.d("SIMULATION", "STEPS: ${steps}")
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
-            nextPosition= customMap.restrictPosition(PositionOnMap(computeNextStep(stepSize,bearingAdjustment))).position
+            var asd = computeNextStep(stepSize,bearingAdjustment)
+            Log.d("SIMULATION", "COMPUTED: $asd")
+            nextPosition= customMap.restrictPosition(PositionOnMap(asd)).position
+            //Log.d("STEPS", "NEXTPOS: $nextPosition")
             movedDistance()
             i++
         }
         if(steps == 0) {
-            Log.d("SIMULATION", "STEPS == 0 , TIMESTAMP: ${dataEntry.timestamp}")
+            //Log.d("SIMULATION", "STEPS == 0 , TIMESTAMP: ${dataEntry.timestamp}")
             return this.mCurrentLocation!!
         }
         else {
-            Log.d("SIMULATION", "STEPS: $steps")
-            Log.d("SIMULATION", "LOCATION IN SIMULATION: " + nextPosition.toString())
+            //Log.d("SIMULATION", "STEPS: $steps")
+            //Log.d("SIMULATION", "LOCATION IN SIMULATION: " + nextPosition.toString())
             return nextPosition
         }
     }
@@ -190,12 +195,19 @@ class PDRService : Algorithm(){
     }
 
     fun getStepsDone(t1: Number, t2: Number, acc: Float) : Int {
+        //Log.d("SIMULATION", "$t1 ${t2.toInt()} $acc")
         var vel = 0.0F
-        var t= t2.toInt()-t1.toInt()
+        var ts = (t2.toFloat() - t1.toFloat())
+        var t = ts.div(1000F)
+        //Log.d("SIMULATION", "Time: $t")
         vel = t * acc
+        //Log.d("SIMULATION", "Speed: $vel")
         var tsq = Math.pow(t.toDouble(), 2.0)
         var traveledDistance = vel*t + (0.5*acc*tsq)
-        return (traveledDistance / stepSize).roundToInt()
+        //Log.d("SIMULATION", "Traveled: $traveledDistance")
+        var stepsDone = (traveledDistance / stepSize)
+        //Log.d("SIMULATION", "Steps done: $stepsDone")
+        return stepsDone.roundToInt()
     }
     fun getMovedX(): Double {
         return this.movedX

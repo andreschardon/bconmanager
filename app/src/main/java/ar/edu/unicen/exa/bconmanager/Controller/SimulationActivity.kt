@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Controller
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
@@ -60,15 +61,17 @@ class SimulationActivity : OnMapActivity() {
         }*/
         algorithm.startUp(floorMap)
         var i = 0
+        Log.d("SIMULATION", "Size is ${simulationData!!.size}")
         while (i <simulationData!!.size) {
             var currentData = simulationData!!.get(i)
+            Log.d("SIMULATION", currentData.toString())
             var nextTimestamp: Number = 0
             if ((i+1) < simulationData!!.size){
                 nextTimestamp = simulationData!!.get(i+1).timestamp
             }
             else
                 nextTimestamp = currentData.timestamp
-            algorithm.getNextPosition(currentData,nextTimestamp)
+            Log.d("SIMULATION-f", "[$i] " + algorithm.getNextPosition(currentData,nextTimestamp).toString())
             i++
         }
 
