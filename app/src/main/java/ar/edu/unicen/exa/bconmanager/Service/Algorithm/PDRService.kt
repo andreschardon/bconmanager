@@ -20,15 +20,17 @@ class PDRService : Algorithm(){
     private var recordCount = 0
     private lateinit var nextPosition : Location
     private var mCurrentLocation: Location? = null
+    private var mPrevLocation: Location? = null
     var advancedX = 0.0
     var advancedY = 0.0
-
+    private var movedX = 0.0
+    private var movedY = 0.0
     lateinit var pdrAdapter: PDRAdapter
     private var PDREnabled = false
     private var angle = 0.0
     private var acceleration = 0.0F
     private var stepSize = 0.2F
-
+    private var initialPosition = true
 
 
     private object Holder {
@@ -41,16 +43,13 @@ class PDRService : Algorithm(){
 
 
     private val mStepDetectionListener = StepDetectionHandler.StepDetectionListener { stepSize ->
-        Log.d("PDRActivity", "INSIDE LISTENER PDRSERVICE")
         if (!isRecordingAngle) {
-            Log.d("PDRActivity", "NOT RECORDING")
             angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
             //in this case stepSize is acceleration
             acceleration = if (stepSize >= 0) stepSize else 0F // Only use positive acceleration values
             if(PDREnabled) {
                 nextPosition = computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
                 Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
-                Log.d("PDRActivity", "IS WALKING")
                 Log.d(TAG, "IS WALKING")
                 pdrAdapter.StepDetected()
             }
@@ -85,12 +84,19 @@ class PDRService : Algorithm(){
     }
 
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
-       /* var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
+        if (initialPosition){
+            this.mCurrentLocation = Location(dataEntry.posX,dataEntry.posY,customMap)
+            initialPosition = false
+        }
+        var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
         var i =0
         while (i<steps) {
+            this.mPrevLocation = this.mCurrentLocation
             computeNextStep(stepSize,bearingAdjustment)
+            movedDistance()
+            i++
         }
-    */
+
         return nextPosition
     }
 
@@ -181,5 +187,15 @@ class PDRService : Algorithm(){
         var traveledDistance = vel*t + (0.5*acc*tsq)
         return (traveledDistance / stepSize) as Int
     }
+    fun getMovedX(): Double {
+        return this.movedX
+    }
+    fun getMovedY(): Double {
+        return this.movedY
+    }
 
+    fun movedDistance() {
+        this.movedX = this.mPrevLocation!!.x - this.mCurrentLocation!!.x
+        this.movedY = this.mPrevLocation!!.y - this.mCurrentLocation!!.y
+    }
 }
