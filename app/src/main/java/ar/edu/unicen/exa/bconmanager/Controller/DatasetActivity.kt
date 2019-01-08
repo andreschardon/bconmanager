@@ -2,7 +2,6 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.os.Handler
@@ -20,11 +19,8 @@ import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
-import ar.edu.unicen.exa.bconmanager.Service.PDRService
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler.StepDetectionListener
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class DatasetActivity : PDRInterface,OnMapActivity() {

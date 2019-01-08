@@ -3,7 +3,6 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
@@ -17,7 +16,7 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.PDRService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import kotlinx.android.synthetic.main.activity_pdr.*
 
 class PDRActivity : PDRInterface, OnMapActivity() {

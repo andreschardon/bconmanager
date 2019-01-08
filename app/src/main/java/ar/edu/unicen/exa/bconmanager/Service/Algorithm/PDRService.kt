@@ -1,11 +1,12 @@
-package ar.edu.unicen.exa.bconmanager.Service
+package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.hardware.SensorManager
 import android.util.Log
-import android.widget.BaseAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
+import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 
 class PDRService : Algorithm(){
 
@@ -112,7 +113,7 @@ class PDRService : Algorithm(){
     fun setupSensorsHandlers(loc: Location, adapter: PDRAdapter, sm: SensorManager, rawData: Boolean){
         pdrAdapter = adapter
         this.sensorManager = sm
-        stepDetectionHandler = StepDetectionHandler(sensorManager,rawData)
+        stepDetectionHandler = StepDetectionHandler(sensorManager, rawData)
         stepDetectionHandler!!.setStepListener(mStepDetectionListener)
         deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
         setmCurrentLocation(loc)

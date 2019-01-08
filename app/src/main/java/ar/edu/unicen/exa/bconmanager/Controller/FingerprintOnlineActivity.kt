@@ -2,17 +2,14 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOnlineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.FingerprintingService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FingerprintingService
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 
 

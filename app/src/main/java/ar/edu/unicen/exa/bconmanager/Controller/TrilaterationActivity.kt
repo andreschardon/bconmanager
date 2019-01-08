@@ -6,9 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Point
-import android.hardware.SensorEvent
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment.DIRECTORY_DOWNLOADS
@@ -24,7 +22,7 @@ import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.*
 import ar.edu.unicen.exa.bconmanager.Service.MovementDetector
-import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_trilateration.*
 import java.util.*
 
@@ -154,6 +152,7 @@ class TrilaterationActivity : OnMapActivity() {
         setupResource(currentPosition, positionView)
 
         // Scanning beacons
+        trilaterationCalculator.startUp(floorMap)
 
         if (!bluetoothScanner.isRunningOnBackground) {
             floorMap.savedBeacons.forEach { bluetoothScanner.devicesList.add(it.beacon) }
@@ -291,7 +290,7 @@ class TrilaterationActivity : OnMapActivity() {
      */
     fun trilateratePosition() {
         // Call this after currentPosition's x and y are updated
-        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
         if (resultLocation != null) {
             if (currentPosition.position.equals(Location(-1.0, -1.0, floorMap))) {
                 //INITIAL LOCATION

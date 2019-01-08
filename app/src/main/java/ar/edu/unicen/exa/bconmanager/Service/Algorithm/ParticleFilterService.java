@@ -1,4 +1,4 @@
-package ar.edu.unicen.exa.bconmanager.Service;
+package ar.edu.unicen.exa.bconmanager.Service.Algorithm;
 
 import android.content.Context;
 import android.content.Intent;

@@ -1,11 +1,11 @@
-package ar.edu.unicen.exa.bconmanager.Service
+package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOfflineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
+import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 class FingerprintingService() {
 

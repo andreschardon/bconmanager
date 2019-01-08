@@ -14,9 +14,9 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
-import ar.edu.unicen.exa.bconmanager.Service.PDRService
-import ar.edu.unicen.exa.bconmanager.Service.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var stop = false

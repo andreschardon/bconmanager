@@ -2,7 +2,7 @@ package ar.edu.unicen.exa.bconmanager.Model
 
 import android.support.v4.app.NotificationCompat
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonPoI
-import ar.edu.unicen.exa.bconmanager.Service.TrilaterationCalculator
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
 
 
 class PointOfInterest constructor (position : Location, zone : Double , id : String, content : String) : Resource(position) {

@@ -123,9 +123,9 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         return newPosition
     }
 
-    fun sortBeaconsByDistance (): List<BeaconOnMap> {
-            Log.d("SAVED", "${this.savedBeacons}")
-    val sortedList = this.savedBeacons.sortedWith(compareBy { it.beacon.approxDistance })
+    fun sortBeaconsByDistance (savedBeacons : List<BeaconOnMap> = this.savedBeacons): List<BeaconOnMap> {
+            Log.d("SAVED", "${savedBeacons}")
+    val sortedList = savedBeacons.sortedWith(compareBy { it.beacon.approxDistance })
 
     val beacon0 = sortedList[0]
     val beacon1 = sortedList[1]

@@ -1,15 +1,14 @@
-package ar.edu.unicen.exa.bconmanager.Service
+package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Circle
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
 class TrilaterationCalculator : Algorithm() {
 
-    private var mapHeight = 0.0
-    private var mapWidth = 0.0
     // Let EPS (epsilon) be a small value
     private var EPS = 0.0000001
     override var  TAG = "Trilateration Calculator"
@@ -23,19 +22,21 @@ class TrilaterationCalculator : Algorithm() {
         val instance: TrilaterationCalculator by lazy { Holder.INSTANCE }
     }
 
+    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+        val beaconList = getBeacons(data)
+        return getPositionInMap(beaconList)!!
+    }
+
 
     /**
      * Returns the current location on the map based on
      * the distance to all the beacons
      */
     //REPLACE WITH getNextPosition()
-    fun getPositionInMap(map: CustomMap): Location? {
-        mapHeight = map.height
-        mapWidth = map.width
-
+    fun getPositionInMap(beaconList : List<BeaconOnMap> = customMap.savedBeacons): Location? {
         /** Calculate the three closest circles **/
-        Log.d("SAVED", "${map.savedBeacons}")
-        val sortedList = map.sortBeaconsByDistance()
+        Log.d("SAVED", "$beaconList")
+        val sortedList = customMap.sortBeaconsByDistance(beaconList)
 
         val beacon0 = sortedList[0]
         val beacon1 = sortedList[1]
@@ -58,9 +59,9 @@ class TrilaterationCalculator : Algorithm() {
         Log.d(TAG, circle2.toString())
 
         var intersectionLocations = mutableListOf<Location>()
-        var intersection01 = circleCircleIntersectionPoints(circle0, circle1, map)
-        var intersection02 = circleCircleIntersectionPoints(circle0, circle2, map)
-        var intersection12 = circleCircleIntersectionPoints(circle1, circle2, map)
+        var intersection01 = circleCircleIntersectionPoints(circle0, circle1)
+        var intersection02 = circleCircleIntersectionPoints(circle0, circle2)
+        var intersection12 = circleCircleIntersectionPoints(circle1, circle2)
 
         Log.d(TAG, "Intersections calculated")
 
@@ -85,9 +86,9 @@ class TrilaterationCalculator : Algorithm() {
                     return null
                 }
 
-                intersection01 = circleCircleIntersectionPoints(circle0, circle1, map)
-                intersection02 = circleCircleIntersectionPoints(circle0, circle2, map)
-                intersection12 = circleCircleIntersectionPoints(circle1, circle2, map)
+                intersection01 = circleCircleIntersectionPoints(circle0, circle1)
+                intersection02 = circleCircleIntersectionPoints(circle0, circle2)
+                intersection12 = circleCircleIntersectionPoints(circle1, circle2)
 
                 if (intersection01 == null && intersection02 == null && intersection12 == null) {
                     Log.d(TAG, "No intersections yet, try again")
@@ -115,13 +116,13 @@ class TrilaterationCalculator : Algorithm() {
             if (intersection01 != null) {
                 Log.d(TAG, "Intersection01")
                 intersectionLocations = intersection01 as MutableList<Location>
-                location3 = Location(circle2.x, circle2.y, map)
+                location3 = Location(circle2.x, circle2.y, customMap)
                 furthestCircle = circle2
                 continueForcing = false
             } else if (intersection02 != null) {
                 Log.d(TAG, "Intersection02")
                 intersectionLocations = intersection02 as MutableList<Location>
-                location3 = Location(circle1.x, circle1.y, map)
+                location3 = Location(circle1.x, circle1.y, customMap)
                 furthestCircle = circle1
                 continueForcing = false
             } else if (intersection12 != null &&
@@ -135,7 +136,7 @@ class TrilaterationCalculator : Algorithm() {
                 // Force an intersection between 0 and 1
                 Log.d(TAG, "Error ${circle1.r + 0.5}")
                 circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.5)
-                intersection01 = circleCircleIntersectionPoints(circle0, circle1, map)
+                intersection01 = circleCircleIntersectionPoints(circle0, circle1)
                 if (intersection01 == null) {
                     //Log.d(TAG, "It is still null")
                 }
@@ -184,13 +185,13 @@ class TrilaterationCalculator : Algorithm() {
     private fun forceInsideMap(location: Location): Location {
         if (location.x < 0.0) {
             location.x = 0.0
-        } else if (location.x > mapWidth) {
-            location.x = mapWidth
+        } else if (location.x > customMap.width) {
+            location.x = customMap.width
         }
         if (location.y < 0.0) {
             location.y = 0.0
-        } else if (location.y > mapHeight) {
-            location.y = mapHeight
+        } else if (location.y > customMap.height) {
+            location.y = customMap.height
         }
         //Log.d("CLOSEST", "Final position is (${location.x}, ${location.y})")
         return location
@@ -222,7 +223,7 @@ class TrilaterationCalculator : Algorithm() {
 
     // Given two circles this method finds the intersection
     // point(s) of the two circles (if any exists)
-    private fun circleCircleIntersectionPoints(c1: Circle, c2: Circle, map: CustomMap): List<Location>? {
+    private fun circleCircleIntersectionPoints(c1: Circle, c2: Circle): List<Location>? {
 
         var r = 0.00
         var R = 0.00
@@ -264,7 +265,7 @@ class TrilaterationCalculator : Algorithm() {
 
         val x = (dx / d) * R + Cx
         val y = (dy / d) * R + Cy
-        val P = Location(x, y, map)
+        val P = Location(x, y, customMap)
 
         // Single intersection (kissing circles)
         if (Math.abs((R + r) - d) < EPS || Math.abs(R - (r + d)) < EPS) {
@@ -292,9 +293,5 @@ class TrilaterationCalculator : Algorithm() {
         var distance = 0.00
         distance = Math.sqrt(Math.pow(location1.x - location2.x, 2.00) + Math.pow(location1.y - location2.y, 2.00))
         return distance
-    }
-
-    override fun getNextPosition(): Location {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
