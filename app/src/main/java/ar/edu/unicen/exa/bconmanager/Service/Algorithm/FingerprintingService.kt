@@ -6,8 +6,23 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
+import ar.edu.unicen.exa.bconmanager.Model.Location
 
-class FingerprintingService() {
+class FingerprintingService() : Algorithm(){
+
+    var savedBeacons : MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
+    private var currentFingerprintingZone: FingerprintZone? = null
+
+
+    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+        for(beacon in data.beacons!!) {
+            savedBeacons.add(BeaconDevice(beacon.mac!!, beacon.rssi!!, null))
+        }
+        currentFingerprintingZone= getCurrentZone(savedBeacons)
+
+
+    }
 
     lateinit var map : CustomMap
 

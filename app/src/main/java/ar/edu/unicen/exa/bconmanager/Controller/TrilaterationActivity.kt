@@ -21,7 +21,6 @@ import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.R.drawable.*
-import ar.edu.unicen.exa.bconmanager.Service.MovementDetector
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationCalculator
 import kotlinx.android.synthetic.main.activity_trilateration.*
 import java.util.*
@@ -37,7 +36,6 @@ class TrilaterationActivity : OnMapActivity() {
     lateinit var positionView: ImageView
     lateinit var currentPosition: PositionOnMap
     private var jumpCounter = 0
-    private val detector = MovementDetector(this)
     private val ACCELERATION_THRESHOLD = 1.5
     private val USELESS_MOVE_THRESHOLD = 0.3
     private val JUMP_THRESHOLD = 1.4 //meters
@@ -70,26 +68,6 @@ class TrilaterationActivity : OnMapActivity() {
             Log.d("DESTROY", "Path is $filePath")
             displayMap()
         }
-
-        /* Not working
-        detector.addListener(object:MovementDetector.Listener {
-            override fun onMotionDetected(event:SensorEvent, acceleration:Float) {
-                /*Log.d("ACCELERATION", ("Acceleration: [" + String.format("%.3f", event.values[0])
-                        + "," + String.format("%.3f", event.values[1]) + ","
-                        + String.format("%.3f", event.values[2]) + "] "
-                        + String.format("%.3f", acceleration)))*/
-                //Log.d("ACCELERATION", String.format("%.3f", acceleration))
-                if (acceleration > ACCELERATION_THRESHOLD)
-                {
-                    Log.d("ACCELERATION", "You are moving at $acceleration")
-                    devicesListAdapter.refreshEverything()
-                }
-            }
-        })
-        detector.context = this
-        detector.init()
-        detector.start()
-        */
     }
 
     private fun setupNotifications() {
