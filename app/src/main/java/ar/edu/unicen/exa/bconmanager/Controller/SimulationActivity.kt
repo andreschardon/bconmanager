@@ -2,24 +2,22 @@ package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
-import ar.edu.unicen.exa.bconmanager.Adapters.BeaconsAdapter
-import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOnlineAdapter
-import ar.edu.unicen.exa.bconmanager.Adapters.SimulationAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.R
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.Algorithm
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    lateinit var simulationAdapter: SimulationAdapter
     var simulationData : MutableList<JsonData>? = null
+    lateinit var algorithm : Algorithm
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,13 +39,31 @@ class SimulationActivity : OnMapActivity() {
         }
     }
 
-    fun runSimulation(algorithm : String) {
+    fun runSimulation(choice : Number) {
+
+        when(choice) {
+            1 -> algorithm = PDRService.instance
+            2 -> algorithm = TrilaterationService.instance
+            else
+                -> algorithm =  ParticleFilterService()
+        }
+        var i = 0
+        while (i <simulationData!!.size) {
+            var currentData = simulationData!!.get(i)
+            var nextTimestamp: Number = 0
+            if ((i+1) < simulationData!!.size){
+                nextTimestamp = simulationData!!.get(i+1).timestamp
+            }
+            else
+                nextTimestamp = currentData.timestamp
+            algorithm.getNextPosition(currentData,nextTimestamp)
+        }
 
     }
 
     override fun displayMap(){// Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
-
+        loadDatasetFromFile("/storage/emulated/0/Download/Dataset.json")
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView

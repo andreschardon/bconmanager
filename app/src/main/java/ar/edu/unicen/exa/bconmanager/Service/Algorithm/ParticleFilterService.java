@@ -61,7 +61,7 @@ public class ParticleFilterService extends Algorithm {
     private PDRService pdrService = PDRService.Companion.getInstance();
 
     //private constructor
-    private ParticleFilterService() {
+    public ParticleFilterService() {
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}");
         beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
