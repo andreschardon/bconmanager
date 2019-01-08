@@ -15,9 +15,9 @@ class FingerprintingService() : Algorithm(){
 
 
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
-        // TO DO
-        return Location(0.0, 0.0, customMap)
-
+        var savedBeacons = getBeacons(data) as MutableList<BeaconDevice>
+        currentFingerprintingZone = getCurrentZone(savedBeacons)
+        return currentFingerprintingZone!!.position
     }
 
     /**
