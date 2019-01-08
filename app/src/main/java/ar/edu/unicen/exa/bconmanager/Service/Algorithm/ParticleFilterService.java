@@ -61,10 +61,7 @@ public class ParticleFilterService extends Algorithm {
     private PDRService pdrService = PDRService.Companion.getInstance();
 
     //private constructor
-    private ParticleFilterService(Context context, ParticleFilterAdapter pfAdapter) {
-        this.context = context;
-        this.pfAdapter = pfAdapter;
-
+    private ParticleFilterService() {
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}");
         beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
@@ -93,12 +90,18 @@ public class ParticleFilterService extends Algorithm {
         pdrService.startUp(customMap);
     }
 
+    private void setUpParticleFilter(Context context, ParticleFilterAdapter pfAdapter) {
+        this.context = context;
+        this.pfAdapter = pfAdapter;
+    }
+
     //singleton constructor
     private static ParticleFilterService instance = null;
 
     public static ParticleFilterService getInstance(Context context,CustomMap map, ParticleFilterAdapter pfAdapter) {
         if (instance == null) {
-            instance = new ParticleFilterService(context, pfAdapter);
+            instance = new ParticleFilterService();
+            instance.setUpParticleFilter(context, pfAdapter);
             instance.startUp(map);
         }
 
