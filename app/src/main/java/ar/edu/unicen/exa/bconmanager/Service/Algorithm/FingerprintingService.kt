@@ -11,27 +11,21 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 
 class FingerprintingService() : Algorithm(){
 
-    var savedBeacons : MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
     private var currentFingerprintingZone: FingerprintZone? = null
 
 
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
-        for(beacon in data.beacons!!) {
-            savedBeacons.add(BeaconDevice(beacon.mac!!, beacon.rssi!!, null))
-        }
-        currentFingerprintingZone= getCurrentZone(savedBeacons)
-
+        // TO DO
+        return Location(0.0, 0.0, customMap)
 
     }
-
-    lateinit var map : CustomMap
 
     /**
      * Creates a new fingerprinting zone
      */
     fun createFingerprint(currentFingerprintingZone: FingerprintZone) {
-        if (!map.fingerprintZones.contains(currentFingerprintingZone)) {
-            map.fingerprintZones.add(currentFingerprintingZone)
+        if (!customMap.fingerprintZones.contains(currentFingerprintingZone)) {
+            customMap.fingerprintZones.add(currentFingerprintingZone)
         }
     }
 
@@ -39,7 +33,7 @@ class FingerprintingService() : Algorithm(){
      * Removes a fingerprinting zone
      */
     fun removeFingerprint(currentFingerprintingZone: FingerprintZone) {
-        map.fingerprintZones.remove(currentFingerprintingZone)
+        customMap.fingerprintZones.remove(currentFingerprintingZone)
     }
 
     /**
@@ -47,7 +41,7 @@ class FingerprintingService() : Algorithm(){
      */
     fun startScan(bluetoothScanner : BluetoothScanner, devicesListOfflineAdapter: FingerprintOfflineAdapter) {
         bluetoothScanner.devicesList.clear()
-        map.savedBeacons.forEach {
+        customMap.savedBeacons.forEach {
             it.beacon.cleanAverages()
             bluetoothScanner.devicesList.add(it.beacon)
         }
@@ -66,7 +60,7 @@ class FingerprintingService() : Algorithm(){
      * Returns the best fingerprinting zone according to RSSI values of the beacons
      */
     fun getCurrentZone(beacons: List<BeaconDevice>): FingerprintZone? {
-        val fingerprintZones =  map.fingerprintZones
+        val fingerprintZones =  customMap.fingerprintZones
         val fingerprintRating = mutableListOf<Double>()
         Log.d("RATINGS", beacons.toString())
         Log.d("RATINGS", fingerprintZones.toString())

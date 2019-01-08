@@ -58,7 +58,7 @@ class FingerprintOnlineActivity : OnMapActivity() {
             val imageView = ImageView(this)
             setupResource(zone, imageView)
         }
-        fingerprinting.map = floorMap
+        fingerprinting.startUp(floorMap)
         devicesListOnlineAdapter = FingerprintOnlineAdapter(this, bluetoothScanner.devicesList)
         bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
 

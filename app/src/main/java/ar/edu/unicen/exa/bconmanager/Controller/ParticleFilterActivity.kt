@@ -186,7 +186,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
      */
     fun trilateratePosition() {
 
-        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap)
+        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
         Log.d("PFACTIVITY", "Updating trilateration location to $resultLocation")
         val trilatLocationOnMap: Location
         if (resultLocation != null) {

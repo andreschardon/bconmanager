@@ -98,7 +98,7 @@ class FingerprintOfflineActivity : OnMapActivity() {
             setupResource(point, imageView)
         }
 
-        fingerprinting.map = floorMap
+        fingerprinting.startUp(floorMap)
     }
 
     /**

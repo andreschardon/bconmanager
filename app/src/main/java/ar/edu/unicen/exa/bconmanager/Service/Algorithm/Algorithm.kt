@@ -17,10 +17,24 @@ abstract class Algorithm : AppCompatActivity() {
     }
 
     abstract fun getNextPosition(data: JsonData, nextTimestamp: Number): Location
-    protected fun getBeacons(data: JsonData) : List<BeaconDevice> {
-        var savedBeacons: MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
+
+
+    /**
+     * Converts jsonData beacons to BeaconOnMap list
+     */
+    protected fun getBeacons(data: JsonData) : List<BeaconOnMap> {
+        var savedBeacons: MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
         for (beacon in data.beacons!!) {
-            savedBeacons.add(BeaconDevice(beacon.mac!!, beacon.rssi!!, null))
+            var beaconDev = BeaconDevice(beacon.mac!!, beacon.rssi!!, null)
+            var beaconLoc = Location(0.0, 0.0, customMap)
+
+            for (it in customMap.savedBeacons) {
+                if (it.beacon == beaconDev) {
+                    beaconLoc = it.position
+                }
+            }
+            var beaconMap = BeaconOnMap(beaconLoc, beaconDev)
+            savedBeacons.add(beaconMap)
         }
         return savedBeacons
     }

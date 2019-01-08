@@ -3,7 +3,6 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Circle
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
@@ -11,7 +10,7 @@ class TrilaterationCalculator : Algorithm() {
 
     // Let EPS (epsilon) be a small value
     private var EPS = 0.0000001
-    override var  TAG = "Trilateration Calculator"
+    override var TAG = "Trilateration Calculator"
     private val maxLength = 50.0
 
     private object Holder {
@@ -22,18 +21,19 @@ class TrilaterationCalculator : Algorithm() {
         val instance: TrilaterationCalculator by lazy { Holder.INSTANCE }
     }
 
+    /**
+     * Using the beacons from the dataset, obtains the next position using trilateration
+     */
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
         val beaconList = getBeacons(data)
         return getPositionInMap(beaconList)!!
     }
 
-
     /**
      * Returns the current location on the map based on
      * the distance to all the beacons
      */
-    //REPLACE WITH getNextPosition()
-    fun getPositionInMap(beaconList : List<BeaconOnMap> = customMap.savedBeacons): Location? {
+    fun getPositionInMap(beaconList: List<BeaconOnMap> = customMap.savedBeacons): Location? {
         /** Calculate the three closest circles **/
         Log.d("SAVED", "$beaconList")
         val sortedList = customMap.sortBeaconsByDistance(beaconList)

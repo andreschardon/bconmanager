@@ -67,7 +67,7 @@ public class ParticleFilterService {
 
         /** Calculate the three closest circles **/
         Log.d("SAVED", "${map.savedBeacons}");
-        beaconsList = map.sortBeaconsByDistance();
+        beaconsList = map.sortBeaconsByDistance(map.getSavedBeacons());
 
         maxDist = Math.floor(Math.sqrt(maxRangeWidth * maxRangeWidth + maxRangeHeight * maxRangeHeight));
 
