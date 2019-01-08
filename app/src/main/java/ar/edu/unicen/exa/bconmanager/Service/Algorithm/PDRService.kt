@@ -5,6 +5,7 @@ import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
+import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
 
@@ -92,7 +93,7 @@ class PDRService : Algorithm(){
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
-            computeNextStep(stepSize,bearingAdjustment)
+            customMap.restrictPosition(PositionOnMap(computeNextStep(stepSize,bearingAdjustment))).position
             movedDistance()
             i++
         }
