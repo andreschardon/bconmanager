@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
@@ -16,6 +17,7 @@ import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import kotlinx.android.synthetic.main.activity_simulation.*
 
 class SimulationActivity : OnMapActivity() {
 
@@ -53,17 +55,29 @@ class SimulationActivity : OnMapActivity() {
 
     fun runSimulationPF(view: View) {
         algorithm = ParticleFilterService()
+        pdrBtn.isClickable = false
+        trilaterationBtn.isClickable = false
         runSimulation(1)
+        pdrBtn.isClickable = true
+        trilaterationBtn.isClickable = true
     }
     fun runSimulationPDR(view : View) {
         algorithm =  PDRService.instance
         (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
+        particleFilterBtn.isClickable = false
+        trilaterationBtn.isClickable = false
         runSimulation(1)
+        particleFilterBtn.isClickable = true
+        trilaterationBtn.isClickable = true
     }
 
     fun runSimulationTrilat(view: View) {
         algorithm = TrilaterationService.instance
+        pdrBtn.isClickable = false
+        particleFilterBtn.isClickable = false
         runSimulation(1)
+        pdrBtn.isClickable = true
+        particleFilterBtn.isClickable = true
     }
 
     private fun runSimulation(choice: Number) {
@@ -86,16 +100,15 @@ class SimulationActivity : OnMapActivity() {
             } else
                 nextTimestamp = currentData.timestamp
             var calculatedPosition = algorithm.getNextPosition(currentData,nextTimestamp)
-            //Log.d("SIMULATION-f", "[$i] " + algorithm.getNextPosition(currentData,nextTimestamp).toString())
             Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
             algorithm.showError(Location(currentData.positionX,currentData.positionY,floorMap),calculatedPosition)
             currentData.estimateX = calculatedPosition.x
             currentData.estimateY = calculatedPosition.y
-            Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
             i++
         }
         Log.d("SIMULATION", "Finished, lets save")
         saveDatasetToFile(datasetPathMod)
+        Toast.makeText(this,"Simulation Completed, Results are in Dataset2.json",Toast.LENGTH_LONG).show()
     }
 
     override fun displayMap() {// Loading the map from a JSON file
