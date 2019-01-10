@@ -43,4 +43,15 @@ abstract class Algorithm : AppCompatActivity() {
         }
         return savedBeacons
     }
+
+    fun euclideanDistance(location1: Location, location2: Location): Double {
+        var distance = 0.00
+        distance = Math.sqrt(Math.pow(location1.x - location2.x, 2.00) + Math.pow(location1.y - location2.y, 2.00))
+        return distance
+    }
+
+    fun showError(loc: Location, simulatedLoc: Location) {
+        val error = euclideanDistance(loc,simulatedLoc)
+        Log.d("SIMULATION","ERROR IS: $error")
+    }
 }

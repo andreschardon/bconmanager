@@ -27,7 +27,7 @@ class PDRService : Algorithm(){
     var advancedY = 0.0
     private var movedX = 0.0
     private var movedY = 0.0
-    lateinit var pdrAdapter: PDRAdapter
+    var pdrAdapter: PDRAdapter? = null
     private var PDREnabled = false
     private var angle = 0.0
     private var acceleration = 0.0F
@@ -53,7 +53,7 @@ class PDRService : Algorithm(){
                 nextPosition = computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
                 Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
                 Log.d(TAG, "IS WALKING")
-                pdrAdapter.StepDetected()
+                pdrAdapter!!.StepDetected()
             }
         } else if (isWalking && isRecordingAngle) {
             Log.d("PDRActivity","IS RECORDING")
@@ -67,14 +67,16 @@ class PDRService : Algorithm(){
         }
     }
 
-    private fun setAdjustedBearing(measuredAngle : Float) {
+    fun setAdjustedBearing(measuredAngle : Float) {
         val adjustmentFactor = 0 // 90 degrees
         Log.d("ADJUSTMENT", "Measured angle is ${measuredAngle*57.2958}")
         Log.d("ADJUSTMENT", "It should be ${adjustmentFactor*57.2958}")
         bearingAdjustment = -measuredAngle
         Log.d("ADJUSTMENT", "Adjustment is ${bearingAdjustment*57.2958}")
         isRecordingAngle = false
-        pdrAdapter.stopRecordingAngle()
+        if(pdrAdapter != null) {
+            pdrAdapter!!.stopRecordingAngle()
+        }
     }
 
     fun startRecordingAngle() {
@@ -91,14 +93,14 @@ class PDRService : Algorithm(){
             this.mCurrentLocation = Location(dataEntry.posX,dataEntry.posY,customMap)
             initialPosition = false
         }
-        Log.d("SIMULATION", "Using ${dataEntry.timestamp} and $t2 with acc ${dataEntry.acceleration}")
+        //Log.d("SIMULATION", "Using ${dataEntry.timestamp} and $t2 with acc ${dataEntry.acceleration}")
         var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
-        Log.d("SIMULATION", "STEPS: ${steps}")
+        //Log.d("SIMULATION", "STEPS: ${steps}")
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
-            var asd = computeNextStep(stepSize,bearingAdjustment)
-            Log.d("SIMULATION", "COMPUTED: $asd")
+            var asd = computeNextStep(stepSize, dataEntry.angle.toFloat())
+            //Log.d("SIMULATION", "COMPUTED: $asd")
             nextPosition= customMap.restrictPosition(PositionOnMap(asd)).position
             //Log.d("STEPS", "NEXTPOS: $nextPosition")
             movedDistance()

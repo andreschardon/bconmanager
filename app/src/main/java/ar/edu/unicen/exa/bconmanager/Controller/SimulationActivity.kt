@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
+import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.Algorithm
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
@@ -36,7 +37,7 @@ class SimulationActivity : OnMapActivity() {
         val dataset = JsonUtility.readDatasetFromFile(filePath)
         for(d in dataset.data!!) {
             var data: JsonData = d
-            simulationData!!.add(data)
+            simulationData.add(data)
         }
     }
     fun runSimulationPF(view : View) {
@@ -45,6 +46,7 @@ class SimulationActivity : OnMapActivity() {
     }
     fun runSimulationPDR(view : View) {
         algorithm =  PDRService.instance
+        (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
         runSimulation(1)
     }
     fun runSimulationTrilat(view : View) {
@@ -61,21 +63,26 @@ class SimulationActivity : OnMapActivity() {
         }*/
         algorithm.startUp(floorMap)
         var i = 0
-        Log.d("SIMULATION", "Size is ${simulationData!!.size}")
-        while (i <simulationData!!.size) {
-            var currentData = simulationData!!.get(i)
-            Log.d("SIMULATION", currentData.toString())
+        //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
+        while (i <simulationData.size) {
+            var currentData = simulationData[i]
+            //Log.d("SIMULATION", currentData.toString())
             var nextTimestamp: Number = 0
             if ((i+1) < simulationData!!.size){
                 nextTimestamp = simulationData!!.get(i+1).timestamp
             }
             else
                 nextTimestamp = currentData.timestamp
-            Log.d("SIMULATION-f", "[$i] " + algorithm.getNextPosition(currentData,nextTimestamp).toString())
+            var calculatedPosition = algorithm.getNextPosition(currentData,nextTimestamp)
+            //Log.d("SIMULATION-f", "[$i] " + algorithm.getNextPosition(currentData,nextTimestamp).toString())
+            Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
+            algorithm.showError(Location(currentData.posX,currentData.posY,floorMap),calculatedPosition)
             i++
         }
 
     }
+
+
 
     override fun displayMap(){// Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)

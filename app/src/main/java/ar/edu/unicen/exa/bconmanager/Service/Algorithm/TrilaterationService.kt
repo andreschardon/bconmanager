@@ -294,10 +294,4 @@ class TrilaterationService : Algorithm() {
         return intersectPoints
 
     }
-
-    fun euclideanDistance(location1: Location, location2: Location): Double {
-        var distance = 0.00
-        distance = Math.sqrt(Math.pow(location1.x - location2.x, 2.00) + Math.pow(location1.y - location2.y, 2.00))
-        return distance
-    }
 }
