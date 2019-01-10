@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.Algorithm
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
@@ -17,8 +18,10 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    var simulationData : MutableList<JsonData> = mutableListOf()
-    lateinit var algorithm : Algorithm
+    private val datasetPath = "/storage/emulated/0/Download/Dataset.json"
+    private val datasetPathMod = "/storage/emulated/0/Download/Dataset2.json"
+    var simulationData: MutableList<JsonData> = mutableListOf()
+    lateinit var algorithm: Algorithm
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,24 +37,35 @@ class SimulationActivity : OnMapActivity() {
 
     protected fun loadDatasetFromFile(filePath: String) {
         val dataset = JsonUtility.readDatasetFromFile(filePath)
-        for(d in dataset.data!!) {
+        for (d in dataset.data!!) {
             var data: JsonData = d
             simulationData!!.add(data)
         }
     }
-    fun runSimulationPF(view : View) {
-        algorithm =  ParticleFilterService()
+
+    protected fun saveDatasetToFile(filePath: String) {
+        val dataset = JsonDataset(simulationData)
+        JsonUtility.saveDatasetToFile(filePath, dataset)
+        Log.d("SIMULATION", "Finished saving to $filePath")
+    }
+
+
+    fun runSimulationPF(view: View) {
+        algorithm = ParticleFilterService()
         runSimulation(1)
     }
-    fun runSimulationPDR(view : View) {
-        algorithm =  PDRService.instance
+
+    fun runSimulationPDR(view: View) {
+        algorithm = PDRService.instance
         runSimulation(1)
     }
-    fun runSimulationTrilat(view : View) {
-        algorithm =  TrilaterationService.instance
+
+    fun runSimulationTrilat(view: View) {
+        algorithm = TrilaterationService.instance
         runSimulation(1)
     }
-    fun runSimulation (choice : Number) {
+
+    fun runSimulation(choice: Number) {
 
         /*when(choice) {
             1 -> algorithm = PDRService.instance
@@ -62,24 +76,27 @@ class SimulationActivity : OnMapActivity() {
         algorithm.startUp(floorMap)
         var i = 0
         Log.d("SIMULATION", "Size is ${simulationData!!.size}")
-        while (i <simulationData!!.size) {
+        while (i < simulationData!!.size) {
             var currentData = simulationData!!.get(i)
             Log.d("SIMULATION", currentData.toString())
             var nextTimestamp: Number = 0
-            if ((i+1) < simulationData!!.size){
-                nextTimestamp = simulationData!!.get(i+1).timestamp
-            }
-            else
+            if ((i + 1) < simulationData!!.size) {
+                nextTimestamp = simulationData!!.get(i + 1).timestamp
+            } else
                 nextTimestamp = currentData.timestamp
-            Log.d("SIMULATION-f", "[$i] " + algorithm.getNextPosition(currentData,nextTimestamp).toString())
+            var currentEstimate = algorithm.getNextPosition(currentData, nextTimestamp)
+            currentData.estimateX = currentEstimate.x
+            currentData.estimateY = currentEstimate.y
+            Log.d("SIMULATION-f", "[$i] " + currentEstimate.toString())
             i++
         }
-
+        Log.d("SIMULATION", "Finished, lets save")
+        saveDatasetToFile(datasetPathMod)
     }
 
-    override fun displayMap(){// Loading the map from a JSON file
+    override fun displayMap() {// Loading the map from a JSON file
         floorMap = loadMapFromFile(filePath)
-        loadDatasetFromFile("/storage/emulated/0/Download/Dataset.json")
+        loadDatasetFromFile(datasetPath)
         // Drawing the map's image
         val bitmap = BitmapFactory.decodeFile(floorMap.image)
         val img = findViewById<View>(R.id.floorPlan) as ImageView

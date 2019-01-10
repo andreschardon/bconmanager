@@ -88,7 +88,7 @@ class PDRService : Algorithm(){
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
         //Log.d("SIMULATION", "TIMESTAMP: ${dataEntry.timestamp}")
         if (initialPosition){
-            this.mCurrentLocation = Location(dataEntry.posX,dataEntry.posY,customMap)
+            this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
         Log.d("SIMULATION", "Using ${dataEntry.timestamp} and $t2 with acc ${dataEntry.acceleration}")
