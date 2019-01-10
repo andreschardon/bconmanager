@@ -49,7 +49,9 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         this.image = jsonMap.image!!
         this.width = jsonMap.width!!
         this.height = jsonMap.height!!
-        this.angle = jsonMap.angle!!
+        if (jsonMap.angle != null) {
+            this.angle = jsonMap.angle
+        }
         Log.d("LOADING", "Json parsed to CustomMap")
 
     }

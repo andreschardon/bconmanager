@@ -5,8 +5,10 @@ class JsonData constructor(
         var angle : Double,
         var acceleration : Float,
         var timestamp: Long,
-        var posX: Double,
-        var posY: Double) {
+        var positionX: Double,
+        var positionY: Double,
+        var estimateX: Double? = null,
+        var estimateY: Double? = null) {
 
     override fun toString() : String {
         return "angle $angle acceleration $acceleration timestamp $timestamp"
