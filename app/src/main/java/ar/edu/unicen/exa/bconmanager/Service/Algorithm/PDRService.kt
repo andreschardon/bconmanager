@@ -34,7 +34,6 @@ class PDRService : Algorithm(){
     private var stepSize = 0.2F
     private var initialPosition = true
 
-
     private object Holder {
         val INSTANCE = PDRService()
     }
@@ -88,33 +87,22 @@ class PDRService : Algorithm(){
     }
 
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
-        //Log.d("SIMULATION", "TIMESTAMP: ${dataEntry.timestamp}")
         if (initialPosition){
             this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
-        //Log.d("SIMULATION", "Using ${dataEntry.timestamp} and $t2 with acc ${dataEntry.acceleration}")
         var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
-        //Log.d("SIMULATION", "STEPS: ${steps}")
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
             var asd = computeNextStep(stepSize, dataEntry.angle.toFloat())
-            //Log.d("SIMULATION", "COMPUTED: $asd")
+          //  Log.d("SIMULATION", "COMPUTED: $asd")
             nextPosition= customMap.restrictPosition(PositionOnMap(asd)).position
-            //Log.d("STEPS", "NEXTPOS: $nextPosition")
+            this.mCurrentLocation = nextPosition
             movedDistance()
             i++
         }
-        if(steps == 0) {
-            //Log.d("SIMULATION", "STEPS == 0 , TIMESTAMP: ${dataEntry.timestamp}")
-            return this.mCurrentLocation!!
-        }
-        else {
-            //Log.d("SIMULATION", "STEPS: $steps")
-            //Log.d("SIMULATION", "LOCATION IN SIMULATION: " + nextPosition.toString())
-            return nextPosition
-        }
+        return this.mCurrentLocation!!
     }
 
      fun startSensorsHandlers() {
@@ -161,18 +149,12 @@ class PDRService : Algorithm(){
      * @return new location
      */
     fun computeNextStep(stepSize : Float, bearing : Float) : Location {
-        Log.d(TAG, "COMPUTE NEXT STEP")
-        val newLoc = mCurrentLocation
 
+        val newLoc = mCurrentLocation
         val oldX = mCurrentLocation!!.getXMeters()
         val oldY = mCurrentLocation!!.getYMeters()
 
-        //reconversion en degres
-
-        Log.d(TAG, "STEP: $stepSize")
-        Log.d(TAG, "ANgle: $bearing")
-        Log.d(TAG, "COS ANgle: " + Math.cos(bearing.toDouble()))
-
+        //reconversion en degrees
         advancedX = Math.cos(bearing.toDouble()) * stepSize
         advancedY = Math.sin(bearing.toDouble()) * stepSize
 
@@ -187,12 +169,10 @@ class PDRService : Algorithm(){
     }
 
     fun getAcc() : Float{
-        Log.d("PDRActivity", "ACCELERATION: $acceleration")
         return this.acceleration
     }
 
     fun getAngle() : Double {
-        Log.d("PDRActivity", "ANGLE: $angle")
         return this.angle
     }
 
@@ -209,6 +189,9 @@ class PDRService : Algorithm(){
         //Log.d("SIMULATION", "Traveled: $traveledDistance")
         var stepsDone = (traveledDistance / stepSize)
         //Log.d("SIMULATION", "Steps done: $stepsDone")
+        if(stepsDone.roundToInt() == 0 && acc >= 0.2) {
+            return 1
+        }
         return stepsDone.roundToInt()
     }
     fun getMovedX(): Double {
