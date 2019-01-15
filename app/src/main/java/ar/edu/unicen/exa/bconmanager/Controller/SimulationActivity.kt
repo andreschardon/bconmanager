@@ -104,6 +104,7 @@ class SimulationActivity : OnMapActivity() {
             algorithm.showError(Location(currentData.positionX,currentData.positionY,floorMap),calculatedPosition)
             currentData.estimateX = calculatedPosition.x
             currentData.estimateY = calculatedPosition.y
+            currentData.beacons = null
             i++
         }
         Log.d("SIMULATION", "Finished, lets save")

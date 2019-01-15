@@ -600,14 +600,11 @@ public class ParticleFilterService extends Algorithm {
      * send a broadcast with a new user position
      */
     public void sendBroadcastUserPosition() {
-        Intent broadcastReceiverIntent = new Intent();
-        broadcastReceiverIntent.putExtra("x", (float) estimateWX);
-        broadcastReceiverIntent.putExtra("y", (float) estimateWY);
-        broadcastReceiverIntent.setAction("android.intent.action.UPDATE_USER_POSITION");
-        context.sendBroadcast(broadcastReceiverIntent);
-        pfAdapter.setViewX(estimateWX);
-        pfAdapter.setViewY(estimateWY);
-        pfAdapter.notifyStepDetected();
+        if (pfAdapter != null) {
+            pfAdapter.setViewX(estimateWX);
+            pfAdapter.setViewY(estimateWY);
+            pfAdapter.notifyStepDetected();
+        }
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateX + ", " + estimateY));
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateWX + ", " + estimateWY));
     }
