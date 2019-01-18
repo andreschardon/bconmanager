@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Circle
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
@@ -19,6 +20,28 @@ class TrilaterationService : Algorithm() {
 
     companion object {
         val instance: TrilaterationService by lazy { Holder.INSTANCE }
+    }
+
+    private fun setTxPower(beacon: BeaconOnMap) {
+        when {
+            beacon.beacon.address.startsWith("0C:F3") -> {
+                beacon.beacon.name = "EM Micro"
+                beacon.beacon.txPower = -55 //65
+            } //  -63 a 1m
+            beacon.beacon.address.startsWith("D3:B5") -> {
+                beacon.beacon.name = "Social Retail"
+                beacon.beacon.txPower = -52 //62
+            } // -75 a 1m
+            beacon.beacon.address.startsWith("C1:31") -> {
+                beacon.beacon.name = "iBKS"
+                beacon.beacon.txPower = -50
+            }
+            beacon.beacon.address.startsWith("DF:B5:15:8C:D8:35") -> {
+                beacon.beacon.name = "iBKS2"
+                beacon.beacon.txPower = -60
+            }
+            else ->  beacon.beacon.name = "Unknown"
+        }
     }
 
     /**
@@ -38,6 +61,7 @@ class TrilaterationService : Algorithm() {
         /** Calculate the three closest circles **/
         Log.d("SAVED", "$beaconList")
         beaconList.forEach {
+            setTxPower(it)
             it.beacon.calculateDistance(it.beacon.intensity)
         }
         val sortedList = customMap.sortBeaconsByDistance(beaconList)
@@ -131,21 +155,26 @@ class TrilaterationService : Algorithm() {
                 location3 = Location(circle1.x, circle1.y, customMap)
                 furthestCircle = circle1
                 continueForcing = false
-            } else if (intersection12 != null &&
+            } else if (intersection12 != null
+                    /*&&
                     (circle2.r < maxLength) &&
-                    (circle1.r < maxLength)) {
+                    (circle1.r < maxLength)
+                    */
+            ) {
                 // This is not very precise, we should force an intersection between 0 and 1 here
-                /*Log.d(TAG, "Intersection12")
+                Log.d(TAG, "Intersection12")
                 intersectionLocations =  intersection12 as MutableList<Location>
-                location3 = Location(circle0.x,circle0.y,map)
-                furthestCircle = circle0*/
+                location3 = Location(circle0.x,circle0.y,customMap)
+                furthestCircle = circle0
+                continueForcing = false
                 // Force an intersection between 0 and 1
+                /*
                 Log.d(TAG, "Error ${circle1.r + 0.5}")
                 circle1 = Circle(beacon1.position.x, beacon1.position.y, circle1.r + 0.5)
                 intersection01 = circleCircleIntersectionPoints(circle0, circle1)
                 if (intersection01 == null) {
                     //Log.d(TAG, "It is still null")
-                }
+                }*/
             } else {
                 Log.d(TAG, "There are no intersections")
                 continueForcing = false

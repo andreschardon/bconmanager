@@ -60,6 +60,9 @@ public class ParticleFilterService extends Algorithm {
     private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
     private PDRService pdrService = PDRService.Companion.getInstance();
 
+    public Location trilaterationLocation;
+    public Location pfLocation;
+
     //private constructor
     public ParticleFilterService() {
         /** Calculate the three closest circles **/
@@ -120,12 +123,14 @@ public class ParticleFilterService extends Algorithm {
     @Override
     public Location getNextPosition(@NotNull JsonData data, @NotNull Number nextTimestamp) {
         Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
+        this.trilaterationLocation = trilatLocation;
         Location pdrLocation = pdrService.getNextPosition(data, nextTimestamp);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
 
         this.updatePosition(movedX, movedY, trilatLocation.getXMeters(), trilatLocation.getYMeters());
         Location result = new Location(estimateWX, estimateWY, customMap);
+        this.pfLocation = result;
         return result;
     }
 

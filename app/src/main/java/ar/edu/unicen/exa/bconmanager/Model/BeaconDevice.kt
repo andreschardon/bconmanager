@@ -29,7 +29,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         /**
          * d = 10 ^ ((TxPower - RSSI) / 20)
          */
-        val approxDistance = ((Math.pow(10.toDouble(), ((txPower - rssi)/30f).toDouble())))
+        val approxDistance = ((Math.pow(10.toDouble(), ((txPower - rssi)/40f).toDouble())))
                 .roundTo2DecimalPlaces()
         if (average >= 999.0)
             cleanAverages()

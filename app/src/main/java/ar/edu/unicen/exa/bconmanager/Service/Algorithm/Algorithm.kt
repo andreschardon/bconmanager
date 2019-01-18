@@ -50,8 +50,10 @@ abstract class Algorithm : AppCompatActivity() {
         return distance
     }
 
-    fun showError(loc: Location, simulatedLoc: Location) {
+    fun getError(loc: Location, simulatedLoc: Location) : Double{
         val error = euclideanDistance(loc,simulatedLoc)
         Log.d("SIMULATION","ERROR IS: $error")
+        return error
+
     }
 }

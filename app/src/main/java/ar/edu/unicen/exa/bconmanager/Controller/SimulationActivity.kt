@@ -101,15 +101,24 @@ class SimulationActivity : OnMapActivity() {
                 nextTimestamp = currentData.timestamp
             var calculatedPosition = algorithm.getNextPosition(currentData,nextTimestamp)
             Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
-            algorithm.showError(Location(currentData.positionX,currentData.positionY,floorMap),calculatedPosition)
+            var realPosition = Location(currentData.positionX,currentData.positionY,floorMap)
+            currentData.error = algorithm.getError(realPosition,calculatedPosition)
             currentData.estimateX = calculatedPosition.x
             currentData.estimateY = calculatedPosition.y
             currentData.beacons = null
+            if (algorithm is ParticleFilterService) {
+                printPfLocations(algorithm as ParticleFilterService, realPosition)
+            }
             i++
         }
-        Log.d("SIMULATION", "Finished, lets save")
         saveDatasetToFile(datasetPathMod)
         Toast.makeText(this,"Simulation Completed, Results are in Dataset2.json",Toast.LENGTH_LONG).show()
+    }
+
+    private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
+        Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.trilaterationLocation.x}, ${particleFilter.trilaterationLocation.y})")
+        Log.d("SIMULATION-PF", "REAL POINT IS (${realPosition.x}, ${realPosition.y})")
+        Log.d("SIMULATION-PF", "PF MIDDLE  IS (${particleFilter.pfLocation.x}, ${particleFilter.pfLocation.y})")
     }
 
     override fun displayMap() {// Loading the map from a JSON file
