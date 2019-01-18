@@ -12,10 +12,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.Algorithm
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_simulation.*
 
@@ -57,27 +54,44 @@ class SimulationActivity : OnMapActivity() {
         algorithm = ParticleFilterService()
         pdrBtn.isClickable = false
         trilaterationBtn.isClickable = false
+        fingerPrintingBtn.isClickable = false
         runSimulation(1)
         pdrBtn.isClickable = true
         trilaterationBtn.isClickable = true
+        fingerPrintingBtn.isClickable = true
     }
     fun runSimulationPDR(view : View) {
         algorithm =  PDRService.instance
         (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
         particleFilterBtn.isClickable = false
         trilaterationBtn.isClickable = false
+        fingerPrintingBtn.isClickable = false
         runSimulation(1)
         particleFilterBtn.isClickable = true
         trilaterationBtn.isClickable = true
+        fingerPrintingBtn.isClickable = true
     }
 
     fun runSimulationTrilat(view: View) {
         algorithm = TrilaterationService.instance
         pdrBtn.isClickable = false
         particleFilterBtn.isClickable = false
+        fingerPrintingBtn.isClickable = false
         runSimulation(1)
         pdrBtn.isClickable = true
         particleFilterBtn.isClickable = true
+        fingerPrintingBtn.isClickable = true
+    }
+
+    fun runSimulationFingerprinting(view: View) {
+        algorithm = FingerprintingService()
+        pdrBtn.isClickable = false
+        particleFilterBtn.isClickable = false
+        trilaterationBtn.isClickable = false
+        runSimulation(1)
+        pdrBtn.isClickable = true
+        particleFilterBtn.isClickable = true
+        trilaterationBtn.isClickable = true
     }
 
     private fun runSimulation(choice: Number) {
