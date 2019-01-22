@@ -89,7 +89,20 @@
         android:text="FingerPrinting"
         app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.579"
+        app:layout_constraintStart_toEndOf="@+id/fingerPrintingBtn2"
+        app:layout_constraintTop_toTopOf="@+id/scrollView"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/fingerPrintingBtn2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="544dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="runSimulationAll"
+        android:text="ALL"
+        app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/scrollView"
         app:layout_constraintVertical_bias="1.0" />

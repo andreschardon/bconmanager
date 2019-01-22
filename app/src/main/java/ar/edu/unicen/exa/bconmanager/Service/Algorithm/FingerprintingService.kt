@@ -20,7 +20,8 @@ class FingerprintingService() : Algorithm(){
         for (b in savedBeacons) {
             sBeacons.add(b.beacon)
         }
-        currentFingerprintingZone = getCurrentZone(sBeacons)
+        currentFingerprintingZone = getCurrentZoneInstant(sBeacons)
+        Log.d("FINGERP-ZONE", "Is ${currentFingerprintingZone!!.position}")
         return currentFingerprintingZone!!.position
     }
 
@@ -76,6 +77,41 @@ class FingerprintingService() : Algorithm(){
                 if (index != -1) {
                     val beacon = beacons.get(index)
                     differenceRating += Math.abs(beacon.averageRssi - it.rssi)
+                }
+            }
+            fingerprintRating.add(differenceRating)
+        }
+        Log.d("RATINGS", fingerprintRating.toString())
+
+        // Get the one with less rating
+        val index = fingerprintRating.indexOf(fingerprintRating.min())
+        Log.d("RATINGS", "$index")
+
+        val bestZone = fingerprintZones.get(index)
+        Log.d("RATINGS", "Best zone is $bestZone")
+
+        return bestZone
+    }
+
+    /**
+     * Returns the best fingerprinting zone according to RSSI values of the beacons
+     */
+    fun getCurrentZoneInstant(beacons: List<BeaconDevice>): FingerprintZone? {
+        val fingerprintZones =  customMap.fingerprintZones
+        val fingerprintRating = mutableListOf<Double>()
+        Log.d("RATINGS", beacons.toString())
+        Log.d("RATINGS", fingerprintZones.toString())
+        for (zone in fingerprintZones) {
+            Log.d("RATINGS", "THIS ZONE IS ${zone.fingerprints}")
+            // For each fingerprinting zone, calculate the "rating"
+            var differenceRating = 0.0
+            zone.fingerprints.forEach {
+                val index = beacons.indexOf(BeaconDevice(it.mac, 0, null))
+                Log.d("RATINGS", "INDEX IS ${index}")
+                if (index != -1) {
+                    val beacon = beacons[index]
+                    Log.d("RATINGS", "Found intensity is ${beacon.intensity} and finger zone rssi is ${it.rssi}")
+                    differenceRating += Math.abs(beacon.intensity - it.rssi)
                 }
             }
             fingerprintRating.add(differenceRating)

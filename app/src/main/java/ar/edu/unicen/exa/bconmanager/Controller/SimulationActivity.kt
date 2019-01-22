@@ -23,6 +23,12 @@ class SimulationActivity : OnMapActivity() {
     private var simulationData: MutableList<JsonData> = mutableListOf()
     lateinit var algorithm: Algorithm
 
+    lateinit var algorithmFingerp : FingerprintingService
+    lateinit var algorithmTrilat: TrilaterationService
+    lateinit var algorithmPDR: PDRService
+    lateinit var algorithmPF: ParticleFilterService
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simulation)
@@ -94,36 +100,102 @@ class SimulationActivity : OnMapActivity() {
         trilaterationBtn.isClickable = true
     }
 
+    fun runSimulationAll(view: View) {
+        algorithmFingerp = FingerprintingService()
+        algorithmTrilat = TrilaterationService.instance
+        algorithmPDR = PDRService.instance
+        algorithmPDR.setAdjustedBearing(floorMap.angle.toFloat())
+        algorithmPF = ParticleFilterService()
+        pdrBtn.isClickable = false
+        particleFilterBtn.isClickable = false
+        trilaterationBtn.isClickable = false
+        runSimulation(0)
+        pdrBtn.isClickable = true
+        particleFilterBtn.isClickable = true
+        trilaterationBtn.isClickable = true
+    }
+
     private fun runSimulation(choice: Number) {
 
-        /*when(choice) {
+        if (choice == 0) {
+
+            algorithmPDR.startUp(floorMap)
+            algorithmPF.startUp(floorMap)
+            algorithmFingerp.startUp(floorMap)
+            algorithmTrilat.startUp(floorMap)
+            var i = 0
+            //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
+            while (i < simulationData.size) {
+                var currentData = simulationData[i]
+                //Log.d("SIMULATION", currentData.toString())
+                var nextTimestamp: Number = 0
+                if ((i + 1) < simulationData!!.size) {
+                    nextTimestamp = simulationData!!.get(i + 1).timestamp
+                } else
+                    nextTimestamp = currentData.timestamp
+
+                var calculatedPositionPF = algorithmPF.getNextPosition(currentData, nextTimestamp)
+                var calculatedPositionTrilat = algorithmTrilat.getNextPosition(currentData, nextTimestamp)
+                var calculatedPositionFingerp = algorithmFingerp.getNextPosition(currentData, nextTimestamp)
+                var calculatedPositionPDR = algorithmPDR.getNextPosition(currentData, nextTimestamp)
+
+                Log.d("SIMULATION-ALL PaF", "[$i] " + calculatedPositionPF.toString())
+                Log.d("SIMULATION-ALL TRI", "[$i] " + calculatedPositionTrilat.toString())
+                Log.d("SIMULATION-ALL FiP", "[$i] " + calculatedPositionFingerp.toString())
+                Log.d("SIMULATION-ALL PDR", "[$i] " + calculatedPositionPDR.toString())
+                var realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
+                Log.d("SIMULATION-ALL REA", "[$i] " + realPosition.toString())
+                //currentData.error = algorithm.getError(realPosition, calculatedPosition)
+                currentData.pPDRX = calculatedPositionPDR.x
+                currentData.pPDRY = calculatedPositionPDR.y
+                //currentData.pPaFX = calculatedPositionPF.x
+                //currentData.pPaFY = calculatedPositionPF.y
+                currentData.pTRIX = calculatedPositionTrilat.x
+                currentData.pTRIY = calculatedPositionTrilat.y
+                currentData.pFiPX = calculatedPositionFingerp.x
+                currentData.pFiPY = calculatedPositionFingerp.y
+
+                currentData.beacons = null
+                /*if (algorithm is ParticleFilterService) {
+                    printPfLocations(algorithm as ParticleFilterService, realPosition)
+                }*/
+                i++
+            }
+
+
+
+        } else {
+
+            /*when(choice) {
             1 -> algorithm = PDRService.instance
             2 -> algorithm = TrilaterationService.instance
             else
                 -> algorithm =  ParticleFilterService()
         }*/
-        algorithm.startUp(floorMap)
-        var i = 0
-        //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
-        while (i <simulationData.size) {
-            var currentData = simulationData[i]
-            //Log.d("SIMULATION", currentData.toString())
-            var nextTimestamp: Number = 0
-            if ((i + 1) < simulationData!!.size) {
-                nextTimestamp = simulationData!!.get(i + 1).timestamp
-            } else
-                nextTimestamp = currentData.timestamp
-            var calculatedPosition = algorithm.getNextPosition(currentData,nextTimestamp)
-            Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
-            var realPosition = Location(currentData.positionX,currentData.positionY,floorMap)
-            currentData.error = algorithm.getError(realPosition,calculatedPosition)
-            currentData.estimateX = calculatedPosition.x
-            currentData.estimateY = calculatedPosition.y
-            currentData.beacons = null
-            if (algorithm is ParticleFilterService) {
-                printPfLocations(algorithm as ParticleFilterService, realPosition)
+            algorithm.startUp(floorMap)
+            var i = 0
+            //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
+            while (i < simulationData.size) {
+                var currentData = simulationData[i]
+                //Log.d("SIMULATION", currentData.toString())
+                var nextTimestamp: Number = 0
+                if ((i + 1) < simulationData!!.size) {
+                    nextTimestamp = simulationData!!.get(i + 1).timestamp
+                } else
+                    nextTimestamp = currentData.timestamp
+                var calculatedPosition = algorithm.getNextPosition(currentData, nextTimestamp)
+                Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
+                var realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
+                currentData.error = algorithm.getError(realPosition, calculatedPosition)
+                currentData.estimateX = calculatedPosition.x
+                currentData.estimateY = calculatedPosition.y
+                currentData.beacons = null
+                if (algorithm is ParticleFilterService) {
+                    printPfLocations(algorithm as ParticleFilterService, realPosition)
+                }
+                i++
             }
-            i++
+
         }
         saveDatasetToFile(datasetPathMod)
         Toast.makeText(this,"Simulation Completed, Results are in Dataset2.json",Toast.LENGTH_LONG).show()

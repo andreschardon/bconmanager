@@ -34,11 +34,11 @@ class TrilaterationService : Algorithm() {
             } // -75 a 1m
             beacon.beacon.address.startsWith("C1:31") -> {
                 beacon.beacon.name = "iBKS"
-                beacon.beacon.txPower = -50
+                beacon.beacon.txPower = -40 //50
             }
             beacon.beacon.address.startsWith("DF:B5:15:8C:D8:35") -> {
                 beacon.beacon.name = "iBKS2"
-                beacon.beacon.txPower = -60
+                beacon.beacon.txPower = -50 //60
             }
             else ->  beacon.beacon.name = "Unknown"
         }
@@ -73,11 +73,15 @@ class TrilaterationService : Algorithm() {
         val beacon0 = sortedList[0]
         val beacon1 = sortedList[1]
         val beacon2 = sortedList[2]
+        var beacon3 : BeaconOnMap? = null
+        if (sortedList.size == 4)
+            beacon3 = sortedList[3]
 
         Log.d("CLOSEST",
                 "1: ${beacon0.beacon.name} at ${beacon0.beacon.approxDistance}mts // " +
                         "2: ${beacon1.beacon.name} at ${beacon1.beacon.approxDistance}mts // " +
-                        "3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts")
+                        "3: ${beacon2.beacon.name} at ${beacon2.beacon.approxDistance}mts // " +
+                        "4: ${beacon3?.beacon?.name} at ${beacon3?.beacon?.approxDistance}mts")
 
         var circle0 = Circle.fromBeacon(beacon0)
         var circle1 = Circle.fromBeacon(beacon1)
