@@ -125,7 +125,8 @@ class FingerprintingService() : Algorithm(){
 
     private fun prioritizeCloserZones(rating: Double, zone: FingerprintZone, maxDistance: Double): Double {
         val distance = distanceBetweenZones(currentFingerprintingZone!!, zone)
-        var priotitize = ((20 * distance) / maxDistance)
+        var priotitize = (40 * Math.pow((distance/ maxDistance), 2.0) )
+        //var priotitize = ((20 * distance) / maxDistance)
         Log.d("RATING", "Formula result is $priotitize")
         var newRating = rating + priotitize
         return newRating
