@@ -14,4 +14,8 @@ class BeaconOnMap constructor (position : Location, beacon : BeaconDevice) : Res
     override fun toString(): String {
         return "BeaconOnMap: (${position.x} , ${position.y}) mac: ${beacon.address}"
     }
+
+    fun toStringDistance() : String {
+        return "${beacon.name}: ${beacon.approxDistance}"
+    }
 }

@@ -1,11 +1,8 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.util.Log
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
-import ar.edu.unicen.exa.bconmanager.Model.VectorToBeacon
-import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
+import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
-import ar.edu.unicen.exa.bconmanager.Model.Location
 
 class FPTrilat : Algorithm() {
 
@@ -22,7 +19,7 @@ class FPTrilat : Algorithm() {
     }
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
         val loc = fingerPrintService.getNextPosition(data, nextTimestamp)
-        //Log.d("FPTRILTAT", "LOCATION FP: ${loc.toString()}")
+        Log.d("FPTRILTAT", "LOCATION FP: ${loc.toString()}")
         val beaconList = getBeacons(data)
         var vectorToBeacon : MutableList<VectorToBeacon> = mutableListOf<VectorToBeacon>()
         for(b in beaconList) {
@@ -32,17 +29,35 @@ class FPTrilat : Algorithm() {
             vectorToBeacon.add(bData)
         }
         val currentFPZone: FingerprintZone = fingerPrintService.getCalculatedZone()
+
+        printBeaconsDistances(customMap.sortBeaconsByDistance())
+
         trilaterationService.getNextPosition(data, nextTimestamp)
         val updatedBeacons = customMap.sortBeaconsByDistance()
+
+        printBeaconsDistances(updatedBeacons)
+
         var i = 0
+        while (i < vectorToBeacon.size && i < 3) {
+            val dFactor = (vectorToBeacon[i].distance)/updatedBeacons.get(i).beacon.approxDistance
+            vectorToBeacon[i].distance = dFactor
+            i++
+        }
 
         for (b in updatedBeacons) {
-            val dFactor = (vectorToBeacon[i].distance)/b.beacon.approxDistance
-            vectorToBeacon[i].distance = dFactor
+
         }
 
         return updatePosition(currentFPZone,vectorToBeacon)
 
+    }
+
+    fun printBeaconsDistances(sortedBeacons: List<BeaconOnMap>) {
+        var stringList : MutableList<String> = mutableListOf()
+        for (beacon in sortedBeacons) {
+            stringList.add(beacon.toStringDistance())
+        }
+        Log.d("FPTRILTAT", stringList.toString())
     }
 
     fun getVectorsAngle(beaconLocation: Location, fpLocation: Location): Double {
