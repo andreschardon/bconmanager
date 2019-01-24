@@ -30,25 +30,27 @@ class FPTrilat : Algorithm() {
         }
         val currentFPZone: FingerprintZone = fingerPrintService.getCalculatedZone()
 
-        printBeaconsDistances(customMap.sortBeaconsByDistance())
+//        trilaterationService.getNextPosition(data, nextTimestamp)
 
-        trilaterationService.getNextPosition(data, nextTimestamp)
-        val updatedBeacons = customMap.sortBeaconsByDistance()
+        beaconList.forEach {
+            trilaterationService.setTxPower(it)
+            it.beacon.calculateDistance(it.beacon.intensity)
+        }
+        val updatedBeacons = customMap.sortBeaconsByDistance(beaconList)
 
         printBeaconsDistances(updatedBeacons)
 
         var i = 0
         while (i < vectorToBeacon.size && i < 3) {
-            val dFactor = (vectorToBeacon[i].distance)/updatedBeacons.get(i).beacon.approxDistance
+            Log.d("FPTRILTAT", vectorToBeacon[i].toString())
+            var approx = updatedBeacons.get(i).beacon.approxDistance
+            val dFactor = (vectorToBeacon[i].distance -  approx)/(vectorToBeacon[i].distance)
+            Log.d("FPTRILTAT", "dFactor is $dFactor")
             vectorToBeacon[i].distance = dFactor
             i++
         }
 
-        for (b in updatedBeacons) {
-
-        }
-
-        return updatePosition(currentFPZone,vectorToBeacon)
+        return updatePosition(currentFPZone,vectorToBeacon, i)
 
     }
 
@@ -66,18 +68,20 @@ class FPTrilat : Algorithm() {
         return Math.atan2(y,x)*180/Math.PI
     }
 
-    fun updatePosition(currentFpZone: FingerprintZone, vectors: List<VectorToBeacon>): Location {
+    fun updatePosition(currentFpZone: FingerprintZone, vectors: List<VectorToBeacon>, beaconAmount: Int): Location {
         var oldX = currentFpZone.position.getXMeters()
         var oldY = currentFpZone.position.getYMeters()
         var newX = 0.0
         var newY = 0.0
 
-        for(vector in vectors) {
-            val distanceToMove = currentFpZone.getRadius() * vector.distance
-            newX = oldX + distanceToMove*Math.cos(vector.angle)
-            newY = oldY + distanceToMove*Math.sin(vector.angle)
+        var i = 0
+        while (i < beaconAmount) {
+            val distanceToMove = currentFpZone.getRadius() * vectors[i].distance
+            newX = oldX + distanceToMove*Math.cos(vectors[i].angle)
+            newY = oldY + distanceToMove*Math.sin(vectors[i].angle)
             oldX = newX
             oldY = newY
+            i++
         }
         return Location(newX,newY,customMap)
     }

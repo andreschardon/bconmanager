@@ -22,7 +22,7 @@ class TrilaterationService : Algorithm() {
         val instance: TrilaterationService by lazy { Holder.INSTANCE }
     }
 
-    private fun setTxPower(beacon: BeaconOnMap) {
+    fun setTxPower(beacon: BeaconOnMap) {
         when {
             beacon.beacon.address.startsWith("0C:F3") -> {
                 beacon.beacon.name = "EM Micro"
