@@ -1,5 +1,7 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
+import android.util.Log
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.VectorToBeacon
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
@@ -10,9 +12,17 @@ class FPTrilat : Algorithm() {
     lateinit var fingerPrintService : FingerprintingService
     lateinit var trilaterationService: TrilaterationService
 
-    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+
+    override fun startUp(map: CustomMap) {
+        super.startUp(map)
         fingerPrintService = FingerprintingService()
+        fingerPrintService.startUp(map)
+        trilaterationService = TrilaterationService.instance
+        trilaterationService.startUp(map)
+    }
+    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
         val loc = fingerPrintService.getNextPosition(data, nextTimestamp)
+        //Log.d("FPTRILTAT", "LOCATION FP: ${loc.toString()}")
         val beaconList = getBeacons(data)
         var vectorToBeacon : MutableList<VectorToBeacon> = mutableListOf<VectorToBeacon>()
         for(b in beaconList) {
