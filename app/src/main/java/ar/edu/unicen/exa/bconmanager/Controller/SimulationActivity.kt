@@ -65,46 +65,27 @@ class SimulationActivity : OnMapActivity() {
 
     fun runSimulationPF(view: View) {
         algorithm = ParticleFilterService()
-        pdrBtn.isClickable = false
-        trilaterationBtn.isClickable = false
-        fingerPrintingBtn.isClickable = false
         runSimulation("ParticleFilter")
-        pdrBtn.isClickable = true
-        trilaterationBtn.isClickable = true
-        fingerPrintingBtn.isClickable = true
     }
     fun runSimulationPDR(view : View) {
         algorithm =  PDRService.instance
         (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
-        particleFilterBtn.isClickable = false
-        trilaterationBtn.isClickable = false
-        fingerPrintingBtn.isClickable = false
         runSimulation("PDR")
-        particleFilterBtn.isClickable = true
-        trilaterationBtn.isClickable = true
-        fingerPrintingBtn.isClickable = true
     }
 
     fun runSimulationTrilat(view: View) {
         algorithm = TrilaterationService.instance
-        pdrBtn.isClickable = false
-        particleFilterBtn.isClickable = false
-        fingerPrintingBtn.isClickable = false
         runSimulation("Trilat")
-        pdrBtn.isClickable = true
-        particleFilterBtn.isClickable = true
-        fingerPrintingBtn.isClickable = true
     }
 
     fun runSimulationFingerprinting(view: View) {
         algorithm = FingerprintingService()
-        pdrBtn.isClickable = false
-        particleFilterBtn.isClickable = false
-        trilaterationBtn.isClickable = false
         runSimulation("Fingerprint")
-        pdrBtn.isClickable = true
-        particleFilterBtn.isClickable = true
-        trilaterationBtn.isClickable = true
+    }
+
+    fun runFPTrilatSimulation(view: View) {
+        algorithm = FPTrilat()
+        runSimulation("FPTrilat")
     }
 
     fun runSimulationAll(view: View) {
@@ -113,13 +94,7 @@ class SimulationActivity : OnMapActivity() {
         algorithmPDR = PDRService.instance
         algorithmPDR.setAdjustedBearing(floorMap.angle.toFloat())
         algorithmPF = ParticleFilterService()
-        pdrBtn.isClickable = false
-        particleFilterBtn.isClickable = false
-        trilaterationBtn.isClickable = false
         runSimulation("All")
-        pdrBtn.isClickable = true
-        particleFilterBtn.isClickable = true
-        trilaterationBtn.isClickable = true
     }
 
     private fun runSimulation(choice: String) {

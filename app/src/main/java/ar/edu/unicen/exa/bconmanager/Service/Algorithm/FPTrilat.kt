@@ -22,7 +22,6 @@ class FPTrilat : Algorithm() {
             vectorToBeacon.add(bData)
         }
         val currentFPZone: FingerprintZone = fingerPrintService.getCalculatedZone()
-        val fpRadius = currentFPZone.getRadius()
         trilaterationService.getNextPosition(data, nextTimestamp)
         val updatedBeacons = customMap.sortBeaconsByDistance()
         var i = 0
