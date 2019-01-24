@@ -11,6 +11,8 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSimResult
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonTimestamp
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
@@ -19,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_simulation.*
 class SimulationActivity : OnMapActivity() {
 
     private val datasetPath = "/storage/emulated/0/Download/Dataset.json"
-    private val datasetPathMod = "/storage/emulated/0/Download/Dataset2.json"
+    private val datasetPathMod = "/storage/emulated/0/Download/Results-"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     lateinit var algorithm: Algorithm
 
@@ -55,13 +57,18 @@ class SimulationActivity : OnMapActivity() {
         Log.d("SIMULATION", "Finished saving to $filePath")
     }
 
+    private fun saveResultsToFile(filePath: String, result: JsonSimResult) {
+        JsonUtility.saveResultToFile(filePath, result)
+        Log.d("SIMULATION", "Finished saving to $filePath")
+    }
+
 
     fun runSimulationPF(view: View) {
         algorithm = ParticleFilterService()
         pdrBtn.isClickable = false
         trilaterationBtn.isClickable = false
         fingerPrintingBtn.isClickable = false
-        runSimulation(1)
+        runSimulation("ParticleFilter")
         pdrBtn.isClickable = true
         trilaterationBtn.isClickable = true
         fingerPrintingBtn.isClickable = true
@@ -72,7 +79,7 @@ class SimulationActivity : OnMapActivity() {
         particleFilterBtn.isClickable = false
         trilaterationBtn.isClickable = false
         fingerPrintingBtn.isClickable = false
-        runSimulation(1)
+        runSimulation("PDR")
         particleFilterBtn.isClickable = true
         trilaterationBtn.isClickable = true
         fingerPrintingBtn.isClickable = true
@@ -83,7 +90,7 @@ class SimulationActivity : OnMapActivity() {
         pdrBtn.isClickable = false
         particleFilterBtn.isClickable = false
         fingerPrintingBtn.isClickable = false
-        runSimulation(1)
+        runSimulation("Trilat")
         pdrBtn.isClickable = true
         particleFilterBtn.isClickable = true
         fingerPrintingBtn.isClickable = true
@@ -94,7 +101,7 @@ class SimulationActivity : OnMapActivity() {
         pdrBtn.isClickable = false
         particleFilterBtn.isClickable = false
         trilaterationBtn.isClickable = false
-        runSimulation(1)
+        runSimulation("Fingerprint")
         pdrBtn.isClickable = true
         particleFilterBtn.isClickable = true
         trilaterationBtn.isClickable = true
@@ -109,96 +116,57 @@ class SimulationActivity : OnMapActivity() {
         pdrBtn.isClickable = false
         particleFilterBtn.isClickable = false
         trilaterationBtn.isClickable = false
-        runSimulation(0)
+        runSimulation("All")
         pdrBtn.isClickable = true
         particleFilterBtn.isClickable = true
         trilaterationBtn.isClickable = true
     }
 
-    private fun runSimulation(choice: Number) {
+    private fun runSimulation(choice: String) {
+        var maxError = 0.0
+        var averageError = 0.0
+        var result = JsonSimResult()
+        var timestampList : MutableList<JsonTimestamp> = mutableListOf()
 
-        if (choice == 0) {
+        algorithm.startUp(floorMap)
+        var i = 0
+        //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
+        var errorSum = 0.0
 
-            algorithmPDR.startUp(floorMap)
-            algorithmPF.startUp(floorMap)
-            algorithmFingerp.startUp(floorMap)
-            algorithmTrilat.startUp(floorMap)
-            var i = 0
-            //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
-            while (i < simulationData.size) {
-                var currentData = simulationData[i]
-                //Log.d("SIMULATION", currentData.toString())
-                var nextTimestamp: Number = 0
-                if ((i + 1) < simulationData!!.size) {
-                    nextTimestamp = simulationData!!.get(i + 1).timestamp
-                } else
-                    nextTimestamp = currentData.timestamp
+        while (i < simulationData.size) {
+            val currentData = simulationData[i]
+            //Log.d("SIMULATION", currentData.toString())
+            var nextTimestamp: Number = 0
+            if ((i + 1) < simulationData!!.size) {
+                nextTimestamp = simulationData!!.get(i + 1).timestamp
+            } else
+                nextTimestamp = currentData.timestamp
+            val calculatedPosition = algorithm.getNextPosition(currentData, nextTimestamp)
+            Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
+            val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
 
-                var calculatedPositionPF = algorithmPF.getNextPosition(currentData, nextTimestamp)
-                var calculatedPositionTrilat = algorithmTrilat.getNextPosition(currentData, nextTimestamp)
-                var calculatedPositionFingerp = algorithmFingerp.getNextPosition(currentData, nextTimestamp)
-                var calculatedPositionPDR = algorithmPDR.getNextPosition(currentData, nextTimestamp)
+            // Calculate error
+            val error = algorithm.getError(realPosition, calculatedPosition)
+            errorSum += error
+            if (error >= maxError)
+                maxError = error
 
-                Log.d("SIMULATION-ALL PaF", "[$i] " + calculatedPositionPF.toString())
-                Log.d("SIMULATION-ALL TRI", "[$i] " + calculatedPositionTrilat.toString())
-                Log.d("SIMULATION-ALL FiP", "[$i] " + calculatedPositionFingerp.toString())
-                Log.d("SIMULATION-ALL PDR", "[$i] " + calculatedPositionPDR.toString())
-                var realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
-                Log.d("SIMULATION-ALL REA", "[$i] " + realPosition.toString())
-                //currentData.error = algorithm.getError(realPosition, calculatedPosition)
-                currentData.pPDRX = calculatedPositionPDR.x
-                currentData.pPDRY = calculatedPositionPDR.y
-                //currentData.pPaFX = calculatedPositionPF.x
-                //currentData.pPaFY = calculatedPositionPF.y
-                currentData.pTRIX = calculatedPositionTrilat.x
-                currentData.pTRIY = calculatedPositionTrilat.y
-                currentData.pFiPX = calculatedPositionFingerp.x
-                currentData.pFiPY = calculatedPositionFingerp.y
+            var timestamp = JsonTimestamp(currentData.timestamp, currentData.positionX, currentData.positionY, error, calculatedPosition.x, calculatedPosition.y)
+            timestampList.add(timestamp)
 
-                currentData.beacons = null
-                /*if (algorithm is ParticleFilterService) {
-                    printPfLocations(algorithm as ParticleFilterService, realPosition)
-                }*/
-                i++
+            if (algorithm is ParticleFilterService) {
+                printPfLocations(algorithm as ParticleFilterService, realPosition)
             }
-
-
-
-        } else {
-
-            /*when(choice) {
-            1 -> algorithm = PDRService.instance
-            2 -> algorithm = TrilaterationService.instance
-            else
-                -> algorithm =  ParticleFilterService()
-        }*/
-            algorithm.startUp(floorMap)
-            var i = 0
-            //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
-            while (i < simulationData.size) {
-                var currentData = simulationData[i]
-                //Log.d("SIMULATION", currentData.toString())
-                var nextTimestamp: Number = 0
-                if ((i + 1) < simulationData!!.size) {
-                    nextTimestamp = simulationData!!.get(i + 1).timestamp
-                } else
-                    nextTimestamp = currentData.timestamp
-                var calculatedPosition = algorithm.getNextPosition(currentData, nextTimestamp)
-                Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
-                var realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
-                currentData.error = algorithm.getError(realPosition, calculatedPosition)
-                currentData.estimateX = calculatedPosition.x
-                currentData.estimateY = calculatedPosition.y
-                currentData.beacons = null
-                if (algorithm is ParticleFilterService) {
-                    printPfLocations(algorithm as ParticleFilterService, realPosition)
-                }
-                i++
-            }
-
+            i++
         }
-        saveDatasetToFile(datasetPathMod)
-        Toast.makeText(this,"Simulation Completed, Results are in Dataset2.json",Toast.LENGTH_LONG).show()
+        averageError = errorSum / simulationData.size
+        result.timestamps = timestampList
+        result.errorMax = maxError
+        result.errorAverage = averageError
+        val finalPath = "$datasetPathMod$choice.json"
+
+        saveResultsToFile(finalPath , result)
+        Toast.makeText(this,"Simulation Completed, Results are in Results-$choice.json",Toast.LENGTH_LONG).show()
     }
 
     private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
