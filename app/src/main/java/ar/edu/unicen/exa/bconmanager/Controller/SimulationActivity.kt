@@ -166,7 +166,7 @@ class SimulationActivity : OnMapActivity() {
         val finalPath = "$datasetPathMod$choice.json"
 
         saveResultsToFile(finalPath , result)
-        Toast.makeText(this,"Simulation Completed, Results are in Dataset2.json",Toast.LENGTH_LONG).show()
+        Toast.makeText(this,"Simulation Completed, Results are in Results-$choice.json",Toast.LENGTH_LONG).show()
     }
 
     private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
