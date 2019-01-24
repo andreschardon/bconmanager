@@ -128,4 +128,8 @@ class FingerprintingService() : Algorithm(){
         return bestZone
     }
 
+    fun getCalculatedZone() : FingerprintZone {
+        return this.currentFingerprintingZone!!
+    }
+
 }
