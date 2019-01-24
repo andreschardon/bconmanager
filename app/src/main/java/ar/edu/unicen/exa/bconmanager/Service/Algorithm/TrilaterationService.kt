@@ -3,7 +3,6 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Circle
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
@@ -40,7 +39,7 @@ class TrilaterationService : Algorithm() {
                 beacon.beacon.name = "iBKS2"
                 beacon.beacon.txPower = -50 //60
             }
-            else ->  beacon.beacon.name = "Unknown"
+            else -> beacon.beacon.name = "Unknown"
         }
     }
 
@@ -73,7 +72,7 @@ class TrilaterationService : Algorithm() {
         val beacon0 = sortedList[0]
         val beacon1 = sortedList[1]
         val beacon2 = sortedList[2]
-        var beacon3 : BeaconOnMap? = null
+        var beacon3: BeaconOnMap? = null
         if (sortedList.size == 4)
             beacon3 = sortedList[3]
 
@@ -160,15 +159,15 @@ class TrilaterationService : Algorithm() {
                 furthestCircle = circle1
                 continueForcing = false
             } else if (intersection12 != null
-                    /*&&
-                    (circle2.r < maxLength) &&
-                    (circle1.r < maxLength)
-                    */
+            /*&&
+            (circle2.r < maxLength) &&
+            (circle1.r < maxLength)
+            */
             ) {
                 // This is not very precise, we should force an intersection between 0 and 1 here
                 Log.d(TAG, "Intersection12")
-                intersectionLocations =  intersection12 as MutableList<Location>
-                location3 = Location(circle0.x,circle0.y,customMap)
+                intersectionLocations = intersection12 as MutableList<Location>
+                location3 = Location(circle0.x, circle0.y, customMap)
                 furthestCircle = circle0
                 continueForcing = false
                 // Force an intersection between 0 and 1

@@ -9,14 +9,15 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 
-class FingerprintingService() : Algorithm(){
+class FingerprintingService() : Algorithm() {
 
     private var currentFingerprintingZone: FingerprintZone? = null
+    private val PRIORITY_RATIO = 40
 
 
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
-        var savedBeacons = getBeacons(data)
-        var sBeacons : MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
+        val savedBeacons = getBeacons(data)
+        val sBeacons: MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
         for (b in savedBeacons) {
             sBeacons.add(b.beacon)
         }
@@ -44,7 +45,7 @@ class FingerprintingService() : Algorithm(){
     /**
      * Starts scanning the beacons
      */
-    fun startScan(bluetoothScanner : BluetoothScanner, devicesListOfflineAdapter: FingerprintOfflineAdapter) {
+    fun startScan(bluetoothScanner: BluetoothScanner, devicesListOfflineAdapter: FingerprintOfflineAdapter) {
         bluetoothScanner.devicesList.clear()
         customMap.savedBeacons.forEach {
             it.beacon.cleanAverages()
@@ -65,7 +66,7 @@ class FingerprintingService() : Algorithm(){
      * Returns the best fingerprinting zone according to RSSI values of the beacons
      */
     fun getCurrentZone(beacons: List<BeaconDevice>, instant: Boolean = false): FingerprintZone? {
-        val fingerprintZones =  customMap.fingerprintZones
+        val fingerprintZones = customMap.fingerprintZones
         val fingerprintRating = mutableListOf<Double>()
         //Log.d("RATINGS", beacons.toString())
         //Log.d("RATINGS", fingerprintZones.toString())
@@ -95,9 +96,9 @@ class FingerprintingService() : Algorithm(){
                     maxDistance = thisDist
             }
         }
-        Log.d("RATINGS", beacons.toString())
-        Log.d("RATINGS", fingerprintRating.toString())
-        Log.d("RATINGS", "MAX DISTANCE IS $maxDistance")
+//        Log.d("RATINGS", beacons.toString())
+//        Log.d("RATINGS", fingerprintRating.toString())
+//        Log.d("RATINGS", "MAX DISTANCE IS $maxDistance")
 
         // Modify ratings to prioritize closer zones
         if (currentFingerprintingZone != null) {
@@ -109,34 +110,33 @@ class FingerprintingService() : Algorithm(){
 
         }
 
-        Log.d("RATINGS", fingerprintRating.toString())
+        //Log.d("RATINGS", fingerprintRating.toString())
 
         // Get the one with less rating
         val index = fingerprintRating.indexOf(fingerprintRating.min())
-        Log.d("RATINGS", "$index")
+        //Log.d("RATINGS", "$index")
 
         val bestZone = fingerprintZones.get(index)
-        Log.d("RATINGS", "Best zone is $bestZone ${fingerprintRating[index]}")
+        //Log.d("RATINGS", "Best zone is $bestZone ${fingerprintRating[index]}")
 
         currentFingerprintingZone = bestZone
 
         return bestZone
     }
 
-    fun getCalculatedZone() : FingerprintZone {
+    fun getCalculatedZone(): FingerprintZone {
         return this.currentFingerprintingZone!!
     }
 
     private fun prioritizeCloserZones(rating: Double, zone: FingerprintZone, maxDistance: Double): Double {
         val distance = distanceBetweenZones(currentFingerprintingZone!!, zone)
-        var priotitize = (40 * Math.pow((distance/ maxDistance), 2.0) )
+        val priotitize = (PRIORITY_RATIO * Math.pow((distance / maxDistance), 2.0))
         //var priotitize = ((20 * distance) / maxDistance)
-        Log.d("RATING", "Formula result is $priotitize")
-        var newRating = rating + priotitize
-        return newRating
+        //Log.d("RATING", "Formula result is $priotitize")
+        return rating + priotitize
     }
 
-    private fun distanceBetweenZones(first: FingerprintZone, second: FingerprintZone) : Double {
+    private fun distanceBetweenZones(first: FingerprintZone, second: FingerprintZone): Double {
         return Math.sqrt(Math.pow(second.position.x - first.position.x, 2.0) + Math.pow(second.position.y - first.position.y, 2.0))
     }
 }

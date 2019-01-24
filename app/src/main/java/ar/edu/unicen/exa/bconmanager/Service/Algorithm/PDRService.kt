@@ -27,7 +27,7 @@ class PDRService : Algorithm(){
     var advancedY = 0.0
     private var movedX = 0.0
     private var movedY = 0.0
-    var pdrAdapter: PDRAdapter? = null
+    private var pdrAdapter: PDRAdapter? = null
     private var PDREnabled = false
     private var angle = 0.0
     private var acceleration = 0.0F
@@ -50,12 +50,12 @@ class PDRService : Algorithm(){
             acceleration = if (stepSize >= 0) stepSize else 0F // Only use positive acceleration values
             if(PDREnabled) {
                 nextPosition = computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
-                Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
-                Log.d(TAG, "IS WALKING")
+                //Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
+                //Log.d(TAG, "IS WALKING")
                 pdrAdapter!!.StepDetected()
             }
         } else if (isWalking && isRecordingAngle) {
-            Log.d("PDRActivity","IS RECORDING")
+            //Log.d("PDRActivity","IS RECORDING")
             recordCount++
             if (recordCount == 3) {
                 recordCount = 0
@@ -91,7 +91,7 @@ class PDRService : Algorithm(){
             this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
-        var steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
+        val steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
         var i =0
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
@@ -138,7 +138,7 @@ class PDRService : Algorithm(){
         return mCurrentLocation!!
     }
 
-    fun setmCurrentLocation(mCurrentLocation: Location) {
+    private fun setmCurrentLocation(mCurrentLocation: Location) {
         Log.d(TAG, "CURRENT LOCATION IS : " + mCurrentLocation.toString())
         this.mCurrentLocation = mCurrentLocation
     }
@@ -148,7 +148,7 @@ class PDRService : Algorithm(){
      * @param bearing the angle of direction
      * @return new location
      */
-    fun computeNextStep(stepSize : Float, bearing : Float) : Location {
+    private fun computeNextStep(stepSize : Float, bearing : Float) : Location {
 
         val newLoc = mCurrentLocation
         val oldX = mCurrentLocation!!.getXMeters()
@@ -176,18 +176,18 @@ class PDRService : Algorithm(){
         return this.angle
     }
 
-    fun getStepsDone(t1: Number, t2: Number, acc: Float) : Int {
+    private fun getStepsDone(t1: Number, t2: Number, acc: Float) : Int {
         //Log.d("SIMULATION", "$t1 ${t2.toInt()} $acc")
         var vel = 0.0F
-        var ts = (t2.toFloat() - t1.toFloat())
-        var t = ts.div(1000F)
+        val ts = (t2.toFloat() - t1.toFloat())
+        val t = ts.div(1000F)
         //Log.d("SIMULATION", "Time: $t")
         vel = t * acc
         //Log.d("SIMULATION", "Speed: $vel")
-        var tsq = Math.pow(t.toDouble(), 2.0)
-        var traveledDistance = vel*t + (0.5*acc*tsq)
+        val tsq = Math.pow(t.toDouble(), 2.0)
+        val traveledDistance = vel*t + (0.5*acc*tsq)
         //Log.d("SIMULATION", "Traveled: $traveledDistance")
-        var stepsDone = (traveledDistance / stepSize)
+        val stepsDone = (traveledDistance / stepSize)
         //Log.d("SIMULATION", "Steps done: $stepsDone")
         if(stepsDone.roundToInt() == 0 && acc >= 0.2) {
             return 1
@@ -201,7 +201,7 @@ class PDRService : Algorithm(){
         return this.movedY
     }
 
-    fun movedDistance() {
+    private fun movedDistance() {
         this.movedX = this.mPrevLocation!!.x - this.mCurrentLocation!!.x
         this.movedY = this.mPrevLocation!!.y - this.mCurrentLocation!!.y
     }
