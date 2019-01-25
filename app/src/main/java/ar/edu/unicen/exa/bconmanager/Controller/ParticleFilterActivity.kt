@@ -111,6 +111,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         //Replace with trilat / fingerprinting position
        // val startPoint = referenceCalculator.getNextPoint(floorMap.savedBeacons)
         //Log.d("PFACTIVITY", "Start Point is $startPoint")
+        // Only for PDR, it doesn't have to be real
         val xPos = 0.0
         val yPos = 0.0
         setStartingPoint(xPos, yPos)
@@ -126,10 +127,10 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
     private fun drawParticle(location: Location) {
         val particle = PositionOnMap(location)
-        particle.image = R.drawable.finger_zone_green
+        particle.image = R.drawable.finger_zone_green_xs
         val particleView = ImageView(this)
         particleViewList.add(particleView)
-        setupResource(particle, particleView)
+        setupResource(particle, particleView,30,30)
     }
 
     private fun drawTrilaterationPoint(location: Location) {
@@ -251,13 +252,14 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         // Update old position to new
         Log.d("PFACTIVITY", "Update new position to PF's middle point: $loc")
 
-        val layoutParams = RelativeLayout.LayoutParams(70, 70) // value is in pixels
+        val layoutParams = positionView.layoutParams as RelativeLayout.LayoutParams
+
         Log.d(TAG, "Location before update: " + currentPosition.toString())
         currentPosition.position = validatePosition(loc)
         Log.d(TAG, "Location after update: " + currentPosition.toString())
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
-        positionView.layoutParams = layoutParams
+        //positionView.layoutParams = layoutParams
     }
 
 }
