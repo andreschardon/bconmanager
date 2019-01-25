@@ -13,10 +13,11 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FPTrilat
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
+import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var stop = false
@@ -31,6 +32,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var pdrService = PDRService.instance
     private var particleFilterService: ParticleFilterService? = null
     private var trilaterationCalculator = TrilaterationService.instance
+    private var referenceCalculator = FPTrilat.instance
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
 
@@ -106,10 +108,11 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
         particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)
 
-
         //Replace with trilat / fingerprinting position
-        val xPos = 0.5
-        val yPos = 0.5
+       // val startPoint = referenceCalculator.getNextPoint(floorMap.savedBeacons)
+        //Log.d("PFACTIVITY", "Start Point is $startPoint")
+        val xPos = 0.0
+        val yPos = 0.0
         setStartingPoint(xPos, yPos)
 
         Log.d("PFACTIVITY", "Startup point set")
@@ -124,16 +127,18 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private fun drawParticle(location: Location) {
         val particle = PositionOnMap(location)
         particle.image = R.drawable.finger_zone_green
-        var particleView = ImageView(this)
-        particleViewList.add(particleView);
+        val particleView = ImageView(this)
+        particleViewList.add(particleView)
         setupResource(particle, particleView)
     }
 
     private fun drawTrilaterationPoint(location: Location) {
+        removeResource(currentTrilatView)
+
         val particle = PositionOnMap(location)
         particle.image = R.drawable.finger_zone_blue
         var current = ImageView(this)
-        currentTrilatView = current;
+        currentTrilatView = current
         setupResource(particle, currentTrilatView)
     }
 
@@ -186,12 +191,17 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
      */
     fun trilateratePosition() {
 
-        val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
-        Log.d("PFACTIVITY", "Updating trilateration location to $resultLocation")
+        //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
+        val resultLocation = referenceCalculator.getNextPoint(floorMap.savedBeacons)
+
+
+
+        Log.d("NEWTEST", "Updating reference location to $resultLocation")
         val trilatLocationOnMap: Location
         if (resultLocation != null) {
             trilatLocationOnMap = Location(resultLocation!!.x, resultLocation.y, floorMap)
             currentTrilatPosition = PositionOnMap(trilatLocationOnMap!!)
+            drawTrilaterationPoint(currentTrilatPosition.position)
         }
     }
 
@@ -220,6 +230,8 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
      * between all the particles.
      */
     fun updateParticleFilterPosition(viewX: Double, viewY: Double) {
+
+
         val loc = Location(0.0, 0.0, floorMap)
         loc.x = viewX
         loc.y = viewY

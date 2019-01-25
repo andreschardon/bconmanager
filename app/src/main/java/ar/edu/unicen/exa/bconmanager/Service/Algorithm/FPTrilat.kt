@@ -1,5 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
+import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 
@@ -26,10 +27,21 @@ class FPTrilat : Algorithm() {
         trilaterationService.startUp(map)
     }
 
-    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
-        val loc = fingerPrintService.getNextPosition(data, nextTimestamp)
+    fun getCurrentZone() : FingerprintZone {
+        return fingerPrintService.currentFingerprintingZone!!
+    }
+
+    fun getNextPoint(beaconList: List<BeaconOnMap>): Location {
+
+        // List of BeaconDevice for Fingerprinting service
+        val sBeacons: MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
+        for (b in beaconList) {
+            sBeacons.add(b.beacon)
+        }
+
+        val loc = fingerPrintService.getCurrentZone(sBeacons, true)!!.position
+        //Log.d("NEWTEST", "Fingerprint location is $loc")
         //Log.d(TAG, "LOCATION FP: ${loc.toString()}")
-        val beaconList = getBeacons(data)
         val vectorToBeacon: MutableList<VectorToBeacon> = mutableListOf<VectorToBeacon>()
         for (b in beaconList) {
             val distanceToBeacon = euclideanDistance(b.position, loc)
@@ -46,20 +58,36 @@ class FPTrilat : Algorithm() {
         }
         val updatedBeacons = customMap.sortBeaconsByDistance(beaconList)
 
-        printBeaconsDistances(updatedBeacons)
+        //printBeaconsDistances(updatedBeacons)
 
         var i = 0
         while (i < vectorToBeacon.size && i < 3) {
-            //Log.d(TAG, vectorToBeacon[i].toString())
+            //Log.d("NEWTEST", "Distancia REAL " + vectorToBeacon[i].toString())
             val approx = updatedBeacons[i].beacon.approxDistance
-            val dFactor = (vectorToBeacon[i].distance - approx) / (vectorToBeacon[i].distance)
-            //Log.d(TAG, "dFactor is $dFactor")
+            //Log.d("NEWTEST", "Distancia TRILAT " + approx)
+            var dFactor = (vectorToBeacon[i].distance - approx) / (vectorToBeacon[i].distance)
+            //var dFactor = Math.abs(vectorToBeacon[i].distance - approx) / (vectorToBeacon[i].distance)
+            //Log.d("NEWTEST", "dFactor is $dFactor")
+            // If the trilat distance is far greater than the "real" one
+            if (dFactor > 1.0 ) {
+                dFactor = 1.0
+            } else if (dFactor < -1.0) {
+                dFactor = -1.0
+            }
+
             vectorToBeacon[i].distance = dFactor
             i++
         }
 
         return updatePosition(currentFPZone, vectorToBeacon, i)
+    }
 
+    /**
+     * Returns the next position for the Simulation
+     */
+    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+        val beaconList = getBeacons(data)
+        return this.getNextPoint(beaconList)
     }
 
     private fun printBeaconsDistances(sortedBeacons: List<BeaconOnMap>) {
@@ -67,7 +95,7 @@ class FPTrilat : Algorithm() {
         for (beacon in sortedBeacons) {
             stringList.add(beacon.toStringDistance())
         }
-        //Log.d(TAG, stringList.toString())
+        Log.d(TAG, stringList.toString())
     }
 
     private fun getVectorsAngle(beaconLocation: Location, fpLocation: Location): Double {
@@ -91,7 +119,11 @@ class FPTrilat : Algorithm() {
             oldY = newY
             i++
         }
-        return Location(newX, newY, customMap)
+
+        val newPosition =  Location(newX, newY, customMap)
+        val restrictedPosition = customMap.restrictPosition(PositionOnMap(newPosition))
+
+        return restrictedPosition.position
     }
 
 

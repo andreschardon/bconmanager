@@ -11,7 +11,7 @@ import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 class FingerprintingService() : Algorithm() {
 
-    private var currentFingerprintingZone: FingerprintZone? = null
+    var currentFingerprintingZone: FingerprintZone? = null
     private val PRIORITY_RATIO = 40
 
 
