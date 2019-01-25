@@ -9,6 +9,14 @@ class FPTrilat : Algorithm() {
     private lateinit var trilaterationService: TrilaterationService
     override var TAG = "FPTRILAT"
 
+    private object Holder {
+        val INSTANCE = FPTrilat()
+    }
+
+    companion object {
+        val instance: FPTrilat by lazy { Holder.INSTANCE }
+    }
+
 
     override fun startUp(map: CustomMap) {
         super.startUp(map)
