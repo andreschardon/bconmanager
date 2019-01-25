@@ -27,7 +27,7 @@ abstract class OnMapActivity  : AppCompatActivity() {
     fun Double.roundTo2DecimalPlaces() =
             BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 
-    protected fun setupResource(resource: Resource, imageView: ImageView) {
+    protected fun setupResource(resource: Resource, imageView: ImageView, width: Int = 70, height: Int = 70) {
 
         // Set up the resource image size and position
         val layoutParams: LinearLayout.LayoutParams
@@ -35,7 +35,7 @@ abstract class OnMapActivity  : AppCompatActivity() {
             val loc = Location(resource.zone * 2, resource.zone * 2, floorMap)
             layoutParams = LinearLayout.LayoutParams(loc.getX(), loc.getY()) // value is in pixel
         } else {
-            layoutParams = LinearLayout.LayoutParams(70, 70) // value is in pixels
+            layoutParams = LinearLayout.LayoutParams(width, height) // value is in pixels
         }
         if (resource is FingerprintZone) {
             resource.view = imageView

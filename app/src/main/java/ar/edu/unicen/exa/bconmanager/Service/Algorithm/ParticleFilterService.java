@@ -22,7 +22,7 @@ public class ParticleFilterService extends Algorithm {
 
     //paramenters
     private static final int FPS = 10;
-    private static final int NUM_PARTICLES = 25;
+    private static final int NUM_PARTICLES = 100;
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;

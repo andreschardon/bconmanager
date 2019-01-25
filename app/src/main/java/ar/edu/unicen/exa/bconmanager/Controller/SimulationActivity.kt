@@ -89,12 +89,11 @@ class SimulationActivity : OnMapActivity() {
     }
 
     fun runSimulationAll(view: View) {
-        algorithmFingerp = FingerprintingService()
-        algorithmTrilat = TrilaterationService.instance
-        algorithmPDR = PDRService.instance
-        algorithmPDR.setAdjustedBearing(floorMap.angle.toFloat())
-        algorithmPF = ParticleFilterService()
-        runSimulation("All")
+        runSimulationTrilat(view)
+        runSimulationPDR(view)
+        runSimulationFingerprinting(view)
+        runFPTrilatSimulation(view)
+        runSimulationPF(view)
     }
 
     private fun runSimulation(choice: String) {
