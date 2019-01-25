@@ -39,7 +39,8 @@
         <activity android:name=".Controller.FingerprintOnlineActivity" />
         <activity android:name=".Controller.DatasetActivity" />
         <activity android:name=".Controller.ParticleFilterActivity" />
-        <activity android:name=".Controller.SimulationActivity"></activity>
+        <activity android:name=".Controller.SimulationActivity"/>
+        <activity android:name=".Controller.FPTrilatActivity"></activity>
     </application>
 
 </manifest>
