@@ -57,16 +57,16 @@ public class ParticleFilterService extends Algorithm {
     private double estimateWY;
 
     private ParticleFilterAdapter pfAdapter;
-    private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
+    //private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
     private PDRService pdrService = PDRService.Companion.getInstance();
+    private FPTrilat referenceService = FPTrilat.Companion.getInstance();
 
-    public Location trilaterationLocation;
+    //public Location trilaterationLocation;
+    public Location referenceLocation;
     public Location pfLocation;
 
     //private constructor
     public ParticleFilterService() {
-        /** Calculate the three closest circles **/
-
 
     }
 
@@ -74,7 +74,13 @@ public class ParticleFilterService extends Algorithm {
     public void startUp(CustomMap customMap) {
         super.startUp(customMap);
         beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
-        trilaterationCalculator.startUp(customMap);
+
+
+        referenceService.startUp(customMap);
+        //trilaterationCalculator.startUp(customMap);
+
+
+
         pdrService.startUp(customMap);
 
         Log.d("SAVED", "${map.savedBeacons}");
@@ -122,13 +128,17 @@ public class ParticleFilterService extends Algorithm {
 
     @Override
     public Location getNextPosition(@NotNull JsonData data, @NotNull Number nextTimestamp) {
-        Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
-        this.trilaterationLocation = trilatLocation;
+
+        /*Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
+        this.trilaterationLocation = trilatLocation;*/
+        Location referenceLocation = referenceService.getNextPosition(data, nextTimestamp);
+        this.referenceLocation = referenceLocation;
+
         Location pdrLocation = pdrService.getNextPosition(data, nextTimestamp);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
 
-        this.updatePosition(movedX, movedY, trilatLocation.getXMeters(), trilatLocation.getYMeters());
+        this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
         Location result = new Location(estimateWX, estimateWY, customMap);
         this.pfLocation = result;
         return result;

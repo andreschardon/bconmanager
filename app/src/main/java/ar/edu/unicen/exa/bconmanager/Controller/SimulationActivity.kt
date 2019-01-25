@@ -150,7 +150,7 @@ class SimulationActivity : OnMapActivity() {
     }
 
     private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
-        Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.trilaterationLocation.x}, ${particleFilter.trilaterationLocation.y})")
+        Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.referenceLocation.x}, ${particleFilter.referenceLocation.y})")
         Log.d("SIMULATION-PF", "REAL POINT IS (${realPosition.x}, ${realPosition.y})")
         Log.d("SIMULATION-PF", "PF MIDDLE  IS (${particleFilter.pfLocation.x}, ${particleFilter.pfLocation.y})")
     }
