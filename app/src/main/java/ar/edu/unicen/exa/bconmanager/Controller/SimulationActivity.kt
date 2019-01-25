@@ -107,8 +107,9 @@ class SimulationActivity : OnMapActivity() {
         var i = 0
         //Log.d("SIMULATION", "Size is ${simulationData!!.size}")
         var errorSum = 0.0
-
-        while (i < simulationData.size) {
+        val simulationDataSize = simulationData.size
+        var errors: MutableList<Double> = mutableListOf()
+        while (i < simulationDataSize) {
             val currentData = simulationData[i]
             //Log.d("SIMULATION", currentData.toString())
             var nextTimestamp: Number = 0
@@ -123,6 +124,7 @@ class SimulationActivity : OnMapActivity() {
             // Calculate error
             val error = algorithm.getError(realPosition, calculatedPosition)
             errorSum += error
+            errors.add(error)
             if (error >= maxError)
                 maxError = error
 
@@ -134,10 +136,13 @@ class SimulationActivity : OnMapActivity() {
             }
             i++
         }
+        errors.sort()
         averageError = errorSum / simulationData.size
         result.timestamps = timestampList
         result.errorMax = maxError
         result.errorAverage = averageError
+        result.errorMedian = getMedianError(simulationDataSize,errors)
+        Log.d("ERROR","ERROR MEDIAN: ${result.errorMedian}")
         val finalPath = "$datasetPathMod$choice.json"
 
         saveResultsToFile(finalPath , result)
@@ -159,4 +164,19 @@ class SimulationActivity : OnMapActivity() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    fun getMedianError(simSize: Int, errors: List<Double>) : Double {
+        for(e in errors) {
+            Log.d("ERRORS", "E: $e")
+        }
+        val medianNOdd = ((simSize - 1)/2)
+        val medianNEven = (simSize/2)
+        if (simSize % 2 == 0) {
+            Log.d("ERROR","ERROR EVEN: ${(errors[medianNOdd] + errors[medianNEven])/2}")
+            return (errors[medianNOdd] + errors[medianNEven])/2
+        }
+        else {
+            Log.d("ERROR", "ERROR ODD: ${errors[medianNOdd]}")
+           return errors[medianNOdd]
+        }
+    }
 }
