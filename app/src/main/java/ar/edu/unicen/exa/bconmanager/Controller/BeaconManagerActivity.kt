@@ -148,4 +148,8 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, SimulationActivity::class.java)
         startActivity(intent)
     }
+    fun goToFPTrilatActivity(view : View) {
+        val intent = Intent(this, FPTrilatActivity::class.java)
+        startActivity(intent)
+    }
 }
