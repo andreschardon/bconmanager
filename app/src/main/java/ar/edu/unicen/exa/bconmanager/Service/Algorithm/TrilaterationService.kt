@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
 import ar.edu.unicen.exa.bconmanager.Model.Circle
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 
@@ -12,6 +13,7 @@ class TrilaterationService : Algorithm() {
     private var EPS = 0.0000001
     override var TAG = "Trilateration Calculator"
     private val maxLength = 50.0
+    private lateinit var foundLocation : Location
 
     private object Holder {
         val INSTANCE = TrilaterationService()
@@ -19,6 +21,12 @@ class TrilaterationService : Algorithm() {
 
     companion object {
         val instance: TrilaterationService by lazy { Holder.INSTANCE }
+    }
+
+    override fun startUp(customMap: CustomMap) {
+        super.startUp(customMap)
+        //Starting point?
+        foundLocation = Location(-1.0, -1.0, customMap)
     }
 
     fun setTxPower(beacon: BeaconOnMap) {
@@ -48,7 +56,6 @@ class TrilaterationService : Algorithm() {
      */
     override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
         val beaconList = getBeacons(data)
-        val next = getPositionInMap(beaconList) ?: return Location(-1.0, -1.0, customMap)
         return getPositionInMap(beaconList)!!
     }
 
@@ -66,7 +73,7 @@ class TrilaterationService : Algorithm() {
         val sortedList = customMap.sortBeaconsByDistance(beaconList)
         if (sortedList.size < 3) {
             Log.e(TAG, "Not enough beacons detected")
-            return null
+            return foundLocation
         }
 
         val beacon0 = sortedList[0]
@@ -116,7 +123,7 @@ class TrilaterationService : Algorithm() {
                 } else {
                     // We are too far away
                     Log.d(TAG, "We are too far away from at least one beacon")
-                    return null
+                    return foundLocation
                 }
 
                 intersection01 = circleCircleIntersectionPoints(circle0, circle1)
@@ -134,8 +141,8 @@ class TrilaterationService : Algorithm() {
             }
             if (counter == 30) {
                 // We couldn't fix it by increasing the radius
-                Log.d(TAG, " :( We reached the maximum attempts")
-                return null
+                Log.d(TAG, " We reached the maximum attempts")
+                return foundLocation
             }
 
         }
@@ -181,7 +188,7 @@ class TrilaterationService : Algorithm() {
             } else {
                 Log.d(TAG, "There are no intersections")
                 continueForcing = false
-                return null
+                return foundLocation
             }
         }
 
@@ -203,9 +210,11 @@ class TrilaterationService : Algorithm() {
         val secondDistance = Math.abs((furthestCircle!!.r - (euclideanDistance(intersectionLocations[1], location3!!))))
 
         if ((firstDistance <= secondDistance)) {
-            return forceInsideMap(intersectionLocations[0]!!)
+            foundLocation = forceInsideMap(intersectionLocations[0]!!)
+            return foundLocation
         } else {
-            return forceInsideMap(intersectionLocations[1]!!)
+            foundLocation = forceInsideMap(intersectionLocations[1]!!)
+            return foundLocation
         }
 
     }
