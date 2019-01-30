@@ -117,6 +117,8 @@ class SimulationActivity : OnMapActivity() {
             } else
                 nextTimestamp = currentData.timestamp
             val calculatedPosition = algorithm.getNextPosition(currentData, nextTimestamp)
+            calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
+            calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
             Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
             val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
 

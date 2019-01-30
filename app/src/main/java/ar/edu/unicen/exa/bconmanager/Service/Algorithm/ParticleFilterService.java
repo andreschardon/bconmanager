@@ -575,11 +575,11 @@ public class ParticleFilterService extends Algorithm {
             totalW += weight;
         }
         // direct average location of all particles
-        this.estimateX = Math.floor(totalX / particles.size());
-        this.estimateY = Math.floor(totalY / particles.size());
+        this.estimateX = totalX / particles.size();
+        this.estimateY = totalY / particles.size();
         // weighted average of all particles
-        this.estimateWX = Math.floor(totalWX / totalW);
-        this.estimateWY = Math.floor(totalWY / totalW);
+        this.estimateWX = totalWX / totalW;
+        this.estimateWY = totalWY / totalW;
         System.out.println(String.format("PFACTIVITY Estimate X Y   " + estimateX + ", " + estimateY));
         System.out.println(String.format("PFACTIVITY Estimate Wx Wy " + estimateWX + ", " + estimateWY));
     }
