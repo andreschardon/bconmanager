@@ -13,6 +13,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSimResult
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonTimestamp
+import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
@@ -29,6 +30,8 @@ class SimulationActivity : OnMapActivity() {
     lateinit var algorithmTrilat: TrilaterationService
     lateinit var algorithmPDR: PDRService
     lateinit var algorithmPF: ParticleFilterService
+
+    private var drawPoints = true
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -121,6 +124,10 @@ class SimulationActivity : OnMapActivity() {
             calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
             Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
             val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
+            if (drawPoints) {
+                drawPosition(calculatedPosition, false)
+                drawPosition(realPosition, true)
+            }
 
             // Calculate error
             val error = algorithm.getError(realPosition, calculatedPosition)
@@ -148,6 +155,16 @@ class SimulationActivity : OnMapActivity() {
 
         saveResultsToFile(finalPath , result)
         Toast.makeText(this,"Simulation Completed, Results are in Results-$choice.json",Toast.LENGTH_LONG).show()
+    }
+
+    private fun drawPosition(position: Location, realPosition: Boolean) {
+        val particle = PositionOnMap(position)
+        if (realPosition)
+            particle.image = R.drawable.realposition
+        else
+            particle.image = R.drawable.foundposition
+        val particleView = ImageView(this)
+        setupResource(particle, particleView,20,20)
     }
 
     private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
