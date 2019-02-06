@@ -265,7 +265,7 @@ class TrilaterationService : Algorithm() {
         val y = pt.y - fp.y
         val xRot = x * Math.cos(a) + y * Math.sin(a)
         val yRot = y * Math.cos(a) - x * Math.sin(a)
-        return Location(fp.x + xRot, fp.y + yRot, null)
+        return Location(fp.x + xRot, fp.y + yRot, customMap)
     }
 
     // Given two circles this method finds the intersection
@@ -326,7 +326,7 @@ class TrilaterationService : Algorithm() {
         if ((d + r) < R || (R + r < d)) return null
 
         //Double intersection
-        val C = Location(Cx, Cy, null)
+        val C = Location(Cx, Cy, customMap)
         val angle = acossafe((r * r - d * d - R * R) / (-2.0 * d * R))
         val pt1 = rotatePoint(C, P, +angle)
         val pt2 = rotatePoint(C, P, -angle)

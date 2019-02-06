@@ -8,6 +8,7 @@ import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
 import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
+import java.math.BigDecimal
 import kotlin.math.roundToInt
 
 class PDRService : Algorithm(){
@@ -33,6 +34,7 @@ class PDRService : Algorithm(){
     private var acceleration = 0.0F
     private var stepSize = 0.2F
     private var initialPosition = true
+    private var isSimulation = false
 
     private object Holder {
         val INSTANCE = PDRService()
@@ -87,14 +89,17 @@ class PDRService : Algorithm(){
     }
 
     override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
+        isSimulation = true
         if (initialPosition){
             this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
         val steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
         var i =0
+        Log.d("ANGLEWTF", "---------------------------------------------------------- $steps steps")
         while (i<steps) {
             this.mPrevLocation = this.mCurrentLocation
+
             var asd = computeNextStep(stepSize, dataEntry.angle.toFloat())
           //  Log.d("SIMULATION", "COMPUTED: $asd")
             nextPosition= customMap.restrictPosition(PositionOnMap(asd)).position
@@ -153,20 +158,36 @@ class PDRService : Algorithm(){
         val newLoc = mCurrentLocation
         val oldX = mCurrentLocation!!.getXMeters()
         val oldY = mCurrentLocation!!.getYMeters()
+        val bearingD = bearing.toDouble()
+        var adjustedAngle = bearingD
+        var factor = 1.0
+        if (isSimulation) {
+            // To radians and considering adjustment
+            adjustedAngle = ((bearingD ) / 57.2958)
+            factor = 1.5
+        }
+
+        Log.d("ANGLEWTF", "Moving in ${adjustedAngle.toDouble()}° adj: $bearingAdjustment")
 
         //reconversion en degrees
-        advancedX = Math.cos(bearing.toDouble()) * stepSize
-        advancedY = Math.sin(bearing.toDouble()) * stepSize
+        advancedX = Math.cos(adjustedAngle.toDouble()) * stepSize * factor
+        advancedY = Math.sin(adjustedAngle.toDouble()) * stepSize * factor
 
+        Log.d("ANGLEWTF", "Advanced ($advancedX, $advancedY) cos ${Math.cos(adjustedAngle.toDouble())} sen ${Math.sin(adjustedAngle.toDouble())}")
         val newX = oldX + advancedX
         newLoc!!.x = newX
         val newY = oldY + advancedY
         newLoc!!.y = newY
 
+        Log.d("ANGLEWTF", "From (${oldX.roundTo2DecimalPlaces()}, ${oldY.roundTo2DecimalPlaces()}) to (${newX.roundTo2DecimalPlaces()}, ${newY.roundTo2DecimalPlaces()})")
+
         mCurrentLocation = newLoc
 
         return newLoc!!
     }
+
+    fun Double.roundTo2DecimalPlaces() =
+            BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
 
     fun getAcc() : Float{
         return this.acceleration

@@ -73,6 +73,7 @@ class SimulationActivity : OnMapActivity() {
     fun runSimulationPDR(view : View) {
         algorithm =  PDRService.instance
         (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
+        //(algorithm as PDRService).setAdjustedBearing(0.0f)
         runSimulation("PDR")
     }
 
@@ -111,6 +112,7 @@ class SimulationActivity : OnMapActivity() {
         var errorSum = 0.0
         val simulationDataSize = simulationData.size
         var errors: MutableList<Double> = mutableListOf()
+        val max = simulationDataSize - 5
         while (i < simulationDataSize) {
             val currentData = simulationData[i]
             //Log.d("SIMULATION", currentData.toString())
@@ -125,8 +127,8 @@ class SimulationActivity : OnMapActivity() {
             Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
             val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
             if (drawPoints) {
-                drawPosition(calculatedPosition, false)
-                drawPosition(realPosition, true)
+                drawPosition(calculatedPosition, false, i, max)
+                drawPosition(realPosition, true, i, max)
             }
 
             // Calculate error
@@ -157,12 +159,21 @@ class SimulationActivity : OnMapActivity() {
         Toast.makeText(this,"Simulation Completed, Results are in Results-$choice.json",Toast.LENGTH_LONG).show()
     }
 
-    private fun drawPosition(position: Location, realPosition: Boolean) {
+    private fun drawPosition(position: Location, realPosition: Boolean, index : Int, last : Int) {
         val particle = PositionOnMap(position)
         if (realPosition)
             particle.image = R.drawable.realposition
-        else
-            particle.image = R.drawable.foundposition
+        else {
+            Log.d("DRAWINGDEBUG", "Drawing result in $position")
+            if (index <= 5) {
+                particle.image = R.drawable.finger_zone_green_xs
+            } else if (index >= last) {
+                particle.image = R.drawable.finger_zone_red_xs
+            }
+            else
+                particle.image = R.drawable.finger_zone_blue_xs
+        }
+
         val particleView = ImageView(this)
         setupResource(particle, particleView,20,20)
     }
