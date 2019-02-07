@@ -22,8 +22,9 @@ import kotlinx.android.synthetic.main.activity_simulation.*
 class SimulationActivity : OnMapActivity() {
 
     private val datasetPath = "/storage/emulated/0/Download/Dataset.json"
-    private val datasetPathMod = "/storage/emulated/0/Download/Results-"
+    private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
+    private var pointsList: MutableList<ImageView> = mutableListOf()
     lateinit var algorithm: Algorithm
 
     lateinit var algorithmFingerp : FingerprintingService
@@ -105,6 +106,10 @@ class SimulationActivity : OnMapActivity() {
         var averageError = 0.0
         var result = JsonSimResult()
         var timestampList : MutableList<JsonTimestamp> = mutableListOf()
+        pointsList.forEach {
+            removeResource(it)
+        }
+        pointsList.clear()
 
         algorithm.startUp(floorMap)
         var i = 0
@@ -175,6 +180,8 @@ class SimulationActivity : OnMapActivity() {
         }
 
         val particleView = ImageView(this)
+        this.pointsList.add(particleView)
+
         setupResource(particle, particleView,20,20)
     }
 

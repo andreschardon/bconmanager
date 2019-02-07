@@ -26,7 +26,8 @@ public class ParticleFilterService extends Algorithm {
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
-    private double RESAMPLING_MINIMUM = 0.8;
+    private static final double STARTING_AREA_MTS = 2.0;
+    private double RESAMPLING_MINIMUM = 0.85;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -65,6 +66,8 @@ public class ParticleFilterService extends Algorithm {
     public Location referenceLocation;
     public Location pfLocation;
 
+    public boolean initialPosition = true;
+
     //private constructor
     public ParticleFilterService() {
 
@@ -74,6 +77,7 @@ public class ParticleFilterService extends Algorithm {
     public void startUp(CustomMap customMap) {
         super.startUp(customMap);
         beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
+
 
 
         referenceService.startUp(customMap);
@@ -131,6 +135,29 @@ public class ParticleFilterService extends Algorithm {
 
         /*Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
         this.trilaterationLocation = trilatLocation;*/
+        if (initialPosition) {
+            Location startingLocation = new Location(data.getPositionX(),data.getPositionY(),customMap);
+            // Overwrite starting point
+            xPos = startingLocation.getXMeters();
+            yPos = startingLocation.getYMeters();
+
+            // A 4x4 square where we should create the particles
+            double minWidth = xPos - STARTING_AREA_MTS;
+            double minHeight = yPos - STARTING_AREA_MTS;
+            double maxWidth = xPos + STARTING_AREA_MTS;
+            double maxHeight = yPos + STARTING_AREA_MTS;
+
+            // overwrite particles
+            particles = new ArrayList<Particle>();
+            for (int i = 0; i < NUM_PARTICLES; i++) {
+                Particle p = new Particle();
+                p.randomize(minWidth, maxWidth, minHeight, maxHeight);
+                particles.add(p);
+            }
+            initialPosition = false;
+        }
+
+
         Location referenceLocation = referenceService.getNextPosition(data, nextTimestamp);
         this.referenceLocation = referenceLocation;
 

@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.hardware.SensorManager
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
+import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
@@ -42,6 +43,11 @@ class PDRService : Algorithm(){
 
     companion object {
         val instance: PDRService by lazy { Holder.INSTANCE }
+    }
+
+    override fun startUp(map: CustomMap) {
+        super.startUp(map)
+        this.initialPosition = true
     }
 
 
@@ -163,7 +169,7 @@ class PDRService : Algorithm(){
         var factor = 1.0
         if (isSimulation) {
             // To radians and considering adjustment
-            adjustedAngle = ((bearingD ) / 57.2958)
+            adjustedAngle = ((bearingD - 10) / 57.2958)
             factor = 1.5
         }
 

@@ -18,6 +18,15 @@ public class Particle {
         this.y = Math.random() * maxHeight;
     }
 
+    // randomize min max position
+    public void randomize(double minWidth, double maxWidth, double minHeight, double maxHeight) {
+        double width = maxWidth - minWidth;
+        double height = maxHeight - minHeight;
+
+        this.x = (Math.random() * width) + minWidth;
+        this.y = (Math.random() * height) + minHeight;
+    }
+
     // degrade weight: multiply current weight by the given amount
     //	(decimal between 0 and 1)
     public void degrade(double weight) {
