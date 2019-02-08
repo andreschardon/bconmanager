@@ -52,7 +52,8 @@ public class StepDetectionHandler extends AppCompatActivity implements
             if (z > 1 && mStepDetectionListener != null && !rawData) {
                 onNewStepDetected();
             }
-            else if(rawData) {
+            else if (rawData) {
+                Log.d("ADJUSTMENT", "Detected acceleration "+z);
                 mStepDetectionListener.newStep(z);
             }
 

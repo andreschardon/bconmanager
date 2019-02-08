@@ -72,10 +72,10 @@ class PDRActivity : PDRInterface, OnMapActivity() {
 
         pdrAdapter = PDRAdapter(this)
         // Drawing all the points of interest for this map
-        for (point in floorMap.pointsOfInterest) {
+        /*for (point in floorMap.pointsOfInterest) {
             val imageView = ImageView(this)
             setupResource(point, imageView)
-        }
+        }*/
     }
 
     override fun updatePosition(beacons: List<BeaconDevice>) {

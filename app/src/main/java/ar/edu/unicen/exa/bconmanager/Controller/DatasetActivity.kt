@@ -37,7 +37,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
     private lateinit var devicesListOnlineAdapter: DatasetCaptureAdapter
     private var dataCollectionHandler = Handler()
     private var datalist = mutableListOf<JsonData>()
-    private val delay = 500L //milliseconds. Interval in which data will be captured
+    private val delay = 200L //milliseconds. Interval in which data will be captured
     private var pdrService = PDRService.instance
     private lateinit var pdrAdapter: PDRAdapter
 
@@ -69,9 +69,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
         }
     }
     override fun displayMap() {
-        super.displayMap()
-        val img = findViewById<View>(R.id.floorPlan) as ImageView //CHECK
-        img.setOnTouchListener(object: View.OnTouchListener {
+        this.touchListener = (object: View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent):Boolean {
                 if(isRecordingAngle || (isPDREnabled && !startingPoint)) {
                     val screenX = event.x
@@ -89,6 +87,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
                 return false
             }
         })
+        super.displayMap()
 
 
 
@@ -122,6 +121,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
     override fun onResume() {
         super.onResume()
         pdrService.startSensorsHandlers()
+
     }
 
     override fun onPause() {
@@ -143,6 +143,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
 
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         pdrService.setupSensorsHandlers(loc,pdrAdapter,sensorManager,true)
+        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
 
 
 
@@ -154,7 +155,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
     }
     override fun unsetStartingPoint() {
         floorLayout.removeView(positionView)
-        pdrService.stopSensorsHandlers()
+        //pdrService.stopSensorsHandlers()
         startingPoint = false
     }
 
@@ -170,7 +171,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
      * and save it to some object
      */
     fun startDataCollection(view: View) {
-        bluetoothScanner.scanLeDevice(true, devicesListOnlineAdapter)
+
         startupTime = System.currentTimeMillis()
         pdrService.startSensorsHandlers()
         dataCollectionHandler.postDelayed(object : Runnable {

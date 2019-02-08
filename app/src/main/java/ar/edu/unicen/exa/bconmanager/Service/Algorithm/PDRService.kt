@@ -52,6 +52,13 @@ class PDRService : Algorithm(){
 
 
     private val mStepDetectionListener = StepDetectionHandler.StepDetectionListener { stepSize ->
+        if (stepSize > 0) {
+            Log.d("ADJUSTMENT", "Its walking")
+            isWalking = true
+        } else {
+            isWalking = false
+        }
+
         if (!isRecordingAngle) {
             angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment)*57.2958
             //in this case stepSize is acceleration
@@ -169,7 +176,7 @@ class PDRService : Algorithm(){
         var factor = 1.0
         if (isSimulation) {
             // To radians and considering adjustment
-            adjustedAngle = ((bearingD - 10) / 57.2958)
+            adjustedAngle = ((bearingD ) / 57.2958)
             factor = 1.5
         }
 

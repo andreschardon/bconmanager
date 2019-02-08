@@ -23,6 +23,10 @@ class DatasetCaptureAdapter(context : DatasetActivity, beacons : List<BeaconDevi
 
     }
 
+    fun stopRecordingAngle(){
+        context.unsetStartingPoint()
+    }
+
     override fun getItem(position: Int): Any {
         return beacons[position]
     }
