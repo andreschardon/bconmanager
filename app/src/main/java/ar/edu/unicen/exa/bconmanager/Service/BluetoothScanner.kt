@@ -17,7 +17,7 @@ class BluetoothScanner : AppCompatActivity() {
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothHandler: Handler = Handler()
     var isScanning: Boolean = false
-    private val SCAN_PERIOD:Long = 10000 // 100 seconds
+    private val SCAN_PERIOD:Long = 20000 // 20 seconds
 
     lateinit var devicesListAdapter: BaseAdapter
     var devicesList = mutableListOf<BeaconDevice>()

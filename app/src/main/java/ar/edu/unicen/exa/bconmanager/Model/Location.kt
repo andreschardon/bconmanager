@@ -60,4 +60,8 @@ class Location constructor(var x : Double, var y : Double, val map : CustomMap?)
     override fun equals(other: Any?): Boolean {
         return (this.x == (other as Location).x) && (this.y == other.y)
     }
+
+    fun clone() : Location {
+        return Location(this.x, this.y, this.map)
+    }
 }

@@ -109,17 +109,22 @@ class PDRService : Algorithm(){
         }
         val steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
         var i =0
-        Log.d("ANGLEWTF", "---------------------------------------------------------- $steps steps")
-        while (i<steps) {
-            this.mPrevLocation = this.mCurrentLocation
-
-            var asd = computeNextStep(stepSize, dataEntry.angle.toFloat())
-          //  Log.d("SIMULATION", "COMPUTED: $asd")
-            nextPosition= customMap.restrictPosition(PositionOnMap(asd)).position
-            this.mCurrentLocation = nextPosition
+        Log.d("PDRWTF", "---------------------------------------------------------- $steps steps")
+        if (steps == 0) {
+            this.movedX = 0.0
+            this.movedY = 0.0
+        } else {
+            this.mPrevLocation = this.mCurrentLocation!!.clone()
+            while (i<steps) {
+                var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.angle.toFloat())
+                //  Log.d("SIMULATION", "COMPUTED: $asd")
+                nextPosition= customMap.restrictPosition(PositionOnMap(newPositionUnrestricted)).position
+                this.mCurrentLocation = nextPosition
+                i++
+            }
             movedDistance()
-            i++
         }
+
         return this.mCurrentLocation!!
     }
 
@@ -188,13 +193,13 @@ class PDRService : Algorithm(){
 
         Log.d("ANGLEWTF", "Advanced ($advancedX, $advancedY) cos ${Math.cos(adjustedAngle.toDouble())} sen ${Math.sin(adjustedAngle.toDouble())}")
         val newX = oldX + advancedX
-        newLoc!!.x = newX
+        newLoc!!.x = newX.roundTo2DecimalPlaces()
         val newY = oldY + advancedY
-        newLoc!!.y = newY
+        newLoc!!.y = newY.roundTo2DecimalPlaces()
 
-        Log.d("ANGLEWTF", "From (${oldX.roundTo2DecimalPlaces()}, ${oldY.roundTo2DecimalPlaces()}) to (${newX.roundTo2DecimalPlaces()}, ${newY.roundTo2DecimalPlaces()})")
+        Log.d("PDRWTF", "From (${oldX.roundTo2DecimalPlaces()}, ${oldY.roundTo2DecimalPlaces()}) to (${newX.roundTo2DecimalPlaces()}, ${newY.roundTo2DecimalPlaces()})")
 
-        mCurrentLocation = newLoc
+        this.mCurrentLocation = newLoc
 
         return newLoc!!
     }
@@ -236,7 +241,9 @@ class PDRService : Algorithm(){
     }
 
     private fun movedDistance() {
-        this.movedX = this.mPrevLocation!!.x - this.mCurrentLocation!!.x
-        this.movedY = this.mPrevLocation!!.y - this.mCurrentLocation!!.y
+        Log.d("PDRWTF", "${this.mPrevLocation} going to ${this.mCurrentLocation}")
+        this.movedX = this.mCurrentLocation!!.x.roundTo2DecimalPlaces() - this.mPrevLocation!!.x.roundTo2DecimalPlaces()
+        this.movedY = this.mCurrentLocation!!.y.roundTo2DecimalPlaces() - this.mPrevLocation!!.y.roundTo2DecimalPlaces()
+        Log.d("PFPDR", "Setting moved distance to $movedX and $movedY")
     }
 }

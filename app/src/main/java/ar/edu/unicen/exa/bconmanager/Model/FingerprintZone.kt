@@ -11,7 +11,7 @@ class FingerprintZone constructor (position : Location) : Resource(position){
     private val red_image = R.drawable.finger_zone_red_xs
     private val green_image = R.drawable.finger_zone_green_xs
     private val blue_image = R.drawable.finger_zone_blue_xs
-    private val radius = 2.0
+    private val radius = 1.0
     var fingerprints = mutableListOf<Fingerprint>()
     var view : ImageView? = null
     var hasData : Boolean = false

@@ -27,7 +27,7 @@ public class ParticleFilterService extends Algorithm {
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
     private static final double STARTING_AREA_MTS = 2.0;
-    private double RESAMPLING_MINIMUM = 0.8;
+    private double RESAMPLING_MINIMUM = 0.9;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -164,6 +164,7 @@ public class ParticleFilterService extends Algorithm {
         Location pdrLocation = pdrService.getNextPosition(data, nextTimestamp);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
+        System.out.println("PDRWTF Moved "+movedX+" and "+movedY);
 
         this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
         Location result = new Location(estimateWX, estimateWY, customMap);
