@@ -98,9 +98,23 @@ class FingerprintOfflineActivity : OnMapActivity() {
             setupResource(point, imageView)
         }
 
+        var list = mutableListOf<FingerprintZone>()
+        for (zone in floorMap.fingerprintZones) {
+            list.add(zone)
+        }
         floorMap.fingerprintZones.clear()
 
         fingerprinting.startUp(floorMap)
+
+        //floorMap.fingerprintZones.clear()
+        for (zone in list) {
+            Log.d("FINGERNEW", "Craeting in ${zone.position.getX().toDouble()} and ${zone.position.getY().toDouble()}")
+            createFingerprintingPoint(zone.position.getX().toDouble(), zone.position.getY().toDouble())
+            fingerprinting.createFingerprint(currentFingerprintingZone!!)
+
+        }
+
+
     }
 
     /**
