@@ -80,10 +80,10 @@ class FingerprintingService() : Algorithm() {
                     val beacon = beacons[index]
                     if (instant) {
                         // Simulation
-                        differenceRating += Math.abs(beacon.intensity - it.rssi)
+                        differenceRating += (Math.abs(beacon.intensity - it.rssi) * beacon.reliability)
                     } else {
                         // Real time
-                        differenceRating += Math.abs(beacon.averageRssi - it.rssi)
+                        differenceRating += (Math.abs(beacon.averageRssi - it.rssi)  * beacon.reliability)
                     }
 
                 }
@@ -111,13 +111,13 @@ class FingerprintingService() : Algorithm() {
         }
 
         //Log.d("RATINGS", fingerprintRating.toString())
+        //Log.d("RATINGS", fingerprintRatingOld.toString())
 
         // Get the one with less rating
         val index = fingerprintRating.indexOf(fingerprintRating.min())
         //Log.d("RATINGS", "$index")
 
         val bestZone = fingerprintZones.get(index)
-        //Log.d("RATINGS", "Best zone is $bestZone ${fingerprintRating[index]}")
 
         currentFingerprintingZone = bestZone
 

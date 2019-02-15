@@ -44,7 +44,7 @@ class FPTrilat : Algorithm() {
         //Log.d(TAG, "LOCATION FP: ${loc.toString()}")
         val vectorToBeacon: MutableList<VectorToBeacon> = mutableListOf<VectorToBeacon>()
         for (b in beaconList) {
-            val distanceToBeacon = euclideanDistance(b.position, loc)
+            val distanceToBeacon = euclideanDistance(b.position, loc) * b.beacon.reliability
             val angle = getVectorsAngle(b.position, loc)
             val bData = VectorToBeacon(b.beacon.address, distanceToBeacon, angle)
             vectorToBeacon.add(bData)

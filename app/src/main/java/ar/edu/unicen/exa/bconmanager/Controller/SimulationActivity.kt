@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_simulation.*
 
 class SimulationActivity : OnMapActivity() {
 
-    private val datasetPath = "/storage/emulated/0/Download/zigzag.json"
+    private val datasetPath = "/storage/emulated/0/Download/zigzag3.json"
     private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     private var pointsList: MutableList<ImageView> = mutableListOf()

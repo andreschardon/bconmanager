@@ -12,6 +12,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
     var average: Double = 0.0
     var averageAmount = 0
     var txPower : Int = -60
+    var reliability : Double = 1.0
 
 
     override fun toString(): String {

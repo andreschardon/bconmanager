@@ -36,6 +36,7 @@ abstract class Algorithm : AppCompatActivity() {
             for (it in customMap.savedBeacons) {
                 if (it.beacon == beaconDev) {
                     beaconLoc = it.position
+                    beaconDev.reliability = it.beacon.reliability
                 }
             }
             var beaconMap = BeaconOnMap(beaconLoc, beaconDev)

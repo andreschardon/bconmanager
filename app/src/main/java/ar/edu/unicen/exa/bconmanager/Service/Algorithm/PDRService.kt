@@ -182,7 +182,7 @@ class PDRService : Algorithm(){
         if (isSimulation) {
             // To radians and considering adjustment
             adjustedAngle = ((bearingD ) / 57.2958)
-            factor = 1.5
+            factor = 1.9
         }
 
         Log.d("ANGLEWTF", "Moving in ${adjustedAngle.toDouble()}° adj: $bearingAdjustment")

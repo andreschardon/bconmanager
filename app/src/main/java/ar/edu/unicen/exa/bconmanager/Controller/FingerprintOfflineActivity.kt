@@ -114,6 +114,10 @@ class FingerprintOfflineActivity : OnMapActivity() {
 
         }
 
+        for (zone in floorMap.fingerprintZones) {
+            updateZone(zone)
+        }
+
 
     }
 
