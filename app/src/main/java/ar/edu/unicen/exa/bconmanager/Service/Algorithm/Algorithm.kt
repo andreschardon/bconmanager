@@ -2,11 +2,8 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
-import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
+import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
-import ar.edu.unicen.exa.bconmanager.Model.Location
 
 abstract class Algorithm : AppCompatActivity() {
 
@@ -17,13 +14,13 @@ abstract class Algorithm : AppCompatActivity() {
         customMap = map
     }
 
-    abstract fun getNextPosition(data: JsonData, nextTimestamp: Number): Location
+    abstract fun getNextPosition(data: AveragedTimestamp): Location
 
 
     /**
      * Converts jsonData beacons to BeaconOnMap list
      */
-    protected fun getBeacons(data: JsonData) : List<BeaconOnMap> {
+    protected fun getBeacons(data: AveragedTimestamp) : List<BeaconOnMap> {
         var savedBeacons: MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
         Log.d("GETBEACONS", "${data.beacons!!}")
         Log.d("GETBEACONS", "${customMap.savedBeacons}")

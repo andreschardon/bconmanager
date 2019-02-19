@@ -2,6 +2,7 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOfflineAdapter
+import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
@@ -15,7 +16,7 @@ class FingerprintingService() : Algorithm() {
     private val PRIORITY_RATIO = 40
 
 
-    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+    override fun getNextPosition(data: AveragedTimestamp): Location {
         val savedBeacons = getBeacons(data)
         val sBeacons: MutableList<BeaconDevice> = mutableListOf<BeaconDevice>()
         for (b in savedBeacons) {

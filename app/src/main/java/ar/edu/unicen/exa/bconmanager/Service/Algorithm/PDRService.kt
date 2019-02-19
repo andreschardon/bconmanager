@@ -3,6 +3,7 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.hardware.SensorManager
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
+import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
@@ -36,6 +37,7 @@ class PDRService : Algorithm(){
     private var stepSize = 0.2F
     private var initialPosition = true
     private var isSimulation = false
+    private var index = 0
 
     private object Holder {
         val INSTANCE = PDRService()
@@ -101,13 +103,13 @@ class PDRService : Algorithm(){
         PDREnabled = true
     }
 
-    override fun getNextPosition(dataEntry: JsonData, t2: Number): Location {
+    override fun getNextPosition(dataEntry: AveragedTimestamp): Location {
         isSimulation = true
         if (initialPosition){
             this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
-        val steps = getStepsDone(dataEntry.timestamp,t2,dataEntry.acceleration)
+        val steps = getStepsDone(dataEntry.timesList[index],dataEntry.accelerationList[index])
         var i =0
         Log.d("PDRWTF", "---------------------------------------------------------- $steps steps")
         if (steps == 0) {
@@ -116,7 +118,7 @@ class PDRService : Algorithm(){
         } else {
             this.mPrevLocation = this.mCurrentLocation!!.clone()
             while (i<steps) {
-                var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.angle.toFloat())
+                var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.accelerationList[index])
                 //  Log.d("SIMULATION", "COMPUTED: $asd")
                 nextPosition= customMap.restrictPosition(PositionOnMap(newPositionUnrestricted)).position
                 this.mCurrentLocation = nextPosition
@@ -215,10 +217,9 @@ class PDRService : Algorithm(){
         return this.angle
     }
 
-    private fun getStepsDone(t1: Number, t2: Number, acc: Float) : Int {
+    private fun getStepsDone(ts: Float, acc: Float) : Int {
         //Log.d("SIMULATION", "$t1 ${t2.toInt()} $acc")
         var vel = 0.0F
-        val ts = (t2.toFloat() - t1.toFloat())
         val t = ts.div(1000F)
         //Log.d("SIMULATION", "Time: $t")
         vel = t * acc

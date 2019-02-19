@@ -85,7 +85,7 @@ class FPTrilat : Algorithm() {
     /**
      * Returns the next position for the Simulation
      */
-    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+    override fun getNextPosition(data: AveragedTimestamp): Location {
         val beaconList = getBeacons(data)
         return this.getNextPoint(beaconList)
     }

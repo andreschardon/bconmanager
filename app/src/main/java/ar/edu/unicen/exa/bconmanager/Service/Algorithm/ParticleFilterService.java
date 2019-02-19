@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter;
+import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp;
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap;
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap;
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData;
@@ -131,7 +132,7 @@ public class ParticleFilterService extends Algorithm {
     }
 
     @Override
-    public Location getNextPosition(@NotNull JsonData data, @NotNull Number nextTimestamp) {
+    public Location getNextPosition(@NotNull AveragedTimestamp data) {
 
         /*Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
         this.trilaterationLocation = trilatLocation;*/
@@ -158,10 +159,10 @@ public class ParticleFilterService extends Algorithm {
         }
 
 
-        Location referenceLocation = referenceService.getNextPosition(data, nextTimestamp);
+        Location referenceLocation = referenceService.getNextPosition(data);
         this.referenceLocation = referenceLocation;
 
-        Location pdrLocation = pdrService.getNextPosition(data, nextTimestamp);
+        Location pdrLocation = pdrService.getNextPosition(data);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
         System.out.println("PDRWTF Moved "+movedX+" and "+movedY);
