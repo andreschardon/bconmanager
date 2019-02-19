@@ -195,7 +195,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
         Log.d("DATACOLLECT", "Current angle is $angle º")
         Log.d("DATACOLLECT", "Current speed is $acceleration ")
         devicesListOnlineAdapter.beacons.forEach {
-            val beacon = JsonDataBeacon(it.address, it.intensity)
+            val beacon = JsonDataBeacon(it.address, it.intensity.toDouble())
             beaconData.add(beacon)
             Log.d("DATACOLLECT", it.toString())
         }

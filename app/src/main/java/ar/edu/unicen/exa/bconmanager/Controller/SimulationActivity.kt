@@ -20,7 +20,7 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    private val datasetPath = "/storage/emulated/0/Download/rectangulo2.json"
+    private val datasetPath = "/storage/emulated/0/Download/zigzag3.json"
     private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     private var pointsList: MutableList<ImageView> = mutableListOf()
@@ -32,7 +32,7 @@ class SimulationActivity : OnMapActivity() {
     lateinit var algorithmPF: ParticleFilterService
 
     private var drawPoints = true
-    private val UPDATE_INTERVAL = 1
+    private val UPDATE_INTERVAL = 3
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -14,7 +14,7 @@ class FingerprintingService() : Algorithm() {
 
     var currentFingerprintingZone: FingerprintZone? = null
     private val PRIORITY_RATIO = 40
-
+    private var firstZone = true
 
     override fun getNextPosition(data: AveragedTimestamp): Location {
         val savedBeacons = getBeacons(data)
@@ -67,6 +67,7 @@ class FingerprintingService() : Algorithm() {
      * Returns the best fingerprinting zone according to RSSI values of the beacons
      */
     fun getCurrentZone(beacons: List<BeaconDevice>, instant: Boolean = false): FingerprintZone? {
+
         val fingerprintZones = customMap.fingerprintZones
         val fingerprintRating = mutableListOf<Double>()
         //Log.d("RATINGS", beacons.toString())
@@ -81,15 +82,22 @@ class FingerprintingService() : Algorithm() {
                     val beacon = beacons[index]
                     if (instant) {
                         // Simulation
-                        differenceRating += (Math.abs(beacon.intensity - it.rssi) * beacon.reliability)
+
+                        differenceRating += (Math.pow(beacon.intensity - it.rssi, 2.0) * beacon.reliability)
+                        if (zone.position.x == 6.44 && zone.position.y == 34.88 && firstZone) {
+                            Log.d("FPZONES", "Difference for beacon ${beacon.name} is ${beacon.intensity - it.rssi} and reliab ${beacon.reliability}")
+                            Log.d("FPZONES", "Difference rating now is $differenceRating")
+                        }
+
                     } else {
                         // Real time
-                        differenceRating += (Math.abs(beacon.averageRssi - it.rssi)  * beacon.reliability)
+                        differenceRating += (Math.pow(beacon.averageRssi - it.rssi, 2.0) * beacon.reliability)
                     }
 
                 }
             }
-            fingerprintRating.add(differenceRating)
+            val ecm =  differenceRating /zone.fingerprints.size
+            fingerprintRating.add(ecm)
             // To avoid jumps
             if (currentFingerprintingZone != null) {
                 val thisDist = distanceBetweenZones(currentFingerprintingZone!!, zone)
@@ -101,27 +109,37 @@ class FingerprintingService() : Algorithm() {
 //        Log.d("RATINGS", fingerprintRating.toString())
 //        Log.d("RATINGS", "MAX DISTANCE IS $maxDistance")
 
+        //Log.d("FPZONES", "BEFORE ${fingerprintRating}")
+        //Log.d("FPZONES", "BEFORE ${fingerprintZones}")
+
         // Modify ratings to prioritize closer zones
         if (currentFingerprintingZone != null) {
             var index = 0
             fingerprintZones.forEach {
+                if (it.position.x == 6.44 && it.position.y == 34.88 && firstZone)
+                    Log.d("FPZONES", "Correct zone rating is ${fingerprintRating[index]}")
                 fingerprintRating[index] = prioritizeCloserZones(fingerprintRating[index], it, maxDistance)
                 index++
+                if (it.position.x == 6.44 && it.position.y == 34.88 && firstZone)
+                    Log.d("FPZONES", "FIXED zone rating is ${fingerprintRating[index]}")
             }
 
         }
 
+        //Log.d("FPZONES", "BEFORE ${fingerprintRating}")
+        //Log.d("FPZONES", "BEFORE ${fingerprintZones}")
         //Log.d("RATINGS", fingerprintRating.toString())
         //Log.d("RATINGS", fingerprintRatingOld.toString())
 
         // Get the one with less rating
         val index = fingerprintRating.indexOf(fingerprintRating.min())
         //Log.d("RATINGS", "$index")
+        //Log.d("FPZONES", "BEST zone rating is ${fingerprintRating[index]}")
 
         val bestZone = fingerprintZones.get(index)
 
         currentFingerprintingZone = bestZone
-
+        firstZone = false
         return bestZone
     }
 

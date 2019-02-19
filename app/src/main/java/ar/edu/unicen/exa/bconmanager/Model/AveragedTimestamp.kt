@@ -1,10 +1,11 @@
 package ar.edu.unicen.exa.bconmanager.Model
 
+import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataBeacon
 
 class AveragedTimestamp {
-    var beacons: List<JsonDataBeacon>? = null
+    var beacons: MutableList<JsonDataBeacon> = mutableListOf()
     var positionX: Double = -1.0
     var positionY: Double = -1.0
     var accelerationList: MutableList<Float> = mutableListOf<Float>()
@@ -13,18 +14,24 @@ class AveragedTimestamp {
 
 
     fun startFromData(data: JsonData, nextTimestamp: Number) {
+        Log.d("AVERAGE-RSSI", "RESULT $beacons")
         accelerationList.clear()
         timeList.clear()
         angleList.clear()
-        beacons = data.beacons
+        beacons.clear()
+        data.beacons!!.forEach {
+            beacons.add(it.clone())
+        }
         positionX = data.positionX
         positionY = data.positionY
         accelerationList.add(data.acceleration)
         timeList.add(nextTimestamp.toFloat() - data.timestamp.toFloat())
         angleList.add(data.angle)
+        Log.d("AVERAGE-RSSI", "Setting $beacons")
     }
 
     fun addData(data: JsonData, nextTimestamp: Number) {
+        Log.d("AVERAGE-RSSI", "Setting ${data.beacons}")
         data.beacons!!.forEach {
             val index = beacons!!.indexOf(it)
             beacons!![index].calculateAverage(it.rssi!!)

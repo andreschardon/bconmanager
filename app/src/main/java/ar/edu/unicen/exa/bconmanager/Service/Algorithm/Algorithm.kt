@@ -27,7 +27,7 @@ abstract class Algorithm : AppCompatActivity() {
 
 
         for (beacon in data.beacons!!) {
-            var beaconDev = BeaconDevice(beacon.mac!!, beacon.rssi!!, null)
+            var beaconDev = BeaconDevice(beacon.mac!!, beacon.rssi!!.toInt(), null)
             var beaconLoc = Location(0.0, 0.0, customMap)
 
             for (it in customMap.savedBeacons) {

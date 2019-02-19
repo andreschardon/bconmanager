@@ -2,21 +2,24 @@ package ar.edu.unicen.exa.bconmanager.Model.Json
 
 class JsonDataBeacon constructor(
         val mac : String? = null,
-        var rssi : Int? = null,
+        var rssi : Double? = null,
         var counter: Int? = null) {
 
 
 
     override fun toString(): String {
-        return "$mac!!"
+        return "$mac : $rssi"
     }
 
+    fun clone() :JsonDataBeacon {
+        return JsonDataBeacon(mac, rssi, counter)
+    }
 
     override fun equals(other: Any?): Boolean {
         return ((other as JsonDataBeacon).mac == mac)
     }
 
-    fun calculateAverage(newRssi: Int) {
+    fun calculateAverage(newRssi: Double) {
         if (counter == null) {
             counter = 1
         }

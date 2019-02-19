@@ -60,7 +60,7 @@ class FingerprintZone constructor (position : Location) : Resource(position){
     }
 
     override fun toString(): String {
-        return "FingerprintZone: (${position.getX()} , ${position.getY()})"
+        return "(${position.getXMeters()} , ${position.getYMeters()})"
     }
 
     fun updateFingerprints(beacons: List<BeaconDevice>) {
