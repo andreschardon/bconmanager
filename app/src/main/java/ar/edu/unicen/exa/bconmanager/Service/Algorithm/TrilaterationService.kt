@@ -1,11 +1,7 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.util.Log
-import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap
-import ar.edu.unicen.exa.bconmanager.Model.Circle
-import ar.edu.unicen.exa.bconmanager.Model.CustomMap
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
-import ar.edu.unicen.exa.bconmanager.Model.Location
+import ar.edu.unicen.exa.bconmanager.Model.*
 
 class TrilaterationService : Algorithm() {
 
@@ -13,7 +9,7 @@ class TrilaterationService : Algorithm() {
     private var EPS = 0.0000001
     override var TAG = "Trilateration Calculator"
     private val maxLength = 50.0
-    private lateinit var foundLocation : Location
+    private lateinit var foundLocation: Location
 
     private object Holder {
         val INSTANCE = TrilaterationService()
@@ -54,7 +50,7 @@ class TrilaterationService : Algorithm() {
     /**
      * Using the beacons from the dataset, obtains the next position using trilateration
      */
-    override fun getNextPosition(data: JsonData, nextTimestamp: Number): Location {
+    override fun getNextPosition(data: AveragedTimestamp): Location {
         val beaconList = getBeacons(data)
         return getPositionInMap(beaconList)!!
     }

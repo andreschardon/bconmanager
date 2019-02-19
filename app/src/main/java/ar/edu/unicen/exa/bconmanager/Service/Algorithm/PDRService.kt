@@ -109,13 +109,28 @@ class PDRService : Algorithm(){
             this.mCurrentLocation = Location(dataEntry.positionX,dataEntry.positionY,customMap)
             initialPosition = false
         }
-        val steps = getStepsDone(dataEntry.timesList[index],dataEntry.accelerationList[index])
+
+        this.movedX = 0.0
+        this.movedY = 0.0
+        val startLocation = this.mCurrentLocation!!.clone()
+
+        var resultPosition = Location(-1.0, -1.0, customMap)
+
+        repeat(dataEntry.timeList.size) {
+            resultPosition = getNextNthPosition(dataEntry, it)
+        }
+
+        movedDistance(startLocation)
+
+        return resultPosition
+
+    }
+
+    private fun getNextNthPosition(dataEntry: AveragedTimestamp, index: Int) : Location {
+        val steps = getStepsDone(dataEntry.timeList[index],dataEntry.accelerationList[index])
         var i =0
         Log.d("PDRWTF", "---------------------------------------------------------- $steps steps")
-        if (steps == 0) {
-            this.movedX = 0.0
-            this.movedY = 0.0
-        } else {
+        if (steps != 0) {
             this.mPrevLocation = this.mCurrentLocation!!.clone()
             while (i<steps) {
                 var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.accelerationList[index])
@@ -124,7 +139,6 @@ class PDRService : Algorithm(){
                 this.mCurrentLocation = nextPosition
                 i++
             }
-            movedDistance()
         }
 
         return this.mCurrentLocation!!
@@ -241,10 +255,10 @@ class PDRService : Algorithm(){
         return this.movedY
     }
 
-    private fun movedDistance() {
-        Log.d("PDRWTF", "${this.mPrevLocation} going to ${this.mCurrentLocation}")
-        this.movedX = this.mCurrentLocation!!.x.roundTo2DecimalPlaces() - this.mPrevLocation!!.x.roundTo2DecimalPlaces()
-        this.movedY = this.mCurrentLocation!!.y.roundTo2DecimalPlaces() - this.mPrevLocation!!.y.roundTo2DecimalPlaces()
+    private fun movedDistance(startLocation : Location) {
+        Log.d("PDRWTF", "$startLocation going to ${this.mCurrentLocation}")
+        this.movedX = this.mCurrentLocation!!.x.roundTo2DecimalPlaces() - startLocation.x.roundTo2DecimalPlaces()
+        this.movedY = this.mCurrentLocation!!.y.roundTo2DecimalPlaces() - startLocation.y.roundTo2DecimalPlaces()
         Log.d("PFPDR", "Setting moved distance to $movedX and $movedY")
     }
 }

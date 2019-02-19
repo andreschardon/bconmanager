@@ -32,7 +32,7 @@ class SimulationActivity : OnMapActivity() {
     lateinit var algorithmPF: ParticleFilterService
 
     private var drawPoints = true
-    private val UPDATE_INTERVAL = 3
+    private val UPDATE_INTERVAL = 1
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,7 +122,7 @@ class SimulationActivity : OnMapActivity() {
 
 
         // We are going to run the simulation once every 3 "timestamps"
-        var currentCounter = 1
+        var currentCounter = 0
         var currentTimestamp = AveragedTimestamp()
 
 
@@ -138,15 +138,17 @@ class SimulationActivity : OnMapActivity() {
                 isLastTimestamp = true
                 nextTimestamp = currentData.timestamp
             }
-
-            if (currentCounter == 1) {
+            Log.d("AVERAGED", "Timestamp $i currentCounter $currentCounter")
+            if (currentCounter == 0) {
                 currentTimestamp.startFromData(currentData, nextTimestamp)
             } else {
                 currentTimestamp.addData(currentData, nextTimestamp)
-                currentCounter++
+
             }
+            currentCounter++
 
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
+                Log.d("AVERAGED", "Time to update OR last timestamp!")
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
@@ -164,13 +166,15 @@ class SimulationActivity : OnMapActivity() {
                 if (error >= maxError)
                     maxError = error
 
-                var timestamp = JsonTimestamp(currentData.timestamp, currentData.positionX, currentData.positionY, error, calculatedPosition.x, calculatedPosition.y)
+                val timestamp = JsonTimestamp(currentData.timestamp, currentData.positionX, currentData.positionY, error, calculatedPosition.x, calculatedPosition.y)
                 timestampList.add(timestamp)
 
                 if (algorithm is ParticleFilterService) {
                     printPfLocations(algorithm as ParticleFilterService, realPosition)
                 }
-                currentCounter = 1
+                currentCounter = 0
+            } else {
+                Log.d("AVERAGED", "CurrentCounter is $currentCounter")
             }
             i++
         }
@@ -179,12 +183,12 @@ class SimulationActivity : OnMapActivity() {
         result.timestamps = timestampList
         result.errorMax = maxError
         result.errorAverage = averageError
-        result.errorMedian = getMedianError(simulationDataSize, errors)
+        result.errorMedian = getMedianError(timestampList.size, errors)
         Log.d("ERROR", "ERROR MEDIAN: ${result.errorMedian}")
         val finalPath = "$datasetPathMod$choice.json"
 
         saveResultsToFile(finalPath, result)
-        Toast.makeText(this, "Simulation Completed, Results are in Results-$choice.json", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
     }
 
     private fun drawPosition(position: Location, realPosition: Boolean, index: Int, last: Int) {
@@ -193,12 +197,11 @@ class SimulationActivity : OnMapActivity() {
             particle.image = R.drawable.realposition
         else {
             Log.d("DRAWINGDEBUG", "Drawing result in $position")
-            if (index <= 5) {
-                particle.image = R.drawable.finger_zone_green_xs
-            } else if (index >= last) {
-                particle.image = R.drawable.finger_zone_red_xs
-            } else
-                particle.image = R.drawable.finger_zone_blue_xs
+            when {
+                index <= 5 -> particle.image = R.drawable.finger_zone_green_xs
+                index >= last -> particle.image = R.drawable.finger_zone_red_xs
+                else -> particle.image = R.drawable.finger_zone_blue_xs
+            }
         }
 
         val particleView = ImageView(this)
