@@ -148,7 +148,6 @@ class SimulationActivity : OnMapActivity() {
             currentCounter++
 
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
-                Log.d("AVERAGED", "Time to update OR last timestamp!")
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
@@ -174,7 +173,6 @@ class SimulationActivity : OnMapActivity() {
                 }
                 currentCounter = 0
             } else {
-                Log.d("AVERAGED", "CurrentCounter is $currentCounter")
             }
             i++
         }

@@ -13,6 +13,9 @@ class AveragedTimestamp {
 
 
     fun startFromData(data: JsonData, nextTimestamp: Number) {
+        accelerationList.clear()
+        timeList.clear()
+        angleList.clear()
         beacons = data.beacons
         positionX = data.positionX
         positionY = data.positionY

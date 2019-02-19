@@ -113,13 +113,15 @@ class PDRService : Algorithm(){
         this.movedX = 0.0
         this.movedY = 0.0
         val startLocation = this.mCurrentLocation!!.clone()
+        Log.d("AVERAGED", "Moved distance is 0, and startPosition is $startLocation")
 
         var resultPosition = Location(-1.0, -1.0, customMap)
 
         repeat(dataEntry.timeList.size) {
+            Log.d("AVERAGED", "GetNextNthPosition step $it")
             resultPosition = getNextNthPosition(dataEntry, it)
         }
-
+        Log.d("AVERAGED", "Result location is $resultPosition")
         movedDistance(startLocation)
 
         return resultPosition
@@ -133,7 +135,7 @@ class PDRService : Algorithm(){
         if (steps != 0) {
             this.mPrevLocation = this.mCurrentLocation!!.clone()
             while (i<steps) {
-                var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.accelerationList[index])
+                var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.angleList[index].toFloat())
                 //  Log.d("SIMULATION", "COMPUTED: $asd")
                 nextPosition= customMap.restrictPosition(PositionOnMap(newPositionUnrestricted)).position
                 this.mCurrentLocation = nextPosition
