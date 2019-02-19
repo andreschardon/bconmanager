@@ -1,23 +1,22 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
+import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
-import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSimResult
 import ar.edu.unicen.exa.bconmanager.Model.Json.JsonTimestamp
+import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
 import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
-import kotlinx.android.synthetic.main.activity_simulation.*
 
 class SimulationActivity : OnMapActivity() {
 
@@ -27,12 +26,13 @@ class SimulationActivity : OnMapActivity() {
     private var pointsList: MutableList<ImageView> = mutableListOf()
     lateinit var algorithm: Algorithm
 
-    lateinit var algorithmFingerp : FingerprintingService
+    lateinit var algorithmFingerp: FingerprintingService
     lateinit var algorithmTrilat: TrilaterationService
     lateinit var algorithmPDR: PDRService
     lateinit var algorithmPF: ParticleFilterService
 
     private var drawPoints = true
+    private val UPDATE_INTERVAL = 3
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +49,7 @@ class SimulationActivity : OnMapActivity() {
 
     private fun loadDatasetFromFile(filePath: String) {
         val dataset = JsonUtility.readDatasetFromFile(filePath)
-        for(d in dataset.data!!) {
+        for (d in dataset.data!!) {
             var data: JsonData = d
             simulationData.add(data)
         }
@@ -71,8 +71,9 @@ class SimulationActivity : OnMapActivity() {
         algorithm = ParticleFilterService()
         runSimulation("ParticleFilter")
     }
-    fun runSimulationPDR(view : View) {
-        algorithm =  PDRService.instance
+
+    fun runSimulationPDR(view: View) {
+        algorithm = PDRService.instance
         (algorithm as PDRService).setAdjustedBearing(floorMap.angle.toFloat())
         //(algorithm as PDRService).setAdjustedBearing(0.0f)
         runSimulation("PDR")
@@ -105,7 +106,7 @@ class SimulationActivity : OnMapActivity() {
         var maxError = 0.0
         var averageError = 0.0
         var result = JsonSimResult()
-        var timestampList : MutableList<JsonTimestamp> = mutableListOf()
+        var timestampList: MutableList<JsonTimestamp> = mutableListOf()
         pointsList.forEach {
             removeResource(it)
         }
@@ -122,38 +123,54 @@ class SimulationActivity : OnMapActivity() {
 
         // We are going to run the simulation once every 3 "timestamps"
         var currentCounter = 1
+        var currentTimestamp = AveragedTimestamp()
 
 
         while (i < simulationDataSize) {
             val currentData = simulationData[i]
-            //Log.d("SIMULATION", currentData.toString())
+
+            // Check if it is the "last" timestamp
+            var isLastTimestamp = false
             var nextTimestamp: Number = 0
             if ((i + 1) < simulationData!!.size) {
                 nextTimestamp = simulationData!!.get(i + 1).timestamp
-            } else
+            } else {
+                isLastTimestamp = true
                 nextTimestamp = currentData.timestamp
-            val calculatedPosition = algorithm.getNextPosition(currentData, nextTimestamp)
-            calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
-            calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
-            Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
-            val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
-            if (drawPoints) {
-                drawPosition(calculatedPosition, false, i, max)
-                drawPosition(realPosition, true, i, max)
             }
 
-            // Calculate error
-            val error = algorithm.getError(realPosition, calculatedPosition)
-            errorSum += error
-            errors.add(error)
-            if (error >= maxError)
-                maxError = error
+            if (currentCounter == 1) {
+                currentTimestamp.startFromData(currentData, nextTimestamp)
+            } else {
+                currentTimestamp.addData(currentData, nextTimestamp)
+                currentCounter++
+            }
 
-            var timestamp = JsonTimestamp(currentData.timestamp, currentData.positionX, currentData.positionY, error, calculatedPosition.x, calculatedPosition.y)
-            timestampList.add(timestamp)
+            if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
+                val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
+                calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
+                calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
+                Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
+                val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
+                if (drawPoints) {
+                    drawPosition(calculatedPosition, false, i, max)
+                    drawPosition(realPosition, true, i, max)
+                }
 
-            if (algorithm is ParticleFilterService) {
-                printPfLocations(algorithm as ParticleFilterService, realPosition)
+                // Calculate error
+                val error = algorithm.getError(realPosition, calculatedPosition)
+                errorSum += error
+                errors.add(error)
+                if (error >= maxError)
+                    maxError = error
+
+                var timestamp = JsonTimestamp(currentData.timestamp, currentData.positionX, currentData.positionY, error, calculatedPosition.x, calculatedPosition.y)
+                timestampList.add(timestamp)
+
+                if (algorithm is ParticleFilterService) {
+                    printPfLocations(algorithm as ParticleFilterService, realPosition)
+                }
+                currentCounter = 1
             }
             i++
         }
@@ -162,15 +179,15 @@ class SimulationActivity : OnMapActivity() {
         result.timestamps = timestampList
         result.errorMax = maxError
         result.errorAverage = averageError
-        result.errorMedian = getMedianError(simulationDataSize,errors)
-        Log.d("ERROR","ERROR MEDIAN: ${result.errorMedian}")
+        result.errorMedian = getMedianError(simulationDataSize, errors)
+        Log.d("ERROR", "ERROR MEDIAN: ${result.errorMedian}")
         val finalPath = "$datasetPathMod$choice.json"
 
-        saveResultsToFile(finalPath , result)
-        Toast.makeText(this,"Simulation Completed, Results are in Results-$choice.json",Toast.LENGTH_LONG).show()
+        saveResultsToFile(finalPath, result)
+        Toast.makeText(this, "Simulation Completed, Results are in Results-$choice.json", Toast.LENGTH_LONG).show()
     }
 
-    private fun drawPosition(position: Location, realPosition: Boolean, index : Int, last : Int) {
+    private fun drawPosition(position: Location, realPosition: Boolean, index: Int, last: Int) {
         val particle = PositionOnMap(position)
         if (realPosition)
             particle.image = R.drawable.realposition
@@ -180,18 +197,17 @@ class SimulationActivity : OnMapActivity() {
                 particle.image = R.drawable.finger_zone_green_xs
             } else if (index >= last) {
                 particle.image = R.drawable.finger_zone_red_xs
-            }
-            else
+            } else
                 particle.image = R.drawable.finger_zone_blue_xs
         }
 
         val particleView = ImageView(this)
         this.pointsList.add(particleView)
 
-        setupResource(particle, particleView,20,20)
+        setupResource(particle, particleView, 20, 20)
     }
 
-    private fun printPfLocations(particleFilter : ParticleFilterService, realPosition: Location) {
+    private fun printPfLocations(particleFilter: ParticleFilterService, realPosition: Location) {
         Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.referenceLocation.x}, ${particleFilter.referenceLocation.y})")
         Log.d("SIMULATION-PF", "REAL POINT IS (${realPosition.x}, ${realPosition.y})")
         Log.d("SIMULATION-PF", "PF MIDDLE  IS (${particleFilter.pfLocation.x}, ${particleFilter.pfLocation.y})")
@@ -206,19 +222,18 @@ class SimulationActivity : OnMapActivity() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    fun getMedianError(simSize: Int, errors: List<Double>) : Double {
-        for(e in errors) {
+    fun getMedianError(simSize: Int, errors: List<Double>): Double {
+        for (e in errors) {
             Log.d("ERRORS", "E: $e")
         }
-        val medianNOdd = ((simSize - 1)/2)
-        val medianNEven = (simSize/2)
+        val medianNOdd = ((simSize - 1) / 2)
+        val medianNEven = (simSize / 2)
         if (simSize % 2 == 0) {
-            Log.d("ERROR","ERROR EVEN: ${(errors[medianNOdd] + errors[medianNEven])/2}")
-            return (errors[medianNOdd] + errors[medianNEven])/2
-        }
-        else {
+            Log.d("ERROR", "ERROR EVEN: ${(errors[medianNOdd] + errors[medianNEven]) / 2}")
+            return (errors[medianNOdd] + errors[medianNEven]) / 2
+        } else {
             Log.d("ERROR", "ERROR ODD: ${errors[medianNOdd]}")
-           return errors[medianNOdd]
+            return errors[medianNOdd]
         }
     }
 }
