@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.activity_simulation.*
 
 class SimulationActivity : OnMapActivity() {
 
-    private val datasetPath = "/storage/emulated/0/Download/zigzag3.json"
+    private val datasetPath = "/storage/emulated/0/Download/rectangulo2.json"
     private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     private var pointsList: MutableList<ImageView> = mutableListOf()
@@ -118,6 +118,12 @@ class SimulationActivity : OnMapActivity() {
         val simulationDataSize = simulationData.size
         var errors: MutableList<Double> = mutableListOf()
         val max = simulationDataSize - 5
+
+
+        // We are going to run the simulation once every 3 "timestamps"
+        var currentCounter = 1
+
+
         while (i < simulationDataSize) {
             val currentData = simulationData[i]
             //Log.d("SIMULATION", currentData.toString())
