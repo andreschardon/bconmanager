@@ -28,7 +28,7 @@ public class ParticleFilterService extends Algorithm {
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
     private static final double STARTING_AREA_MTS = 2.0;
-    private double RESAMPLING_MINIMUM = 0.98;
+    private double RESAMPLING_MINIMUM = 0.85;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -61,7 +61,7 @@ public class ParticleFilterService extends Algorithm {
     private ParticleFilterAdapter pfAdapter;
     //private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
     private PDRService pdrService = PDRService.Companion.getInstance();
-    private FPTrilat referenceService = FPTrilat.Companion.getInstance();
+    private FingerprintingService referenceService = new FingerprintingService();
 
     //public Location trilaterationLocation;
     public Location referenceLocation;

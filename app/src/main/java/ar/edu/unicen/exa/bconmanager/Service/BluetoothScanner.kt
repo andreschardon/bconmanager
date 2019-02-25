@@ -67,7 +67,7 @@ class BluetoothScanner : AppCompatActivity() {
 
 
     var mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
-        runOnUiThread {
+         runOnUiThread {
             val detectedBeacon = BeaconDevice(device.address, rssi, device)
 
 
@@ -85,7 +85,7 @@ class BluetoothScanner : AppCompatActivity() {
                     detectedBeacon.name = "iBKS"
                     detectedBeacon.txPower = -50 //60
                 }
-                device.address.startsWith("DF:B5:15:8C:D8:35") -> {
+                device.address.startsWith("DF:B5") -> {
                     detectedBeacon.name = "iBKS2"
                     detectedBeacon.txPower = -50
                 }
@@ -103,6 +103,7 @@ class BluetoothScanner : AppCompatActivity() {
                     devicesList[index].calculateDistance(rssi)
                     devicesList[index].txPower = detectedBeacon.txPower
                 }
+                Log.d("DATACOLLECT-BLE", detectedBeacon.toString())
                 devicesListAdapter.notifyDataSetChanged()
                 //clearAverages()
             }

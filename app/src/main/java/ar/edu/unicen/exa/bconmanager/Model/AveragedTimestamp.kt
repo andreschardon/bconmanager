@@ -34,7 +34,10 @@ class AveragedTimestamp {
         Log.d("AVERAGE-RSSI", "Setting ${data.beacons}")
         data.beacons!!.forEach {
             val index = beacons!!.indexOf(it)
-            beacons!![index].calculateAverage(it.rssi!!)
+            if (index != -1)
+                beacons!![index].calculateAverage(it.rssi!!)
+            else
+                beacons.add(it.clone())
         }
         accelerationList.add(data.acceleration)
         timeList.add(nextTimestamp.toFloat() - data.timestamp.toFloat())

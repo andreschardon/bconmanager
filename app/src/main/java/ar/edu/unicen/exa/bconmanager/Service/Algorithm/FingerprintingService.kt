@@ -84,7 +84,7 @@ class FingerprintingService() : Algorithm() {
                         // Simulation
 
                         differenceRating += (Math.pow(beacon.intensity - it.rssi, 2.0) * beacon.reliability)
-                        if (zone.position.x == 6.44 && zone.position.y == 34.88 && firstZone) {
+                        if (zone.position.x == 11.85 && zone.position.y == 34.88) {
                             Log.d("FPZONES", "Difference for beacon ${beacon.name} is ${beacon.intensity - it.rssi} and reliab ${beacon.reliability}")
                             Log.d("FPZONES", "Difference rating now is $differenceRating")
                         }
@@ -116,11 +116,11 @@ class FingerprintingService() : Algorithm() {
         if (currentFingerprintingZone != null) {
             var index = 0
             fingerprintZones.forEach {
-                if (it.position.x == 6.44 && it.position.y == 34.88 && firstZone)
+                if (it.position.x == 11.85 && it.position.y == 34.88)
                     Log.d("FPZONES", "Correct zone rating is ${fingerprintRating[index]}")
                 fingerprintRating[index] = prioritizeCloserZones(fingerprintRating[index], it, maxDistance)
                 index++
-                if (it.position.x == 6.44 && it.position.y == 34.88 && firstZone)
+                if (it.position.x == 11.85 && it.position.y == 34.88)
                     Log.d("FPZONES", "FIXED zone rating is ${fingerprintRating[index]}")
             }
 

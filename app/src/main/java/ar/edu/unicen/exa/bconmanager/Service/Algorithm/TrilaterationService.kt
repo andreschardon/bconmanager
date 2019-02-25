@@ -39,7 +39,7 @@ class TrilaterationService : Algorithm() {
                 beacon.beacon.name = "iBKS"
                 beacon.beacon.txPower = -40 //50
             }
-            beacon.beacon.address.startsWith("DF:B5:15:8C:D8:35") -> {
+            beacon.beacon.address.startsWith("DF:B5") -> {
                 beacon.beacon.name = "iBKS2"
                 beacon.beacon.txPower = -50 //60
             }
