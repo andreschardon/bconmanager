@@ -9,14 +9,12 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter
+import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FPTrilat
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.TrilaterationService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
@@ -32,7 +30,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var pdrService = PDRService.instance
     private var particleFilterService: ParticleFilterService? = null
     private var trilaterationCalculator = TrilaterationService.instance
-    private var referenceCalculator = FPTrilat.instance
+    private var referenceCalculator = FingerprintingService()
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
 
@@ -98,6 +96,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
         // Set up trilateration and fingerprinting
         startScan(bluetoothScanner)
+        referenceCalculator.startUp(floorMap)
 
         // Set up PDR
         pdrService.bearingAdjustment = (floorMap.angle / 57.2958).toFloat()
@@ -193,7 +192,9 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     fun trilateratePosition() {
 
         //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
-        val resultLocation = referenceCalculator.getNextPoint(floorMap.savedBeacons)
+        var currentTimestamp = AveragedTimestamp()
+        currentTimestamp.startFromBeacons(floorMap.savedBeacons)
+        val resultLocation = referenceCalculator.getNextPosition(currentTimestamp)
 
 
 

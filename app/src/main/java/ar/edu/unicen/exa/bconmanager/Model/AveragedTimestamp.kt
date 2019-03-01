@@ -30,6 +30,13 @@ class AveragedTimestamp {
         Log.d("AVERAGE-RSSI", "Setting $beacons")
     }
 
+    fun startFromBeacons(beaconList: MutableList<BeaconOnMap>) {
+        beaconList.forEach {
+            val dataBeacon = JsonDataBeacon(it.beacon.address, it.beacon.averageRssi, 1)
+            beacons.add(dataBeacon)
+        }
+    }
+
     fun addData(data: JsonData, nextTimestamp: Number) {
         Log.d("AVERAGE-RSSI", "Setting ${data.beacons}")
         data.beacons!!.forEach {
@@ -45,6 +52,14 @@ class AveragedTimestamp {
         positionY = data.positionY
         positionX = data.positionX
 
+    }
+
+    override fun toString(): String {
+        var beaconString = ""
+        beacons.forEach {
+            beaconString += "$it "
+        }
+        return "$beaconString"
     }
 
 

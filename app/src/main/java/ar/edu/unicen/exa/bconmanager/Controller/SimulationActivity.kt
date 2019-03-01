@@ -20,19 +20,14 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    private val datasetPath = "/storage/emulated/0/Download/mardel9.json.data"
+    private val datasetPath = "/storage/emulated/0/Download/zigzag3.json"
     private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     private var pointsList: MutableList<ImageView> = mutableListOf()
     lateinit var algorithm: Algorithm
 
-    lateinit var algorithmFingerp: FingerprintingService
-    lateinit var algorithmTrilat: TrilaterationService
-    lateinit var algorithmPDR: PDRService
-    lateinit var algorithmPF: ParticleFilterService
-
     private var drawPoints = true
-    private val UPDATE_INTERVAL = 3
+    private val UPDATE_INTERVAL = 4
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,10 +143,11 @@ class SimulationActivity : OnMapActivity() {
             currentCounter++
 
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
+                //Log.d("SIMULATION-f", "[$i] $currentTimestamp")
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
-                Log.d("SIMULATION-f", "[$i] " + calculatedPosition.toString())
+                Log.d("SIMULATION-f", "[$i] $calculatedPosition")
                 val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
                 if (drawPoints) {
                     drawPosition(calculatedPosition, false, i, max)

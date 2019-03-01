@@ -116,12 +116,12 @@ class FingerprintingService() : Algorithm() {
         if (currentFingerprintingZone != null) {
             var index = 0
             fingerprintZones.forEach {
-                if (it.position.x == 11.85 && it.position.y == 34.88)
-                    Log.d("FPZONES", "Correct zone rating is ${fingerprintRating[index]}")
+                if (it.position.x == 6.48 || it.position.x == 4.42)
+                    Log.d("SIMULATION-f", "Correct zone rating is ${fingerprintRating[index]}")
                 fingerprintRating[index] = prioritizeCloserZones(fingerprintRating[index], it, maxDistance)
                 index++
-                if (it.position.x == 11.85 && it.position.y == 34.88)
-                    Log.d("FPZONES", "FIXED zone rating is ${fingerprintRating[index]}")
+                if (it.position.x == 6.48 || it.position.x == 4.42)
+                    Log.d("SIMULATION-f", "FIXED zone rating is ${fingerprintRating[index]}")
             }
 
         }
