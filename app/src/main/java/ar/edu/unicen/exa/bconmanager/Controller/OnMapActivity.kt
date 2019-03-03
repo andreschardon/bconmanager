@@ -20,9 +20,12 @@ abstract class OnMapActivity  : AppCompatActivity() {
 
     protected val bluetoothScanner = BluetoothScanner.instance
     protected var filePath: String = ""
+    protected var datasetPath = ""
     protected open var TAG : String = ""
     protected lateinit var floorMap: CustomMap
     protected var touchListener : View.OnTouchListener? = null
+    protected var datasetChosen = false
+    protected var isChoosingFile = false
 
     fun Double.roundTo2DecimalPlaces() =
             BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
@@ -58,6 +61,11 @@ abstract class OnMapActivity  : AppCompatActivity() {
             101 -> if (resultCode == -1) {
                 val uri = data!!.data
                 filePath = uri.lastPathSegment.removePrefix("raw:")
+            }
+            102 -> if (resultCode == -1) {
+                val uri = data!!.data
+                datasetChosen = true
+                datasetPath = uri.lastPathSegment.removePrefix("raw:")
             }
         }
         if (!filePath.isNullOrEmpty()) {

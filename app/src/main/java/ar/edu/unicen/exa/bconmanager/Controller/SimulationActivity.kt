@@ -20,25 +20,48 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 
 class SimulationActivity : OnMapActivity() {
 
-    private val datasetPath = "/storage/emulated/0/Download/zigzag3.json"
     private val datasetPathMod = "/storage/emulated/0/Download/results/"
     private var simulationData: MutableList<JsonData> = mutableListOf()
     private var pointsList: MutableList<ImageView> = mutableListOf()
     lateinit var algorithm: Algorithm
 
     private var drawPoints = true
-    private val UPDATE_INTERVAL = 4
+
+    private val UPDATE_INTERVAL = 12
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_simulation)
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+        isChoosingFile = true
         val intent: Intent
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
         intent = Intent.createChooser(chooseFile, "Choose a file")
         startActivityForResult(intent, 101)
 
+    }
+
+    override fun onResume() {
+        isChoosingFile = false
+        super.onResume()
+        if (!datasetChosen) {
+            val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
+            val intent: Intent
+            isChoosingFile = true
+            chooseFile.type = "application/octet-stream" //as close to only Json as possible
+            intent = Intent.createChooser(chooseFile, "Choose a dataset file")
+            Toast.makeText(this, "Please select the DATASET and the MAP", Toast.LENGTH_SHORT).show()
+            startActivityForResult(intent, 102)
+        }
+
+    }
+
+    override fun onPause() {
+        if (!isChoosingFile) {
+            datasetChosen = false
+        }
+        super.onPause()
     }
 
 
@@ -143,7 +166,7 @@ class SimulationActivity : OnMapActivity() {
             currentCounter++
 
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
-                //Log.d("SIMULATION-f", "[$i] $currentTimestamp")
+                Log.d("SIMULATION-f", "[$i] $currentTimestamp")
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
