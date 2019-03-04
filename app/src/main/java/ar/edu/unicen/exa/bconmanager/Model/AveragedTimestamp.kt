@@ -49,8 +49,11 @@ class AveragedTimestamp {
         accelerationList.add(data.acceleration)
         timeList.add(nextTimestamp.toFloat() - data.timestamp.toFloat())
         angleList.add(data.angle)
-        positionY = data.positionY
-        positionX = data.positionX
+        if (data.positionY != 0.0 && data.positionX != 0.0) {
+            positionY = data.positionY
+            positionX = data.positionX
+        }
+
 
     }
 

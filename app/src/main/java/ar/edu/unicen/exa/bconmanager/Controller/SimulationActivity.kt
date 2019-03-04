@@ -136,7 +136,7 @@ class SimulationActivity : OnMapActivity() {
         var errorSum = 0.0
         val simulationDataSize = simulationData.size
         var errors: MutableList<Double> = mutableListOf()
-        val max = simulationDataSize - 5
+        val max = simulationDataSize - 15
 
 
         // We are going to run the simulation once every 3 "timestamps"
@@ -166,11 +166,11 @@ class SimulationActivity : OnMapActivity() {
             currentCounter++
 
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
-                Log.d("SIMULATION-f", "[$i] $currentTimestamp")
+                //Log.d("SIMULATION-f", "[$i] $currentTimestamp")
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
-                Log.d("SIMULATION-f", "[$i] $calculatedPosition")
+                Log.d("AVERAGED-f", "[$i] $calculatedPosition")
                 val realPosition = Location(currentData.positionX, currentData.positionY, floorMap)
                 if (drawPoints) {
                     drawPosition(calculatedPosition, false, i, max)
@@ -215,7 +215,7 @@ class SimulationActivity : OnMapActivity() {
         else {
             Log.d("DRAWINGDEBUG", "Drawing result in $position")
             when {
-                index <= 5 -> particle.image = R.drawable.finger_zone_green_xs
+                index <= 40 -> particle.image = R.drawable.finger_zone_green_xs
                 index >= last -> particle.image = R.drawable.finger_zone_red_xs
                 else -> particle.image = R.drawable.finger_zone_blue_xs
             }

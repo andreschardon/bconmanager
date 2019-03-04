@@ -47,7 +47,7 @@ class JsonUtility {
             val bufferedReader: BufferedReader = File(path).bufferedReader()
             val inputString = bufferedReader.use { it.readText() }
             var post = gson.fromJson(inputString, JsonMap::class.java)
-            Log.d("LOADING", inputString)
+            //Log.d("LOADING", inputString)
             return post
         }
 

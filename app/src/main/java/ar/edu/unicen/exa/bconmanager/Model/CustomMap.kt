@@ -35,11 +35,11 @@ class CustomMap constructor(var image : String, var width : Double , var height 
         }
         if (jsonMap.fingerprintZones != null) {
            for (z in jsonMap.fingerprintZones!!) {
-               Log.d("JSONTEST", z.toString())
+               //Log.d("JSONTEST", z.toString())
                val zone = FingerprintZone(Location(z.x!!, z.y!!, this))
                val fingerprints = mutableListOf<Fingerprint>()
                for (f in z.fingerprints!!) {
-                   Log.d("JSONTEST", f.toString())
+                   //Log.d("JSONTEST", f.toString())
                    fingerprints.add(Fingerprint(f.mac!!, f.rssi!!))
                }
                zone.fingerprints = fingerprints
