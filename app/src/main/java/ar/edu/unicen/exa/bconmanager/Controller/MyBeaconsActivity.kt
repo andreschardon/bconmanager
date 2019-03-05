@@ -27,6 +27,7 @@ class MyBeaconsActivity : AppCompatActivity() {
 
     fun refreshButtonClicked(view:View) {
         bluetoothScanner.scanLeDevice(true, devicesListAdapter)
+        bluetoothScanner.printRssiCount()
     }
 
     override fun onPause() {

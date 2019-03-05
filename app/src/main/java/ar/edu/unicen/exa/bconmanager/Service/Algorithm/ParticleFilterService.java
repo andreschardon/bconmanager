@@ -23,12 +23,12 @@ public class ParticleFilterService extends Algorithm {
 
     //paramenters
     private static final int FPS = 10;
-    private static final int NUM_PARTICLES = 100;
+    private static final int NUM_PARTICLES = 200;
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
-    private static final double STARTING_AREA_MTS = 2.0;
-    private double RESAMPLING_MINIMUM = 0.75;
+    private static final double STARTING_AREA_MTS = 2.5;
+    private double RESAMPLING_MINIMUM = 0.40;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -291,6 +291,10 @@ public class ParticleFilterService extends Algorithm {
                 particles.get(i).restrictToMap(customMap.getWidth(), customMap.getHeight());
                 particles.get(i).restrictDecimals();
             }
+
+            //Also move reference point?
+            this.xPos += this.movedX;
+            this.yPos += this.movedY;
         }
     }
 

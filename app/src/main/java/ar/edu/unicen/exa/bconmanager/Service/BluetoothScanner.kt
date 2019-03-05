@@ -117,5 +117,11 @@ class BluetoothScanner : AppCompatActivity() {
         (devicesListAdapter as BeaconsAdapter).context = context
     }
 
+    fun printRssiCount() {
+        devicesList.forEach {
+            it.getHashMap()
+        }
+    }
+
 }
 

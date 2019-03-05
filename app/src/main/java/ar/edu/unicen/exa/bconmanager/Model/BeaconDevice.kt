@@ -13,6 +13,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
     var averageAmount = 0
     var txPower : Int = -60
     var reliability : Double = 1.0
+    val rssiCount : HashMap<Int,Int> = HashMap<Int,Int>()
 
 
     override fun toString(): String {
@@ -40,7 +41,7 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         averageAmount++
         this.approxDistance = average.roundTo2DecimalPlaces()
         //Log.d("Beacon : ", "$name ::: $average ::: $averageAmount")
-
+        updateHashMap()
         return average
     }
 
@@ -49,6 +50,23 @@ class BeaconDevice constructor (val address: String, var intensity: Int, val dev
         averageAmount = 0
         average = 0.0
         averageRssi = 0.0
+    }
+
+    fun updateHashMap() {
+        if (intensity in rssiCount) {
+            rssiCount[intensity] = rssiCount[intensity]!! + 1
+        } else {
+            rssiCount.put(intensity, 1)
+        }
+
+    }
+
+    fun getHashMap() : String {
+        rssiCount.toSortedMap()
+        for (key in rssiCount.keys) {
+            Log.d("RSSICOUNT", "$address $key amount ${rssiCount[key]}")
+        }
+            return ""
     }
 
 }

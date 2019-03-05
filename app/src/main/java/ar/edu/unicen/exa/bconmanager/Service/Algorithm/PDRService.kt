@@ -118,7 +118,7 @@ class PDRService : Algorithm(){
         var resultPosition = Location(-1.0, -1.0, customMap)
 
         repeat(dataEntry.timeList.size) {
-            Log.d("AVERAGED", "GetNextNthPosition step $it angle ${dataEntry.angleList[it]}")
+            Log.d("AVERAGED", "GetNextNthPosition step $it angle ${dataEntry.angleList[it]} acc ${dataEntry.accelerationList[it]}")
             resultPosition = getNextNthPosition(dataEntry, it)
         }
         Log.d("AVERAGED", "Result location is $resultPosition")
@@ -200,7 +200,7 @@ class PDRService : Algorithm(){
         if (isSimulation) {
             // To radians and considering adjustment
             adjustedAngle = ((bearingD ) / 57.2958)
-            factor = 1.3
+            factor = 1.9
         }
 
         Log.d("ANGLEWTF", "Moving in ${adjustedAngle.toDouble()}° adj: $bearingAdjustment")

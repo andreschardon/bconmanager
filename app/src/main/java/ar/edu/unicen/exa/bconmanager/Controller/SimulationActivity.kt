@@ -8,10 +8,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonSimResult
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonTimestamp
+import ar.edu.unicen.exa.bconmanager.Model.Json.*
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
@@ -27,7 +24,8 @@ class SimulationActivity : OnMapActivity() {
 
     private var drawPoints = true
 
-    private val UPDATE_INTERVAL = 12
+    private val UPDATE_INTERVAL = 8
+    private val GENERATE = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,7 +139,21 @@ class SimulationActivity : OnMapActivity() {
 
         // We are going to run the simulation once every 3 "timestamps"
         var currentCounter = 0
+        var totalCounter = 0
         var currentTimestamp = AveragedTimestamp()
+        var simulationDataToDo: MutableList<JsonData> = mutableListOf()
+
+        // TEMPORARY: TO GENERATE NEW DATASET
+        if (GENERATE) {
+            val dataset2 = JsonUtility.readDatasetFromFile("/storage/emulated/0/Download/rectangulo2.json")
+
+
+            for (d in dataset2.data!!) {
+                var data: JsonData = d
+                simulationDataToDo.add(data)
+            }
+        }
+
 
 
         while (i < simulationDataSize) {
@@ -156,17 +168,21 @@ class SimulationActivity : OnMapActivity() {
                 isLastTimestamp = true
                 nextTimestamp = currentData.timestamp
             }
-            Log.d("AVERAGED", "Timestamp $i currentCounter $currentCounter")
+            //Log.d("AVERAGED", "Timestamp $i currentCounter $currentCounter")
             if (currentCounter == 0) {
                 currentTimestamp.startFromData(currentData, nextTimestamp)
+                totalCounter++
             } else {
                 currentTimestamp.addData(currentData, nextTimestamp)
 
             }
             currentCounter++
 
+
             if (currentCounter == UPDATE_INTERVAL || isLastTimestamp) {
-                //Log.d("SIMULATION-f", "[$i] $currentTimestamp")
+                Log.d("AVERAGED-f", "[$i] $currentTimestamp")
+                if (GENERATE)
+                    printNewRssi(currentTimestamp, totalCounter, simulationDataToDo)
                 val calculatedPosition = algorithm.getNextPosition(currentTimestamp)
                 calculatedPosition.x = calculatedPosition.x.roundTo2DecimalPlaces()
                 calculatedPosition.y = calculatedPosition.y.roundTo2DecimalPlaces()
@@ -205,7 +221,30 @@ class SimulationActivity : OnMapActivity() {
         val finalPath = "$datasetPathMod$choice.json"
 
         saveResultsToFile(finalPath, result)
+
+        if (GENERATE) {
+            val dataset3 = JsonDataset(simulationDataToDo)
+            JsonUtility.saveDatasetToFile("/storage/emulated/0/Download/rectangulo-new.json", dataset3)
+            Log.d("SIMULATION", "Finished saving to $filePath")
+        }
+
+
+
+
         Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
+    }
+
+    private fun printNewRssi(currentTimestamp: AveragedTimestamp, count: Int, simulationDataToDo: MutableList<JsonData>) {
+        currentTimestamp.beacons.forEach {
+            Log.d("NEWRSSI", "[$count] ${it.mac} ${it.rssi}")
+            if (simulationDataToDo.size > count) {
+                val beaconIndex = simulationDataToDo[count].beacons!!.indexOf(JsonDataBeacon(it.mac, it.rssi, null))
+                if (beaconIndex != -1)
+                    simulationDataToDo[count].beacons!![beaconIndex].rssi = it.rssi
+            }
+
+        }
+
     }
 
     private fun drawPosition(position: Location, realPosition: Boolean, index: Int, last: Int) {
