@@ -24,7 +24,7 @@ class SimulationActivity : OnMapActivity() {
 
     private var drawPoints = true
 
-    private val UPDATE_INTERVAL = 8
+    private val UPDATE_INTERVAL = 4
     private val GENERATE = false
 
 
@@ -230,8 +230,8 @@ class SimulationActivity : OnMapActivity() {
 
 
 
-
-        Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "ERROR IS ${result.errorAverage}", Toast.LENGTH_LONG).show()
+        //Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
     }
 
     private fun printNewRssi(currentTimestamp: AveragedTimestamp, count: Int, simulationDataToDo: MutableList<JsonData>) {

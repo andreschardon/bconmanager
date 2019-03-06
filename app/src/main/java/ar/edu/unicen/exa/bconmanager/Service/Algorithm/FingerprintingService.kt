@@ -13,7 +13,7 @@ import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 class FingerprintingService() : Algorithm() {
 
     var currentFingerprintingZone: FingerprintZone? = null
-    private val PRIORITY_RATIO = 40
+    private val PRIORITY_RATIO = 20
     private var firstZone = true
 
     override fun getNextPosition(data: AveragedTimestamp): Location {
@@ -22,8 +22,9 @@ class FingerprintingService() : Algorithm() {
         for (b in savedBeacons) {
             sBeacons.add(b.beacon)
         }
+        Log.d("FINGERP-FIX", "REF IS (${data.positionX}, ${data.positionY})")
         currentFingerprintingZone = getCurrentZone(sBeacons, true)
-        Log.d("FINGERP-ZONE", "Is ${currentFingerprintingZone!!.position}")
+        Log.d("FINGERP-FIX", "FP  IS ${currentFingerprintingZone!!.position}")
         return currentFingerprintingZone!!.position
     }
 

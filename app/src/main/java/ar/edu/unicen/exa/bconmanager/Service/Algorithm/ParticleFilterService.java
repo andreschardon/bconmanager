@@ -1,7 +1,6 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm;
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
@@ -15,7 +14,7 @@ import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter;
 import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp;
 import ar.edu.unicen.exa.bconmanager.Model.BeaconOnMap;
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap;
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData;
+import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataBeacon;
 import ar.edu.unicen.exa.bconmanager.Model.Location;
 import ar.edu.unicen.exa.bconmanager.Model.Particle;
 
@@ -27,8 +26,8 @@ public class ParticleFilterService extends Algorithm {
     private static final int R_WALK_MAX = 50;
     private static final int R_WALK_FREQUENCY = 5;
     private static final double JUMP_DISTANCE = 40;
-    private static final double STARTING_AREA_MTS = 2.5;
-    private double RESAMPLING_MINIMUM = 0.40;
+    private static final double STARTING_AREA_MTS = 0.5;
+    private double RESAMPLING_MINIMUM = 0.90;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
     private Context context;
@@ -167,10 +166,24 @@ public class ParticleFilterService extends Algorithm {
         double movedY = pdrService.getMovedY();
         System.out.println("PDRWTF Moved "+movedX+" and "+movedY);
 
-        this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
+        //this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
+        this.updatePosition(movedX, movedY, data.getBeacons());
+
+
         Location result = new Location(estimateWX, estimateWY, customMap);
         this.pfLocation = result;
         return result;
+    }
+
+    private void updatePosition(double movedX, double movedY, List<JsonDataBeacon> beacons) {
+        this.movedX = movedX;
+        this.movedY = movedY;
+        this.start(beacons);
+    }
+
+    private void start(List<JsonDataBeacon> beacons) {
+        applyFilter(beacons);
+        sendBroadcastUserPosition();
     }
 
     /**
@@ -207,7 +220,7 @@ public class ParticleFilterService extends Algorithm {
      * start thread update position
      */
     public void start() {
-        applyFilter();
+        applyFilter(null);
         sendBroadcastUserPosition();
         /*
         if (isActive.get()) return;
@@ -246,13 +259,12 @@ public class ParticleFilterService extends Algorithm {
         isActive.set(false);
     }
 
-    public void applyFilter() {
+    public void applyFilter(List<JsonDataBeacon> beacons) {
 
-        // 1. Desplazar las partículas de acuerdo al PDR (movedX, movedY)
-        moveParticles();
+
 
         // 2. Pesar las partículas respecto al punto de referencia (trilat)
-        double weightSum = weightParticles();
+        double weightSum = weightParticles(beacons);
 
         printParticles();
 
@@ -260,16 +272,21 @@ public class ParticleFilterService extends Algorithm {
         resampleParticles();
 
         // 4. Pesar nuevamente las partículas
-        weightSum = weightParticles();
+        weightSum = weightParticles(beacons);
 
         printParticles();
+
+
+
+        // 6. Calculate average point to return
+        calculateAveragePoint();
+
+        // 1. Desplazar las partículas de acuerdo al PDR (movedX, movedY)
+        moveParticles();
 
         // 5. Clear any movedX, movedY values
         this.movedX = 0;
         this.movedY = 0;
-
-        // 6. Calculate average point to return
-        calculateAveragePoint();
 
 
     }
@@ -298,7 +315,7 @@ public class ParticleFilterService extends Algorithm {
         }
     }
 
-    private double weightParticles() {
+    private double weightParticles(List<JsonDataBeacon> beacons) {
         double maxWeight = 0;
         for (int i = 0; i < particles.size(); i++) {
             double weightSum = 0;
@@ -313,8 +330,15 @@ public class ParticleFilterService extends Algorithm {
 
                 //this.xPos and this.yPos are the position provided by trilateration
                 //apLocation is the position of the beacon
+                double userDistToBeacon = 0.0;
+                if (beacons == null) {
+                    userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
+                } else {
+                    JsonDataBeacon toFind = new JsonDataBeacon(beaconsList.get(j).getBeacon().getAddress(), 0.0, 0);
+                    JsonDataBeacon datasetBeacon = beacons.get(beacons.indexOf(toFind));
+                    userDistToBeacon = calculateDistance(datasetBeacon.getRssi());
+                }
 
-                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
                 double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
 
                 //particle distance to beacon is known, userDistToBeacon
@@ -338,6 +362,13 @@ public class ParticleFilterService extends Algorithm {
         return weightSum;
     }
 
+    private double calculateDistance(double rssi) {
+        /**
+         * d = 10 ^ ((TxPower - RSSI) / 20)
+         */
+        double approxDistance = ((Math.pow(10.0, ((-60 - rssi)/40f))));
+        return approxDistance;
+    }
     private void resampleParticles() {
         List<Particle> newParticles = new ArrayList<>();
         int numParticles = particles.size();
