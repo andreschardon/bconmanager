@@ -3,12 +3,11 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.*
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 
 abstract class Algorithm : AppCompatActivity() {
 
-    protected open var TAG : String = ""
-    protected lateinit var customMap : CustomMap
+    protected open var TAG: String = ""
+    protected lateinit var customMap: CustomMap
 
     open fun startUp(map: CustomMap) {
         customMap = map
@@ -20,7 +19,7 @@ abstract class Algorithm : AppCompatActivity() {
     /**
      * Converts jsonData beacons to BeaconOnMap list
      */
-    protected fun getBeacons(data: AveragedTimestamp) : List<BeaconOnMap> {
+    protected fun getBeacons(data: AveragedTimestamp): List<BeaconOnMap> {
         var savedBeacons: MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
         Log.d("GETBEACONS", "${data.beacons!!}")
         Log.d("GETBEACONS", "${customMap.savedBeacons}")
@@ -48,9 +47,9 @@ abstract class Algorithm : AppCompatActivity() {
         return distance
     }
 
-    fun getError(loc: Location, simulatedLoc: Location) : Double{
-        val error = euclideanDistance(loc,simulatedLoc)
-        Log.d("SIMULATION","ERROR IS: $error")
+    fun getError(loc: Location, simulatedLoc: Location): Double {
+        val error = euclideanDistance(loc, simulatedLoc)
+        Log.d("SIMULATION", "ERROR IS: $error")
         return error
 
     }

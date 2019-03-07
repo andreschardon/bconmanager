@@ -8,12 +8,13 @@
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
-        android:layout_height="531dp"
+        android:layout_height="500dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
+        app:layout_constraintBottom_toTopOf="@+id/fingerPrintingBtn2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.19999999">
 
         <RelativeLayout
             android:id="@+id/floorLayout"
@@ -43,7 +44,7 @@
     </ScrollView>
 
     <Button
-        android:id="@+id/pdrBtn"
+        android:id="@+id/startButtonPdr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
@@ -54,65 +55,72 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/trilaterationBtn"
+        android:id="@+id/measureButtonDataset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="runSimulationTrilat"
-        android:text="Trilateration"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="TRILAT"
+        app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
+        app:layout_constraintEnd_toStartOf="@+id/button8"
+        app:layout_constraintTop_toBottomOf="@+id/scrollView"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/particleFilterBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="runSimulationPF"
-        android:text="Particle Filter"
+        android:text="PF (FINGERP)"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/pdrBtn"
-        app:layout_constraintStart_toEndOf="@+id/trilaterationBtn" />
+        app:layout_constraintEnd_toStartOf="@+id/startButtonPdr" />
+
+    <Button
+        android:id="@+id/particleFilterBtn2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="runSimulationPFDist"
+        android:text="PF (DISTANCE)"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/particleFilterBtn" />
 
     <Button
         android:id="@+id/fingerPrintingBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="544dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="runSimulationFingerprinting"
-        android:text="FingerPrinting"
+        android:text="FINGERP"
         app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/fingerPrintingBtn2"
-        app:layout_constraintTop_toTopOf="@+id/scrollView"
+        app:layout_constraintTop_toBottomOf="@+id/scrollView"
         app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/fingerPrintingBtn2"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="544dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:onClick="runSimulationAll"
         android:text="ALL"
         app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/scrollView"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintEnd_toStartOf="@+id/measureButtonDataset"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
@@ -120,8 +128,6 @@
         android:text="FPTrilat"
         app:layout_constraintBottom_toTopOf="@+id/particleFilterBtn"
         app:layout_constraintEnd_toStartOf="@+id/fingerPrintingBtn"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toEndOf="@+id/fingerPrintingBtn2"
         app:layout_constraintTop_toBottomOf="@+id/scrollView"
         app:layout_constraintVertical_bias="1.0" />
 

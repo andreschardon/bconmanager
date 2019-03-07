@@ -2,7 +2,6 @@ package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.*
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 
 class FPTrilat : Algorithm() {
 
@@ -27,7 +26,7 @@ class FPTrilat : Algorithm() {
         trilaterationService.startUp(map)
     }
 
-    fun getCurrentZone() : FingerprintZone {
+    fun getCurrentZone(): FingerprintZone {
         return fingerPrintService.currentFingerprintingZone!!
     }
 
@@ -69,7 +68,7 @@ class FPTrilat : Algorithm() {
             //var dFactor = Math.abs(vectorToBeacon[i].distance - approx) / (vectorToBeacon[i].distance)
             //Log.d("NEWTEST", "dFactor is $dFactor")
             // If the trilat distance is far greater than the "real" one
-            if (dFactor > 1.0 ) {
+            if (dFactor > 1.0) {
                 dFactor = 1.0
             } else if (dFactor < -1.0) {
                 dFactor = -1.0
@@ -120,7 +119,7 @@ class FPTrilat : Algorithm() {
             i++
         }
 
-        val newPosition =  Location(newX, newY, customMap)
+        val newPosition = Location(newX, newY, customMap)
         val restrictedPosition = customMap.restrictPosition(PositionOnMap(newPosition))
 
         return restrictedPosition.position

@@ -17,19 +17,33 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView2">
 
         <Button
+            android:id="@+id/button5"
+            android:layout_width="190dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:onClick="goToParticleFilterActivityDistance"
+            android:text="Particle Filter (Distance approx.)"
+            app:layout_constraintEnd_toEndOf="@+id/button7"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button13" />
+
+        <Button
             android:id="@+id/button10"
-            android:layout_width="180dp"
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="16dp"
             android:onClick="goToDatasetActivity"
             android:text="Capture dataset"
-            app:layout_constraintBottom_toTopOf="@+id/button13"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/button"
-            android:layout_width="136dp"
+            android:layout_width="190dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
@@ -54,8 +68,8 @@
 
         <Button
             android:id="@+id/button3"
-            android:layout_width="136dp"
-            android:layout_height="wrap_content"
+            android:layout_width="190dp"
+            android:layout_height="60dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="64dp"
             android:onClick="goToTrilaterationActivity"
@@ -66,22 +80,22 @@
         <Button
             android:id="@+id/button4"
             android:layout_width="136dp"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:layout_marginTop="64dp"
             android:layout_marginEnd="16dp"
             android:onClick="goToOfflineActivity"
-            android:text="FNPOffline"
+            android:text="Fingerprint Offline"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button2" />
 
         <Button
-            android:id="@+id/pdrBtn"
+            android:id="@+id/startButtonPdr"
             android:layout_width="136dp"
-            android:layout_height="48dp"
+            android:layout_height="60dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:onClick="goToOnlineActivity"
-            android:text="FNPOnline"
+            android:text="Fingerprint Online"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="@+id/button2"
@@ -89,63 +103,58 @@
 
         <Button
             android:id="@+id/button7"
-            android:layout_width="136dp"
-            android:layout_height="wrap_content"
+            android:layout_width="190dp"
+            android:layout_height="60dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
             android:onClick="goToPDRActivity"
             android:text="PDR"
-            app:layout_constraintEnd_toStartOf="@+id/pdrBtn"
+            app:layout_constraintEnd_toStartOf="@+id/startButtonPdr"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/button3" />
 
         <Button
             android:id="@+id/button13"
-            android:layout_width="180dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="8dp"
-            android:onClick="goToParticleFilterActivity"
-            android:text="Particle Filter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toStartOf="@+id/button10" />
+            android:layout_width="190dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:onClick="goToParticleFilterActivityFingerprint"
+            android:text="Particle Filter (Fingerprint)"
+            app:layout_constraintEnd_toEndOf="@+id/button7"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button7" />
 
         <Button
             android:id="@+id/button6"
-            android:layout_width="wrap_content"
+            android:layout_width="136dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="52dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:onClick="goToSimulationActivity"
             android:text="Simulation"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button10"
-            app:layout_constraintHorizontal_bias="0.369"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/button7"
-            app:layout_constraintVertical_bias="0.058" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <Button
             android:id="@+id/fpTrilatBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="8dp"
             android:onClick="goToFPTrilatActivity"
-            android:text="FPTRILAT"
-            app:layout_constraintBottom_toTopOf="@+id/button10"
+            android:text="FPTrilat"
+            app:layout_constraintBottom_toTopOf="@+id/button6"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/pdrBtn"
-            app:layout_constraintTop_toBottomOf="@+id/pdrBtn" />
+            app:layout_constraintHorizontal_bias="0.458"
+            app:layout_constraintStart_toStartOf="@+id/startButtonPdr"
+            app:layout_constraintTop_toBottomOf="@+id/startButtonPdr"
+            app:layout_constraintVertical_bias="0.0" />
     </android.support.constraint.ConstraintLayout>
 
     <ImageView

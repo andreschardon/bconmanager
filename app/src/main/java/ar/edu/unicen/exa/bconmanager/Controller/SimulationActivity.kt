@@ -85,7 +85,14 @@ class SimulationActivity : OnMapActivity() {
 
     fun runSimulationPF(view: View) {
         algorithm = ParticleFilterService()
+        (algorithm as ParticleFilterService).setUseFingerprinting(true)
         runSimulation("ParticleFilter")
+    }
+
+    fun runSimulationPFDist(view: View) {
+        algorithm = ParticleFilterService()
+        (algorithm as ParticleFilterService).setUseFingerprinting(false)
+        runSimulation("ParticleFilterDist")
     }
 
     fun runSimulationPDR(view: View) {
@@ -116,6 +123,7 @@ class SimulationActivity : OnMapActivity() {
         runSimulationFingerprinting(view)
         runFPTrilatSimulation(view)
         runSimulationPF(view)
+        runSimulationPFDist(view)
     }
 
     private fun runSimulation(choice: String) {
@@ -267,7 +275,8 @@ class SimulationActivity : OnMapActivity() {
     }
 
     private fun printPfLocations(particleFilter: ParticleFilterService, realPosition: Location) {
-        Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.referenceLocation.x}, ${particleFilter.referenceLocation.y})")
+        if (particleFilter.referenceLocation != null)
+            Log.d("SIMULATION-PF", "TRILATERATION (${particleFilter.referenceLocation.x}, ${particleFilter.referenceLocation.y})")
         Log.d("SIMULATION-PF", "REAL POINT IS (${realPosition.x}, ${realPosition.y})")
         Log.d("SIMULATION-PF", "PF MIDDLE  IS (${particleFilter.pfLocation.x}, ${particleFilter.pfLocation.y})")
     }

@@ -19,9 +19,9 @@ import ar.edu.unicen.exa.bconmanager.Model.Json.JsonDataset
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
-import kotlinx.android.synthetic.main.activity_pdr.*
+import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import kotlinx.android.synthetic.main.activity_dataset.*
 
 class DatasetActivity : PDRInterface,OnMapActivity() {
 
@@ -149,6 +149,9 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
 
         if (isRecordingAngle) {
             Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
+            startButtonDataset.isEnabled = true
+            stopButtonDataset.isEnabled = true
+            measureButtonDataset.isEnabled = false
         } else {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
@@ -161,6 +164,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
 
 
     fun startAngleMeasurement(view: View) {
+
         isRecordingAngle = true
         pdrService.startRecordingAngle()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
@@ -171,7 +175,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
      * and save it to some object
      */
     fun startDataCollection(view: View) {
-
+        startButtonDataset.isEnabled = false
         startupTime = System.currentTimeMillis()
         pdrService.startSensorsHandlers()
         dataCollectionHandler.postDelayed(object : Runnable {
@@ -208,6 +212,8 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
      */
     fun stopDataCollection(view: View) {
         // Stops the postDelayed runnable
+        startButtonDataset.isEnabled = true
+        stopButtonDataset.isEnabled = false
         dataCollectionHandler.removeCallbacksAndMessages(null)
         bluetoothScanner.stopScan()
         val dataset = JsonDataset(datalist)

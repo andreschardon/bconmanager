@@ -29,14 +29,16 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
     private var pdrService = PDRService.instance
     private var particleFilterService: ParticleFilterService? = null
-    private var trilaterationCalculator = TrilaterationService.instance
     private var referenceCalculator = FingerprintingService()
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
+    private var isFingerprint = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_particle_filter)
+        isFingerprint = intent.getBooleanExtra("isFingerprint", true)
+        Log.d("ISFINGERPRINT", isFingerprint.toString())
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
@@ -220,8 +222,15 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         Log.d("PFACTIVITY-PRE", "Current location2 is      (${currentPosition.position.x}, ${currentPosition.position.y})")
         Log.d("PFACTIVITY-PRE", "Moved length is           ($movedX, $movedY)")
 
-        particleFilterService!!.updatePosition(movedX, movedY,
-                currentTrilatPosition.position.getXMeters(), currentTrilatPosition.position.getYMeters())
+        if (isFingerprint) {
+            particleFilterService!!.updatePosition(movedX, movedY,
+                    currentTrilatPosition.position.getXMeters(), currentTrilatPosition.position.getYMeters())
+        } else {
+            var currentTimestamp = AveragedTimestamp()
+            currentTimestamp.startFromBeacons(floorMap.savedBeacons)
+            particleFilterService!!.updatePosition(movedX, movedY, currentTimestamp.beacons)
+        }
+
 
     }
 

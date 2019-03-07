@@ -16,12 +16,13 @@ class BluetoothScanner : AppCompatActivity() {
 
     private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     private val bluetoothHandler: Handler = Handler()
-    var isScanning: Boolean = false
-    private val SCAN_PERIOD:Long = 20000 // 20 seconds
+    private val SCAN_PERIOD: Long = 20000 // 20 seconds
 
     lateinit var devicesListAdapter: BaseAdapter
+
     var devicesList = mutableListOf<BeaconDevice>()
     var isRunningOnBackground = false
+    var isScanning: Boolean = false
 
     private object Holder {
         val INSTANCE = BluetoothScanner()
@@ -35,7 +36,7 @@ class BluetoothScanner : AppCompatActivity() {
      * Activity for scanning and displaying available BLE devices.
      */
 
-    fun scanLeDevice(enable: Boolean, adapter: BaseAdapter, isFingerprint : Boolean = false) {
+    fun scanLeDevice(enable: Boolean, adapter: BaseAdapter, isFingerprint: Boolean = false) {
         devicesListAdapter = adapter
 
         if (enable) {
@@ -67,7 +68,7 @@ class BluetoothScanner : AppCompatActivity() {
 
 
     var mLeScanCallback = BluetoothAdapter.LeScanCallback { device, rssi, scanRecord ->
-         runOnUiThread {
+        runOnUiThread {
             val detectedBeacon = BeaconDevice(device.address, rssi, device)
 
 

@@ -1,11 +1,9 @@
 package ar.edu.unicen.exa.bconmanager.Service.Algorithm
 
-import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Adapters.FingerprintOfflineAdapter
 import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
-import ar.edu.unicen.exa.bconmanager.Model.Json.JsonData
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
@@ -22,9 +20,7 @@ class FingerprintingService() : Algorithm() {
         for (b in savedBeacons) {
             sBeacons.add(b.beacon)
         }
-        Log.d("FINGERP-FIX", "REF IS (${data.positionX}, ${data.positionY})")
         currentFingerprintingZone = getCurrentZone(sBeacons, true)
-        Log.d("FINGERP-FIX", "FP  IS ${currentFingerprintingZone!!.position}")
         return currentFingerprintingZone!!.position
     }
 
@@ -83,12 +79,7 @@ class FingerprintingService() : Algorithm() {
                     val beacon = beacons[index]
                     if (instant) {
                         // Simulation
-
                         differenceRating += (Math.pow(beacon.intensity - it.rssi, 2.0) * beacon.reliability)
-                        if (zone.position.x == 11.85 && zone.position.y == 34.88) {
-                            Log.d("FPZONES", "Difference for beacon ${beacon.name} is ${beacon.intensity - it.rssi} and reliab ${beacon.reliability}")
-                            Log.d("FPZONES", "Difference rating now is $differenceRating")
-                        }
 
                     } else {
                         // Real time
@@ -97,7 +88,7 @@ class FingerprintingService() : Algorithm() {
 
                 }
             }
-            val ecm =  differenceRating /zone.fingerprints.size
+            val ecm = differenceRating / zone.fingerprints.size
             fingerprintRating.add(ecm)
             // To avoid jumps
             if (currentFingerprintingZone != null) {
@@ -117,12 +108,8 @@ class FingerprintingService() : Algorithm() {
         if (currentFingerprintingZone != null) {
             var index = 0
             fingerprintZones.forEach {
-                if (it.position.x == 6.48 || it.position.x == 4.42)
-                    Log.d("SIMULATION-f", "Correct zone rating is ${fingerprintRating[index]}")
                 fingerprintRating[index] = prioritizeCloserZones(fingerprintRating[index], it, maxDistance)
                 index++
-                if (it.position.x == 6.48 || it.position.x == 4.42)
-                    Log.d("SIMULATION-f", "FIXED zone rating is ${fingerprintRating[index]}")
             }
 
         }
@@ -151,8 +138,6 @@ class FingerprintingService() : Algorithm() {
     private fun prioritizeCloserZones(rating: Double, zone: FingerprintZone, maxDistance: Double): Double {
         val distance = distanceBetweenZones(currentFingerprintingZone!!, zone)
         val priotitize = (PRIORITY_RATIO * Math.pow((distance / maxDistance), 2.0))
-        //var priotitize = ((20 * distance) / maxDistance)
-        //Log.d("RATING", "Formula result is $priotitize")
         return rating + priotitize
     }
 

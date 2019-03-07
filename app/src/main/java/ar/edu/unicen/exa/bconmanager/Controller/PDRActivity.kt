@@ -115,6 +115,8 @@ class PDRActivity : PDRInterface, OnMapActivity() {
 
         if (isRecordingAngle) {
             Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
+            startButtonPdr.isEnabled = true
+
         } else {
             Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
         }
@@ -139,12 +141,14 @@ class PDRActivity : PDRInterface, OnMapActivity() {
     }
 
     fun startPDR(view: View) {
+        startButtonPdr.isEnabled = false
         isPDREnabled = true
         pdrService.startPDR()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
     fun startAngleMeasurement(view: View) {
+        measureButtonPdr.isEnabled = false
         isRecordingAngle = true
         pdrService.startRecordingAngle()
         Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()

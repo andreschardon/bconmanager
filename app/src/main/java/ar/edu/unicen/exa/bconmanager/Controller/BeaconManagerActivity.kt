@@ -140,8 +140,14 @@ class BeaconManagerActivity : AppCompatActivity() {
         val intent = Intent(this, DatasetActivity::class.java)
         startActivity(intent)
     }
-    fun goToParticleFilterActivity(view : View) {
+    fun goToParticleFilterActivityFingerprint(view : View) {
         val intent = Intent(this, ParticleFilterActivity::class.java)
+        intent.putExtra("isFingerprint", true)
+        startActivity(intent)
+    }
+    fun goToParticleFilterActivityDistance(view : View) {
+        val intent = Intent(this, ParticleFilterActivity::class.java)
+        intent.putExtra("isFingerprint", false)
         startActivity(intent)
     }
     fun goToSimulationActivity(view : View) {

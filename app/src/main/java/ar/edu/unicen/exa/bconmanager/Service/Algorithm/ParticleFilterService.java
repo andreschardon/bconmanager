@@ -20,17 +20,12 @@ import ar.edu.unicen.exa.bconmanager.Model.Particle;
 
 public class ParticleFilterService extends Algorithm {
 
-    //paramenters
-    private static final int FPS = 10;
+    //parameters
     private static final int NUM_PARTICLES = 200;
-    private static final int R_WALK_MAX = 50;
-    private static final int R_WALK_FREQUENCY = 5;
-    private static final double JUMP_DISTANCE = 40;
     private static final double STARTING_AREA_MTS = 0.5;
-    private double RESAMPLING_MINIMUM = 0.90;
+    private static final double RESAMPLING_MINIMUM = 0.90;
 
     private AtomicBoolean isActive = new AtomicBoolean(false);
-    private Context context;
 
     //particles
     public List<Particle> particles = null;
@@ -38,10 +33,9 @@ public class ParticleFilterService extends Algorithm {
     //List of beacons obtained from Map
     List<BeaconOnMap> beaconsList;
 
-    private int curFrame;
     private double maxDist;
 
-    //trilateration position
+    //Fingerprinting position
     private double xPos;
     private double yPos;
 
@@ -49,24 +43,23 @@ public class ParticleFilterService extends Algorithm {
     private double movedX;
     private double movedY;
 
-    //estimate posizion
+    //Estimated position
     private double estimateX;
     private double estimateY;
 
-    //weight estimate position
+    //Weighted estimated position
     private double estimateWX;
     private double estimateWY;
 
     private ParticleFilterAdapter pfAdapter;
-    //private TrilaterationService trilaterationCalculator = TrilaterationService.Companion.getInstance();
     private PDRService pdrService = PDRService.Companion.getInstance();
     private FingerprintingService referenceService = new FingerprintingService();
 
-    //public Location trilaterationLocation;
     public Location referenceLocation;
     public Location pfLocation;
 
     public boolean initialPosition = true;
+    private boolean useFingerprinting = true;
 
     //private constructor
     public ParticleFilterService() {
@@ -78,13 +71,7 @@ public class ParticleFilterService extends Algorithm {
         super.startUp(customMap);
         beaconsList = customMap.sortBeaconsByDistance(customMap.getSavedBeacons());
 
-
-
         referenceService.startUp(customMap);
-        //trilaterationCalculator.startUp(customMap);
-
-
-
         pdrService.startUp(customMap);
 
         Log.d("SAVED", "${map.savedBeacons}");
@@ -99,10 +86,9 @@ public class ParticleFilterService extends Algorithm {
         estimateY = 0;
         estimateWX = 0;
         estimateWY = 0;
-        curFrame = -1;
 
         // set up particles
-        particles = new ArrayList<Particle>();
+        particles = new ArrayList<>();
         for (int i = 0; i < NUM_PARTICLES; i++) {
             Particle p = new Particle();
             p.randomize(customMap.getWidth(), customMap.getHeight());
@@ -110,8 +96,11 @@ public class ParticleFilterService extends Algorithm {
         }
     }
 
+    public void setUseFingerprinting(boolean status) {
+        useFingerprinting = status;
+    }
+
     private void setUpParticleFilter(Context context, ParticleFilterAdapter pfAdapter) {
-        this.context = context;
         this.pfAdapter = pfAdapter;
 
     }
@@ -119,7 +108,7 @@ public class ParticleFilterService extends Algorithm {
     //singleton constructor
     private static ParticleFilterService instance = null;
 
-    public static ParticleFilterService getInstance(Context context,CustomMap map, ParticleFilterAdapter pfAdapter) {
+    public static ParticleFilterService getInstance(Context context, CustomMap map, ParticleFilterAdapter pfAdapter) {
         if (instance == null) {
             instance = new ParticleFilterService();
             instance.startUp(map);
@@ -133,10 +122,8 @@ public class ParticleFilterService extends Algorithm {
     @Override
     public Location getNextPosition(@NotNull AveragedTimestamp data) {
 
-        /*Location trilatLocation = trilaterationCalculator.getNextPosition(data, nextTimestamp);
-        this.trilaterationLocation = trilatLocation;*/
         if (initialPosition) {
-            Location startingLocation = new Location(data.getPositionX(),data.getPositionY(),customMap);
+            Location startingLocation = new Location(data.getPositionX(), data.getPositionY(), customMap);
             // Overwrite starting point
             xPos = startingLocation.getXMeters();
             yPos = startingLocation.getYMeters();
@@ -157,54 +144,45 @@ public class ParticleFilterService extends Algorithm {
             initialPosition = false;
         }
 
-
-        Location referenceLocation = referenceService.getNextPosition(data);
-        this.referenceLocation = referenceLocation;
-
         Location pdrLocation = pdrService.getNextPosition(data);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
-        System.out.println("PDRWTF Moved "+movedX+" and "+movedY);
+        //System.out.println("PDRWTF Moved " + movedX + " and " + movedY);
 
-        //this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
-        this.updatePosition(movedX, movedY, data.getBeacons());
-
+        if (useFingerprinting) {
+            Location referenceLocation = referenceService.getNextPosition(data);
+            this.referenceLocation = referenceLocation;
+            this.updatePosition(movedX, movedY, referenceLocation.getXMeters(), referenceLocation.getYMeters());
+        } else {
+            this.updatePosition(movedX, movedY, data.getBeacons());
+        }
 
         Location result = new Location(estimateWX, estimateWY, customMap);
         this.pfLocation = result;
         return result;
     }
 
-    private void updatePosition(double movedX, double movedY, List<JsonDataBeacon> beacons) {
-        this.movedX = movedX;
-        this.movedY = movedY;
-        this.start(beacons);
-    }
-
-    private void start(List<JsonDataBeacon> beacons) {
-        applyFilter(beacons);
-        sendBroadcastUserPosition();
-    }
-
     /**
-     * update user position witha new trilateratio position and PDR
-     *
+     * Updates user position with a new fingerprinting position and PDR
      */
     public void updatePosition(double movedXPDR, double movedYPDR, double xPosTrilat, double yPosTrilat) {
 
         this.movedX = movedXPDR;
         this.movedY = movedYPDR;
-
-        // if mouse moved too much, consider it a jump (a jump will not update the
-        //	movement of the particles)
-        /*
-        if (Math.abs(this.movedX) > JUMP_DISTANCE || Math.abs(this.movedY) > JUMP_DISTANCE)
-            this.movedX = this.movedY = 0;
-            */
-
         this.xPos = xPosTrilat;
         this.yPos = yPosTrilat;
-        this.start();
+        this.applyFilter(null);
+        this.sendBroadcastUserPosition();
+    }
+
+    /**
+     * Updates user position with a PDR and new rssi values to approximate distances
+     */
+    public void updatePosition(double movedX, double movedY, List<JsonDataBeacon> beacons) {
+        this.movedX = movedX;
+        this.movedY = movedY;
+        this.applyFilter(beacons);
+        this.sendBroadcastUserPosition();
     }
 
     /**
@@ -212,43 +190,8 @@ public class ParticleFilterService extends Algorithm {
      *
      * @return
      */
-    public boolean inRunning() {
+    public boolean isRunning() {
         return isActive.get();
-    }
-
-    /**
-     * start thread update position
-     */
-    public void start() {
-        applyFilter(null);
-        sendBroadcastUserPosition();
-        /*
-        if (isActive.get()) return;
-        isActive.set(true);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (isActive.get()) {
-                    //applica il filtro ed invia il broadcast
-                    applyFilter();
-                    sendBroadcastUserPosition();
-
-                    //controllo di disattivazione servizio ogni 500 frames
-                    if ((curFrame % 500) == 0) {
-                        //CHECK!!
-                            isActive.set(false);
-                    }
-
-                    try {
-                        Thread.sleep(1000 / FPS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
-    */
     }
 
     /**
@@ -262,29 +205,26 @@ public class ParticleFilterService extends Algorithm {
     public void applyFilter(List<JsonDataBeacon> beacons) {
 
 
+        // 1. Weight particles acording to reference point (fingerprint) or distances to beacons
+        weightParticles(beacons);
 
-        // 2. Pesar las partículas respecto al punto de referencia (trilat)
-        double weightSum = weightParticles(beacons);
+        //printParticles();
 
-        printParticles();
-
-        // 3. Resampling (eliminar particulas lejanas, generar nuevas)
+        // 2. Resampling (delete old particles, generate new)
         resampleParticles();
 
-        // 4. Pesar nuevamente las partículas
-        weightSum = weightParticles(beacons);
+        // 3. Weight particles again after resampling
+        weightParticles(beacons);
 
-        printParticles();
+        //printParticles();
 
-
-
-        // 6. Calculate average point to return
+        // 4. Calculate average point to return
         calculateAveragePoint();
 
-        // 1. Desplazar las partículas de acuerdo al PDR (movedX, movedY)
+        // 5. Desplazar las partículas de acuerdo al PDR (movedX, movedY)
         moveParticles();
 
-        // 5. Clear any movedX, movedY values
+        // 6. Clear any movedX, movedY values
         this.movedX = 0;
         this.movedY = 0;
 
@@ -294,7 +234,7 @@ public class ParticleFilterService extends Algorithm {
     private void printParticles() {
         for (int i = 0; i < particles.size(); i++) {
             Particle it = particles.get(i);
-            System.out.println("PFACTIVITY particle[" + i + "]  loc (" + it.x + ", " +  it.y + ") weight " + it.weight);
+            System.out.println("PFACTIVITY particle[" + i + "]  loc (" + it.x + ", " + it.y + ") weight " + it.weight);
         }
     }
 
@@ -328,15 +268,16 @@ public class ParticleFilterService extends Algorithm {
                 Location beaconLocation = beaconsList.get(j).getPosition();
 
 
-                //this.xPos and this.yPos are the position provided by trilateration
-                //apLocation is the position of the beacon
+                //this.xPos and this.yPos are the position provided by fingerprint
                 double userDistToBeacon = 0.0;
                 if (beacons == null) {
+                    // Fingerprinting way
                     userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
                 } else {
+                    // Distance approximation way
                     JsonDataBeacon toFind = new JsonDataBeacon(beaconsList.get(j).getBeacon().getAddress(), 0.0, 0);
                     JsonDataBeacon datasetBeacon = beacons.get(beacons.indexOf(toFind));
-                    userDistToBeacon = calculateDistance(datasetBeacon.getRssi());
+                    userDistToBeacon = calculateDistance(datasetBeacon.getRssi(), null);
                 }
 
                 double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
@@ -362,17 +303,18 @@ public class ParticleFilterService extends Algorithm {
         return weightSum;
     }
 
-    private double calculateDistance(double rssi) {
-        /**
-         * d = 10 ^ ((TxPower - RSSI) / 20)
-         */
-        double approxDistance = ((Math.pow(10.0, ((-60 - rssi)/40f))));
-        return approxDistance;
+    private double calculateDistance(double rssi, Integer txPower) {
+        if (txPower == null) {
+            txPower = -60;
+        }
+        // d = 10 ^ ((TxPower - RSSI) / 40)
+        return ((Math.pow(10.0, ((txPower - rssi) / 40f))));
     }
+
     private void resampleParticles() {
         List<Particle> newParticles = new ArrayList<>();
         int numParticles = particles.size();
-        Log.d("PFACTIVITY","RESAMPLING -- NUM PARTICLES: " + numParticles );
+        Log.d("PFACTIVITY", "RESAMPLING -- NUM PARTICLES: " + numParticles);
         int previousValid = -1;
         int accumToAdd = 0;
         //RESAMPLING_MINIMUM *= RESAMPLING_MINIMUM;
@@ -381,7 +323,7 @@ public class ParticleFilterService extends Algorithm {
             if (particles.get(i).weight < RESAMPLING_MINIMUM) {
                 newParticles.add(particles.get(i));
                 previousValid = i;
-            }   else {
+            } else {
                 accumToAdd++;
                 if (previousValid != -1) {
                     while (accumToAdd != 0) {
@@ -397,217 +339,6 @@ public class ParticleFilterService extends Algorithm {
             Log.e("PFACTIVITY", "NO MORE PARTICLES ------------------------------");
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Particle Filter: run the actual particle filter algorithm here
-     */
-    public void applyFilter2() {
-
-
-        //increment frame counter
-        this.curFrame += 1;
-
-        /*
-        // 0. approximate robot position using current particles
-        double totalX = 0;
-        double totalY = 0;
-        double totalWX = 0;
-        double totalWY = 0;
-        double totalW = 0;
-        for (int i = 0; i < particles.size(); i++) {
-            totalX += particles.get(i).x;
-            totalY += particles.get(i).y;
-            double weight = particles.get(i).getWeight();
-            totalWX += (weight * particles.get(i).x);
-            totalWY += (weight * particles.get(i).y);
-            totalW += weight;
-        }
-        // direct average location of all particles
-        this.estimateX = Math.floor(totalX / particles.size());
-        this.estimateY = Math.floor(totalY / particles.size());
-        // weighted average of all particles
-        this.estimateWX = Math.floor(totalWX / totalW);
-        this.estimateWY = Math.floor(totalWY / totalW);
-        System.out.println("Estamos en apply filter " + this.estimateWX + " " + this.estimateWY);
-        */
-
-
-        // 1. if mouse moved (i.e. the "agent" moved), update all particles
-        //	by the same amount as the mouse movement
-        moveParticles();
-
-        // 2. do a random walk if on random walk frame
-
-        //UPDATES PARTICLE POSITION WITH RANDOM WALK ??
-        /*
-        if (R_WALK_FREQUENCY != 0 && (this.curFrame % R_WALK_FREQUENCY) == 0) {
-            for (int i = 0; i < particles.size(); i++) {
-                double dX = Math.floor(Math.random() * (R_WALK_MAX + 1)) - R_WALK_MAX / 2;
-                double dY = Math.floor(Math.random() * (R_WALK_MAX + 1)) - R_WALK_MAX / 2;
-                particles.get(i).x += dX;
-                particles.get(i).y += dY;
-            }
-        }*/
-
-        // 3. estimate weights of every particle
-        double maxWeight = 0;
-        for (int i = 0; i < particles.size(); i++) {
-            double weightSum = 0;
-            //for every beacon?
-
-            for (int j = 0; j < beaconsList.size(); j++) {
-
-                // get distance to beacon of both the particle and the robot
-                //Replace with trilateration calculated position
-                Location beaconLocation = beaconsList.get(j).getPosition();
-
-
-                //this.xPos and this.yPos are the position provided by trilateration
-                //apLocation is the position of the beacon
-
-                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
-                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
-
-                //particle distance to beacon is known, userDistToBeacon
-                weightSum += getWeight(userDistToBeacon, particleDistToBeacon);
-            }
-            //beacons.size
-            double weight = weightSum / beaconsList.size();
-            //particles.get(i).degrade(weight);
-            particles.get(i).weight = weight;
-            if (weight > maxWeight)
-                maxWeight = weight;
-        }
-
-        // 4. normalize weights
-        double weightSum = 0;
-        for (int i = 0; i < particles.size(); i++) {
-            particles.get(i).normalize(maxWeight);
-            weightSum += particles.get(i).getWeight();
-        }
-
-
-        double lowestWeight = 9999.0;
-        double lowestX = 0.0;
-        double lowestY = 0.0;
-
-        for (int i = 0; i < particles.size(); i++) {
-            Particle it = particles.get(i);
-            System.out.println("PFACTIVITY particle[" + i + "]  loc (" + it.x + ", " +  it.y + ") weight " + it.weight);
-            if (it.weight < lowestWeight) {
-                lowestWeight = it.weight;
-                lowestX = it.x;
-                lowestY = it.y;
-            }
-        }
-
-        System.out.println("PFACTIVITY lowest point is (" + lowestX + ", " + lowestY + ") weight: " + lowestWeight);
-        //calculateAveragePoint();
-
-        // 5. resample: pick each particle based on probability
-        // Not what we expected
-
-        List<Particle> newParticles = new ArrayList<>();
-        int numParticles = particles.size();
-        Log.d("PFACTIVITY","NUM PARTICLES: " + numParticles + " weight sum: " + weightSum);
-        /*for (int i = 0; i < numParticles; i++) {
-            double choice = Math.random() * weightSum;
-            int index = 0;
-            Log.d("NUM","INDEX: "+index);
-            while (index < numParticles && choice > 0)  {
-                Log.d("NUM","INDEX: "+index);
-                choice -= particles.get(index).getWeight();
-                index++;
-            }
-            if (index < numParticles) {
-                newParticles.add(particles.get(index).clone());
-            }
-
-        }
-        Log.d("PFACTIVITY","NUM PARTICLES: " + newParticles.size());
-        particles = newParticles;*/
-
-        int previousValid = -1;
-        int accumToAdd = 0;
-
-        for (int i = 0; i < numParticles; i++) {
-            if (particles.get(i).weight < RESAMPLING_MINIMUM) {
-                newParticles.add(particles.get(i));
-                previousValid = i;
-            }   else {
-                accumToAdd++;
-                if (previousValid != -1) {
-                    while (accumToAdd != 0) {
-                        newParticles.add(cloneDistorted(particles.get(previousValid)));
-                        accumToAdd--;
-                    }
-                }
-            }
-
-        }
-        particles = newParticles;
-
-        // 3. estimate weights of every particle
-        maxWeight = 0;
-        for (int i = 0; i < particles.size(); i++) {
-            weightSum = 0;
-            //for every beacon?
-
-            for (int j = 0; j < beaconsList.size(); j++) {
-
-                // get distance to beacon of both the particle and the robot
-                //Replace with trilateration calculated position
-                Location beaconLocation = beaconsList.get(j).getPosition();
-
-
-                //this.xPos and this.yPos are the position provided by trilateration
-                //apLocation is the position of the beacon
-
-                double userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
-                double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
-
-                //particle distance to beacon is known, userDistToBeacon
-                weightSum += getWeight(userDistToBeacon, particleDistToBeacon);
-            }
-            //beacons.size
-            double weight = weightSum / beaconsList.size();
-            //particles.get(i).degrade(weight);
-            particles.get(i).weight = weight;
-            if (weight > maxWeight)
-                maxWeight = weight;
-        }
-
-        // 4. normalize weights
-        weightSum = 0;
-        for (int i = 0; i < particles.size(); i++) {
-            particles.get(i).normalize(maxWeight);
-            weightSum += particles.get(i).getWeight();
-        }
-
-
-        // clear any movedX, movedY values
-        this.movedX = 0;
-        this.movedY = 0;
-
-        calculateAveragePoint();
-
-
-
-    }
 
     private Particle cloneDistorted(Particle toClone) {
         Particle cloned = toClone.clone();

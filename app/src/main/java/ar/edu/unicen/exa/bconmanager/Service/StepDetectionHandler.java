@@ -9,7 +9,7 @@ import android.util.Log;
 
 public class StepDetectionHandler extends AppCompatActivity implements
         SensorEventListener {
-    private String  TAG = "StepDetectionHandler";
+    private String TAG = "StepDetectionHandler";
     SensorManager sm;
     Sensor sensor;
     boolean rawData;
@@ -51,9 +51,8 @@ public class StepDetectionHandler extends AppCompatActivity implements
             //threshold from which it is considered that it is a step
             if (z > 1 && mStepDetectionListener != null && !rawData) {
                 onNewStepDetected();
-            }
-            else if (rawData) {
-                Log.d("ADJUSTMENT", "Detected acceleration "+z);
+            } else if (rawData) {
+                Log.d("ADJUSTMENT", "Detected acceleration " + z);
                 mStepDetectionListener.newStep(z);
             }
 
