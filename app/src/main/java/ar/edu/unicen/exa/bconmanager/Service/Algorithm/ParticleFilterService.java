@@ -275,9 +275,30 @@ public class ParticleFilterService extends Algorithm {
                     userDistToBeacon = distance(this.xPos, this.yPos, beaconLocation.getXMeters(), beaconLocation.getYMeters());
                 } else {
                     // Distance approximation way
-                    JsonDataBeacon toFind = new JsonDataBeacon(beaconsList.get(j).getBeacon().getAddress(), 0.0, 0);
+                    String beaconAddres = beaconsList.get(j).getBeacon().getAddress();
+                    JsonDataBeacon toFind = new JsonDataBeacon(beaconAddres, 0.0, 0);
                     JsonDataBeacon datasetBeacon = beacons.get(beacons.indexOf(toFind));
-                    userDistToBeacon = calculateDistance(datasetBeacon.getRssi(), null);
+
+                    Integer txPower = null;
+                    switch(beaconAddres)
+                    {
+                        case "0C:F3:EE:0D:84:50":
+                            txPower = -60;
+                            break;
+                        case "DF:B5:15:8C:D8:35":
+                            txPower = -60;
+                            break;
+                        case "D3:B5:67:2B:92:DA":
+                            txPower = -60;
+                            break;
+                        case "C1:31:86:2A:30:62":
+                            txPower = -60;
+                            break;
+                        default:
+                            txPower = null;
+                    }
+
+                    userDistToBeacon = calculateDistance(datasetBeacon.getRssi(), txPower);
                 }
 
                 double particleDistToBeacon = distance(particles.get(i).x, particles.get(i).y, beaconLocation.getXMeters(), beaconLocation.getYMeters());
@@ -418,6 +439,5 @@ public class ParticleFilterService extends Algorithm {
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateX + ", " + estimateY));
         System.out.println(String.format("PFACTIVITY PARTICLE FILTER POSITION IS " + estimateWX + ", " + estimateWY));
     }
-
 
 }
