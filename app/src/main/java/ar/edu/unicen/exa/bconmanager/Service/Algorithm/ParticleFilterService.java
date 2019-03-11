@@ -96,6 +96,27 @@ public class ParticleFilterService extends Algorithm {
         }
     }
 
+    public void setStartingLocation(Location startingLocation) {
+        // Overwrite starting point
+        xPos = startingLocation.getXMeters();
+        yPos = startingLocation.getYMeters();
+
+        // A 4x4 square where we should create the particles
+        double minWidth = xPos - STARTING_AREA_MTS;
+        double minHeight = yPos - STARTING_AREA_MTS;
+        double maxWidth = xPos + STARTING_AREA_MTS;
+        double maxHeight = yPos + STARTING_AREA_MTS;
+
+        // overwrite particles
+        particles = new ArrayList<Particle>();
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            Particle p = new Particle();
+            p.randomize(minWidth, maxWidth, minHeight, maxHeight);
+            particles.add(p);
+        }
+        initialPosition = false;
+    }
+
     public void setUseFingerprinting(boolean status) {
         useFingerprinting = status;
     }
@@ -124,24 +145,7 @@ public class ParticleFilterService extends Algorithm {
 
         if (initialPosition) {
             Location startingLocation = new Location(data.getPositionX(), data.getPositionY(), customMap);
-            // Overwrite starting point
-            xPos = startingLocation.getXMeters();
-            yPos = startingLocation.getYMeters();
-
-            // A 4x4 square where we should create the particles
-            double minWidth = xPos - STARTING_AREA_MTS;
-            double minHeight = yPos - STARTING_AREA_MTS;
-            double maxWidth = xPos + STARTING_AREA_MTS;
-            double maxHeight = yPos + STARTING_AREA_MTS;
-
-            // overwrite particles
-            particles = new ArrayList<Particle>();
-            for (int i = 0; i < NUM_PARTICLES; i++) {
-                Particle p = new Particle();
-                p.randomize(minWidth, maxWidth, minHeight, maxHeight);
-                particles.add(p);
-            }
-            initialPosition = false;
+            setStartingLocation(startingLocation);
         }
 
         Location pdrLocation = pdrService.getNextPosition(data);
@@ -208,7 +212,7 @@ public class ParticleFilterService extends Algorithm {
         // 1. Weight particles acording to reference point (fingerprint) or distances to beacons
         weightParticles(beacons);
 
-        //printParticles();
+        printParticles();
 
         // 2. Resampling (delete old particles, generate new)
         resampleParticles();
@@ -216,7 +220,7 @@ public class ParticleFilterService extends Algorithm {
         // 3. Weight particles again after resampling
         weightParticles(beacons);
 
-        //printParticles();
+        printParticles();
 
         // 4. Calculate average point to return
         calculateAveragePoint();

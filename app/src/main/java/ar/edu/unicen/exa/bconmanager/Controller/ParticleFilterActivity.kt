@@ -5,6 +5,8 @@ import android.content.Intent
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
@@ -33,6 +35,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
     private var isFingerprint = true
+    private var isSettingStartPoint = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,8 +80,22 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
 
     override fun displayMap() {
+        this.touchListener = (object: View.OnTouchListener {
+            override fun onTouch(v: View, event: MotionEvent):Boolean {
+                if(isSettingStartPoint) {
+                    val screenX = event.x
+                    val screenY = event.y
+                    val viewX = screenX - v.left
+                    val viewY = screenY - v.top
+                    Log.d(TAG, "Touching x: $viewX y: $viewY")
+                    isSettingStartPoint = false
+                    setUpParticleFilter(viewX, viewY)
+                }
+                return false
+            }
+        })
         super.displayMap()
-        setUpParticleFilter()
+
     }
 
     /**
@@ -94,7 +111,11 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         bluetoothScanner.scanLeDevice(true, pfAdapter)
     }
 
-    fun setUpParticleFilter() {
+    fun setUpParticleFilter(startX: Float = 0.0f, startY: Float = 0.0f) {
+
+        val startLoc = Location(0.0, 0.0, floorMap)
+        startLoc.setX(startX.toInt())
+        startLoc.setY(startY.toInt())
 
         // Set up trilateration and fingerprinting
         startScan(bluetoothScanner)
@@ -109,13 +130,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
         particleFilterService = ParticleFilterService.getInstance(this.applicationContext, floorMap, pfAdapter)
 
-        //Replace with trilat / fingerprinting position
-       // val startPoint = referenceCalculator.getNextPoint(floorMap.savedBeacons)
-        //Log.d("PFACTIVITY", "Start Point is $startPoint")
-        // Only for PDR, it doesn't have to be real
-        val xPos = 0.0
-        val yPos = 0.0
-        setStartingPoint(xPos, yPos)
+        setStartingPoint(startLoc.getXMeters(), startLoc.getYMeters())
 
         Log.d("PFACTIVITY", "Startup point set")
 
@@ -165,6 +180,8 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         currentTrilatView = ImageView(this)
         setupResource(currentTrilatPosition, currentTrilatView)
 
+        particleFilterService!!.setStartingLocation(loc)
+
     }
 
     /**
@@ -192,20 +209,18 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
      * Gets called by the adapter when the trilateration service has a new position
      */
     fun trilateratePosition() {
-
-        //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
-        var currentTimestamp = AveragedTimestamp()
-        currentTimestamp.startFromBeacons(floorMap.savedBeacons)
-        val resultLocation = referenceCalculator.getNextPosition(currentTimestamp)
-
-
-
-        Log.d("NEWTEST", "Updating reference location to $resultLocation")
-        val trilatLocationOnMap: Location
-        if (resultLocation != null) {
-            trilatLocationOnMap = Location(resultLocation!!.x, resultLocation.y, floorMap)
-            currentTrilatPosition = PositionOnMap(trilatLocationOnMap!!)
-            drawTrilaterationPoint(currentTrilatPosition.position)
+        if (isFingerprint) {
+            //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
+            var currentTimestamp = AveragedTimestamp()
+            currentTimestamp.startFromBeacons(floorMap.savedBeacons)
+            val resultLocation = referenceCalculator.getNextPosition(currentTimestamp)
+            Log.d("NEWTEST", "Updating reference location to $resultLocation")
+            val trilatLocationOnMap: Location
+            if (resultLocation != null) {
+                trilatLocationOnMap = Location(resultLocation!!.x, resultLocation.y, floorMap)
+                currentTrilatPosition = PositionOnMap(trilatLocationOnMap!!)
+                drawTrilaterationPoint(currentTrilatPosition.position)
+            }
         }
     }
 
@@ -215,7 +230,8 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
 
         removeResource(currentTrilatView)
-        drawTrilaterationPoint(currentTrilatPosition.position)
+        if (isFingerprint)
+            drawTrilaterationPoint(currentTrilatPosition.position)
 
         Log.d("PFACTIVITY-PRE", "Trilateration location is $currentTrilatPosition")
         Log.d("PFACTIVITY-PRE", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
@@ -270,6 +286,10 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         //positionView.layoutParams = layoutParams
+    }
+
+    fun recordStartPoint(view: View) {
+        isSettingStartPoint = true
     }
 
 }
