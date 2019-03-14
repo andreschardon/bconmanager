@@ -108,12 +108,15 @@ public class ParticleFilterService extends Algorithm {
         double maxHeight = yPos + STARTING_AREA_MTS;
 
         // overwrite particles
+        System.out.println("PFACTIVITY particle starting point "+startingLocation.toString());
+
         particles = new ArrayList<Particle>();
         for (int i = 0; i < NUM_PARTICLES; i++) {
             Particle p = new Particle();
             p.randomize(minWidth, maxWidth, minHeight, maxHeight);
             particles.add(p);
         }
+        this.printParticles();
         initialPosition = false;
     }
 
@@ -208,25 +211,24 @@ public class ParticleFilterService extends Algorithm {
 
     public void applyFilter(List<JsonDataBeacon> beacons) {
 
+        // 1. Move particles according to PDR (movedX, movedY)
+        moveParticles();
 
-        // 1. Weight particles acording to reference point (fingerprint) or distances to beacons
+        // 2. Weight particles according to reference point (fingerprint) or distances to beacons
         weightParticles(beacons);
 
-        printParticles();
+        //printParticles();
 
-        // 2. Resampling (delete old particles, generate new)
+        // 3. Resampling (delete old particles, generate new)
         resampleParticles();
 
-        // 3. Weight particles again after resampling
+        // 4. Weight particles again after resampling
         weightParticles(beacons);
 
-        printParticles();
+        //printParticles();
 
-        // 4. Calculate average point to return
+        // 5. Calculate average point to return
         calculateAveragePoint();
-
-        // 5. Desplazar las partículas de acuerdo al PDR (movedX, movedY)
-        moveParticles();
 
         // 6. Clear any movedX, movedY values
         this.movedX = 0;
