@@ -6,5 +6,6 @@ class JsonMap constructor (
         val height : Double? = null,
         val angle : Double? = null,
         var beaconList: List<JsonBeacon>? = null,
-        var pointsOfInterest : List <JsonPoI>? = null,
-        var fingerprintZones: List<JsonFingerprintZone>? = null)
+        var pointsOfInterest : List<JsonPoI>? = null,
+        var fingerprintZones: List<JsonFingerprintZone>? = null,
+        var interaction_zones: List<JsonIntZone>? = null)

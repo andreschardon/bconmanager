@@ -13,6 +13,7 @@ class CustomMap constructor(var image : String, var width : Double , var height 
     var savedBeacons : MutableList<BeaconOnMap> = mutableListOf<BeaconOnMap>()
     var fingerprintZones : MutableList<FingerprintZone> = mutableListOf<FingerprintZone>()
     var pointsOfInterest : MutableList<PointOfInterest> = mutableListOf<PointOfInterest>()
+    var interactionZones : MutableList<InteractionZone> = mutableListOf<InteractionZone>()
     var widthMtsToPixelsRatio : Double = 0.0
     var heightMtsToPixelsRatio : Double = 0.0
 
@@ -47,6 +48,15 @@ class CustomMap constructor(var image : String, var width : Double , var height 
                zone.unTouch()
                this.fingerprintZones.add(zone)
            }
+        }
+        if (jsonMap.interaction_zones != null) {
+            Log.d("NOTIFICATIONS", "Starting from file")
+            for (iz in jsonMap.interaction_zones!!) {
+                val zone = InteractionZone()
+                zone.startFromJson(iz)
+                interactionZones.add(zone)
+                Log.d("NOTIFICATIONS", "Zone started")
+            }
         }
         this.image = jsonMap.image!!
         this.width = jsonMap.width!!

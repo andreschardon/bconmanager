@@ -3,7 +3,6 @@ package ar.edu.unicen.exa.bconmanager.Controller
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Point
-import android.nfc.Tag
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -16,16 +15,17 @@ import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 import java.math.BigDecimal
 
-abstract class OnMapActivity  : AppCompatActivity() {
+abstract class OnMapActivity : AppCompatActivity() {
 
     protected val bluetoothScanner = BluetoothScanner.instance
     protected var filePath: String = ""
     protected var datasetPath = ""
-    protected open var TAG : String = ""
+    protected open var TAG: String = ""
     protected lateinit var floorMap: CustomMap
-    protected var touchListener : View.OnTouchListener? = null
+    protected var touchListener: View.OnTouchListener? = null
     protected var datasetChosen = false
     protected var isChoosingFile = false
+    protected var shouldCheckZones = false
 
     fun Double.roundTo2DecimalPlaces() =
             BigDecimal(this).setScale(2, BigDecimal.ROUND_HALF_UP).toDouble()
@@ -89,6 +89,12 @@ abstract class OnMapActivity  : AppCompatActivity() {
         // Obtain real width and height of the map
         val mapSize = getRealMapSize()
         floorMap.calculateRatio(mapSize.x, mapSize.y)
+
+        // Check if there is an interaction zone
+        if (floorMap.interactionZones != null) {
+            Log.d("NOTIFICATIONS", "Should check set to true")
+            shouldCheckZones = true
+        }
     }
 
     abstract fun updatePosition(beacons: List<BeaconDevice>)
@@ -117,6 +123,38 @@ abstract class OnMapActivity  : AppCompatActivity() {
         realSize.x = width
         realSize.y = floorPlan.drawable.intrinsicHeight * width / floorPlan.drawable.intrinsicWidth
         return realSize
+    }
+
+    protected fun checkInteractionZones(position: Location) {
+        for (zone in floorMap.interactionZones) {
+            Log.d("NOTIFICATIONS", "Checking zone")
+            if (zone.isInside(position)) {
+                Log.d("NOTIFICATIONS", "Is inside")
+                displayZoneNotification(zone)
+            }
+
+        }
+    }
+
+    protected fun displayZoneNotification(zone: InteractionZone) {
+        createNotification(zone.name, zone.url)
+    }
+
+    private fun createNotification(text: String, link: String) {
+        /* TO DO
+        Log.d("NOTIFICATIONS", "Create notification")
+        val notificationBuilder = NotificationCompat.Builder(this)
+                .setAutoCancel(false)
+                .setSmallIcon(R.drawable.zone_icon)
+                .setContentTitle(text)
+        val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // pending implicit intent to view url
+        val resultIntent = Intent(Intent.ACTION_VIEW)
+        resultIntent.setData(Uri.parse(link))
+        val pending = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_IMMUTABLE)
+        notificationBuilder.setContentIntent(pending)
+        // using the same tag and Id causes the new notification to replace an existing one
+        mNotificationManager.notify((System.currentTimeMillis()).toString(), 0, notificationBuilder.build())*/
     }
 
 }

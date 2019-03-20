@@ -16,7 +16,9 @@ import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.Algorithm.*
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FingerprintingService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
+import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
 import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
@@ -80,9 +82,9 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
 
     override fun displayMap() {
-        this.touchListener = (object: View.OnTouchListener {
-            override fun onTouch(v: View, event: MotionEvent):Boolean {
-                if(isSettingStartPoint) {
+        this.touchListener = (object : View.OnTouchListener {
+            override fun onTouch(v: View, event: MotionEvent): Boolean {
+                if (isSettingStartPoint) {
                     val screenX = event.x
                     val screenY = event.y
                     val viewX = screenX - v.left
@@ -146,7 +148,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         particle.image = R.drawable.finger_zone_green_xs
         val particleView = ImageView(this)
         particleViewList.add(particleView)
-        setupResource(particle, particleView,30,30)
+        setupResource(particle, particleView, 30, 30)
     }
 
     private fun drawTrilaterationPoint(location: Location) {
@@ -286,6 +288,12 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         layoutParams.leftMargin = currentPosition.position.getX() - 35
         layoutParams.topMargin = currentPosition.position.getY() - 35
         //positionView.layoutParams = layoutParams
+
+        if (shouldCheckZones) {
+            Log.d("NOTIFICATIONS", "Should check")
+            checkInteractionZones(currentPosition.position)
+        }
+
     }
 
     fun recordStartPoint(view: View) {
