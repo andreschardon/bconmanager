@@ -1,8 +1,17 @@
 package ar.edu.unicen.exa.bconmanager.Controller
 
+import android.annotation.TargetApi
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.Point
+import android.net.Uri
+import android.os.Build
+import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -141,20 +150,39 @@ abstract class OnMapActivity : AppCompatActivity() {
     }
 
     private fun createNotification(text: String, link: String) {
-        /* TO DO
+
         Log.d("NOTIFICATIONS", "Create notification")
-        val notificationBuilder = NotificationCompat.Builder(this)
-                .setAutoCancel(false)
-                .setSmallIcon(R.drawable.zone_icon)
-                .setContentTitle(text)
-        val mNotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        // pending implicit intent to view url
+        val mNotifyManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+
         val resultIntent = Intent(Intent.ACTION_VIEW)
-        resultIntent.setData(Uri.parse(link))
-        val pending = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_IMMUTABLE)
-        notificationBuilder.setContentIntent(pending)
-        // using the same tag and Id causes the new notification to replace an existing one
-        mNotificationManager.notify((System.currentTimeMillis()).toString(), 0, notificationBuilder.build())*/
+        resultIntent.data = Uri.parse(link)
+
+        val pending = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createChannel(mNotifyManager)
+        val mBuilder = NotificationCompat.Builder(this, "ble-channel")
+                .setContentTitle(text)
+                .setSmallIcon(ar.edu.unicen.exa.bconmanager.R.drawable.location_icon)
+                .setContentText(link)
+                .setContentIntent(pending)
+
+        // Ver como trabajar con varias notificaciones
+        mNotifyManager.notify(1777, mBuilder.build())
+    }
+
+    @TargetApi(26)
+    private fun createChannel(notificationManager : NotificationManager) {
+        val name = "ble-channel"
+        val description = "ble"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val mChannel = NotificationChannel(name, name, importance)
+        mChannel.description = description
+        mChannel.enableLights(true)
+        mChannel.lightColor = Color.BLUE
+        notificationManager.createNotificationChannel(mChannel)
     }
 
 }
