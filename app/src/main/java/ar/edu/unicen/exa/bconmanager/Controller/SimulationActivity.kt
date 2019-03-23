@@ -23,9 +23,15 @@ class SimulationActivity : OnMapActivity() {
     lateinit var algorithm: Algorithm
 
     private var drawPoints = true
+    private var runAverageCalculation = false
 
     private val UPDATE_INTERVAL = 4
     private val GENERATE = false
+    private val MAX_SIMULATIONS_AVERAGE = 30
+
+    private var averageMaxError = 0.0
+    private var averageErrorList: MutableList<Double> = mutableListOf()
+    private var averageMeanErrorList: MutableList<Double> = mutableListOf()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,15 +90,60 @@ class SimulationActivity : OnMapActivity() {
 
 
     fun runSimulationPF(view: View) {
-        algorithm = ParticleFilterService()
-        (algorithm as ParticleFilterService).setUseFingerprinting(true)
-        runSimulation("ParticleFilter")
+        averageErrorList.clear()
+        averageMeanErrorList.clear()
+        averageMaxError = 0.0
+        if (!runAverageCalculation) {
+            algorithm = ParticleFilterService()
+            (algorithm as ParticleFilterService).setUseFingerprinting(true)
+            runSimulation("ParticleFilter")
+        } else {
+            var i = 0
+            while (i < MAX_SIMULATIONS_AVERAGE) {
+                Log.d("AVERROR", "RUNNING SIMULATION $i")
+                algorithm = ParticleFilterService()
+                (algorithm as ParticleFilterService).setUseFingerprinting(true)
+                runSimulation("ParticleFilter")
+                i++
+            }
+            printAveragedErrors()
+        }
+
+
     }
 
     fun runSimulationPFDist(view: View) {
-        algorithm = ParticleFilterService()
-        (algorithm as ParticleFilterService).setUseFingerprinting(false)
-        runSimulation("ParticleFilterDist")
+        averageErrorList.clear()
+        averageMeanErrorList.clear()
+        averageMaxError = 0.0
+        if (!runAverageCalculation) {
+            algorithm = ParticleFilterService()
+            (algorithm as ParticleFilterService).setUseFingerprinting(false)
+            runSimulation("ParticleFilterDist")
+        } else {
+            var i = 0
+            while (i < MAX_SIMULATIONS_AVERAGE) {
+                Log.d("AVERROR", "RUNNING SIMULATION $i")
+                algorithm = ParticleFilterService()
+                (algorithm as ParticleFilterService).setUseFingerprinting(false)
+                runSimulation("ParticleFilterDist")
+                i++
+            }
+            printAveragedErrors()
+        }
+    }
+
+    private fun printAveragedErrors() {
+        val averageError = averageErrorList.average()
+        val meanError = averageMeanErrorList.average()
+
+        Toast.makeText(this, "AV ERROR IS $averageError", Toast.LENGTH_LONG).show()
+
+        Log.d("AVERROR", averageErrorList.toString())
+        Log.d("AVERROR", "Average error is $averageError")
+        Log.d("AVERROR", "MAX error is ${averageMaxError}")
+        Log.d("AVERROR", averageMeanErrorList.toString())
+        Log.d("AVERROR", "MEAN error is ${meanError}")
     }
 
     fun runSimulationPDR(view: View) {
@@ -228,18 +279,26 @@ class SimulationActivity : OnMapActivity() {
         Log.d("ERROR", "ERROR MEDIAN: ${result.errorMedian}")
         val finalPath = "$datasetPathMod$choice.json"
 
-        saveResultsToFile(finalPath, result)
+        if (!runAverageCalculation || !choice.contains("ParticleFilter")) {
+            saveResultsToFile(finalPath, result)
 
-        if (GENERATE) {
-            val dataset3 = JsonDataset(simulationDataToDo)
-            JsonUtility.saveDatasetToFile("/storage/emulated/0/Download/rectangulo-new.json", dataset3)
-            Log.d("SIMULATION", "Finished saving to $filePath")
+            if (GENERATE) {
+                val dataset3 = JsonDataset(simulationDataToDo)
+                JsonUtility.saveDatasetToFile("/storage/emulated/0/Download/rectangulo-new.json", dataset3)
+                Log.d("SIMULATION", "Finished saving to $filePath")
+            }
+
+
+
+            Toast.makeText(this, "ERROR IS ${result.errorAverage}", Toast.LENGTH_LONG).show()
+            //Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
+        } else {
+            if (averageMaxError < maxError)
+                averageMaxError = maxError
+            averageErrorList.add(averageError)
+            averageMeanErrorList.add(result.errorMedian!!)
         }
 
-
-
-        Toast.makeText(this, "ERROR IS ${result.errorAverage}", Toast.LENGTH_LONG).show()
-        //Toast.makeText(this, "Simulation Completed, results are in Downloads/Results-$choice.json", Toast.LENGTH_LONG).show()
     }
 
     private fun printNewRssi(currentTimestamp: AveragedTimestamp, count: Int, simulationDataToDo: MutableList<JsonData>) {
