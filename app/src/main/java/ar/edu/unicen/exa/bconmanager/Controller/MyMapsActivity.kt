@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import ar.edu.unicen.exa.bconmanager.Model.SavedMap
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.Storage.JsonUtility
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import android.app.AlertDialog

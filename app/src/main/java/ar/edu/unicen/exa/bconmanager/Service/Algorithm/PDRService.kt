@@ -7,8 +7,8 @@ import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
-import ar.edu.unicen.exa.bconmanager.Service.DeviceAttitudeHandler
-import ar.edu.unicen.exa.bconmanager.Service.StepDetectionHandler
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.StepDetectionHandler
 import java.math.BigDecimal
 import kotlin.math.roundToInt
 

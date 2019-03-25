@@ -19,7 +19,7 @@ import ar.edu.unicen.exa.bconmanager.R
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FingerprintingService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
-import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.BluetoothScanner
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var stop = false

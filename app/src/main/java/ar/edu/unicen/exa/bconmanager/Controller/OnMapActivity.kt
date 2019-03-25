@@ -19,8 +19,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import ar.edu.unicen.exa.bconmanager.Model.*
 import ar.edu.unicen.exa.bconmanager.R
-import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
-import ar.edu.unicen.exa.bconmanager.Service.JsonUtility
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.Storage.JsonUtility
 import kotlinx.android.synthetic.main.activity_fingerprint_offline.*
 import java.math.BigDecimal
 

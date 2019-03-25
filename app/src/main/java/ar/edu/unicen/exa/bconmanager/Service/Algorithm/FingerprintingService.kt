@@ -5,7 +5,7 @@ import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
 import ar.edu.unicen.exa.bconmanager.Model.FingerprintZone
 import ar.edu.unicen.exa.bconmanager.Model.Location
-import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.BluetoothScanner
 
 
 class FingerprintingService() : Algorithm() {

@@ -1,4 +1,4 @@
-package ar.edu.unicen.exa.bconmanager.Service;
+package ar.edu.unicen.exa.bconmanager.Service.Sensors;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;

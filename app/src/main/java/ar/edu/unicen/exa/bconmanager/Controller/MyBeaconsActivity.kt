@@ -5,7 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.ArrayAdapter
 import ar.edu.unicen.exa.bconmanager.Model.BeaconDevice
-import ar.edu.unicen.exa.bconmanager.Service.BluetoothScanner
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.BluetoothScanner
 import ar.edu.unicen.exa.bconmanager.R
 import kotlinx.android.synthetic.main.activity_my_beacons.*
 
