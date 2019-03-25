@@ -7,7 +7,7 @@ import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
 import ar.edu.unicen.exa.bconmanager.Model.CustomMap
 import ar.edu.unicen.exa.bconmanager.Model.Location
 import ar.edu.unicen.exa.bconmanager.Model.PositionOnMap
-import ar.edu.unicen.exa.bconmanager.Service.Sensors.DeviceAttitudeHandler
+import ar.edu.unicen.exa.bconmanager.Service.Sensors.DeviceOrientationHandler
 import ar.edu.unicen.exa.bconmanager.Service.Sensors.StepDetectionHandler
 import java.math.BigDecimal
 import kotlin.math.roundToInt
@@ -16,7 +16,7 @@ class PDRService : Algorithm() {
 
     private var sensorManager: SensorManager? = null
     private var stepDetectionHandler: StepDetectionHandler? = null
-    private var deviceAttitudeHandler: DeviceAttitudeHandler? = null
+    private var deviceOrientationHandler: DeviceOrientationHandler? = null
     private var isWalking = true
     var bearingAdjustment = 0.0f
     private var isRecordingAngle = false
@@ -61,12 +61,12 @@ class PDRService : Algorithm() {
         }
 
         if (!isRecordingAngle) {
-            angle = (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958
+            angle = (deviceOrientationHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958
             //in this case stepSize is acceleration
             acceleration = if (stepSize >= 0) stepSize else 0F // Only use positive acceleration values
             if (PDREnabled) {
-                nextPosition = computeNextStep(stepSize, (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment))
-                //Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceAttitudeHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
+                nextPosition = computeNextStep(stepSize, (deviceOrientationHandler!!.orientationVals[0] + bearingAdjustment))
+                //Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceOrientationHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
                 //Log.d(TAG, "IS WALKING")
                 pdrAdapter!!.StepDetected()
             }
@@ -75,7 +75,7 @@ class PDRService : Algorithm() {
             recordCount++
             if (recordCount == 3) {
                 recordCount = 0
-                setAdjustedBearing(deviceAttitudeHandler!!.orientationVals[0])
+                setAdjustedBearing(deviceOrientationHandler!!.orientationVals[0])
                 isRecordingAngle = false
             }
 
@@ -146,17 +146,17 @@ class PDRService : Algorithm() {
     }
 
     fun startSensorsHandlers() {
-        if ((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
+        if ((stepDetectionHandler != null) && (deviceOrientationHandler != null)) {
             stepDetectionHandler!!.start()
-            deviceAttitudeHandler!!.start()
+            deviceOrientationHandler!!.start()
         }
 
     }
 
     fun stopSensorsHandlers() {
-        if ((stepDetectionHandler != null) && (deviceAttitudeHandler != null)) {
+        if ((stepDetectionHandler != null) && (deviceOrientationHandler != null)) {
             stepDetectionHandler!!.stop()
-            deviceAttitudeHandler!!.stop()
+            deviceOrientationHandler!!.stop()
         }
         Log.d("PDRActivity", "STOP SENSORS HANDLERS")
     }
@@ -166,10 +166,10 @@ class PDRService : Algorithm() {
         this.sensorManager = sm
         stepDetectionHandler = StepDetectionHandler(sensorManager, rawData)
         stepDetectionHandler!!.setStepListener(mStepDetectionListener)
-        deviceAttitudeHandler = DeviceAttitudeHandler(sensorManager)
+        deviceOrientationHandler = DeviceOrientationHandler(sensorManager)
         setmCurrentLocation(loc)
         stepDetectionHandler!!.start()
-        deviceAttitudeHandler!!.start()
+        deviceOrientationHandler!!.start()
         Log.d("PFACTIVITY", "Sensors handlers")
     }
 

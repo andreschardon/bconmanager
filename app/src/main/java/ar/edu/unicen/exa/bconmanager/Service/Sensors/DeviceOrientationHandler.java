@@ -6,7 +6,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 
-public class DeviceAttitudeHandler extends AppCompatActivity implements
+public class DeviceOrientationHandler extends AppCompatActivity implements
         SensorEventListener {
 
     SensorManager sm;
@@ -16,7 +16,7 @@ public class DeviceAttitudeHandler extends AppCompatActivity implements
     public float[] orientationVals = new float[3];
     private final int sensorType = Sensor.TYPE_ROTATION_VECTOR;
 
-    public DeviceAttitudeHandler(SensorManager sm) {
+    public DeviceOrientationHandler(SensorManager sm) {
         super();
         this.sm = sm;
         sensor = sm.getDefaultSensor(sensorType);

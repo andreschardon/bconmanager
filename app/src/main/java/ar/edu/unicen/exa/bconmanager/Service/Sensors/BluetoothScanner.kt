@@ -93,7 +93,7 @@ class BluetoothScanner : AppCompatActivity() {
                 else -> detectedBeacon.name = "Unknown"
             }
 
-            if (!detectedBeacon.name.equals("Unknown")) {
+            //if (!detectedBeacon.name.equals("Unknown")) {
                 if (!devicesList.contains(detectedBeacon)) {
                     devicesList.add(detectedBeacon)
                     detectedBeacon.calculateDistance(rssi)
@@ -107,7 +107,7 @@ class BluetoothScanner : AppCompatActivity() {
                 Log.d("DATACOLLECT-BLE", detectedBeacon.toString())
                 devicesListAdapter.notifyDataSetChanged()
                 //clearAverages()
-            }
+            //}
         }
     }
 
