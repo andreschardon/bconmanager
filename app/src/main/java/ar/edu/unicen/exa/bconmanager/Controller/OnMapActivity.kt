@@ -149,35 +149,45 @@ abstract class OnMapActivity : AppCompatActivity() {
         createNotification(zone.name, zone.url)
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private fun createNotification(text: String, link: String) {
 
         Log.d("NOTIFICATIONS", "Create notification")
         val mNotifyManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        var alreadyShown = false
 
+        mNotifyManager.activeNotifications.forEach {
+            Log.d("NOTIFICATIONS",it.toString())
+            if (it.id == text.hashCode()) {
+                alreadyShown = true
+            }
+        }
 
-        val resultIntent = Intent(Intent.ACTION_VIEW)
-        resultIntent.data = Uri.parse(link)
+        if (!alreadyShown) {
+            val resultIntent = Intent(Intent.ACTION_VIEW)
+            resultIntent.data = Uri.parse(link)
 
-        val pending = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val pending = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                createChannel(mNotifyManager)
+            val mBuilder = NotificationCompat.Builder(this, "ble-channel")
+                    .setContentTitle(text)
+                    .setSmallIcon(ar.edu.unicen.exa.bconmanager.R.drawable.location_icon)
+                    .setContentText(link)
+                    .setContentIntent(pending)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            createChannel(mNotifyManager)
-        val mBuilder = NotificationCompat.Builder(this, "ble-channel")
-                .setContentTitle(text)
-                .setSmallIcon(ar.edu.unicen.exa.bconmanager.R.drawable.location_icon)
-                .setContentText(link)
-                .setContentIntent(pending)
+            // Ver como trabajar con varias notificaciones
+            mNotifyManager.notify(text.hashCode(), mBuilder.build())
+        }
 
-        // Ver como trabajar con varias notificaciones
-        mNotifyManager.notify(1777, mBuilder.build())
     }
 
     @TargetApi(26)
     private fun createChannel(notificationManager : NotificationManager) {
         val name = "ble-channel"
         val description = "ble"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val importance = NotificationManager.IMPORTANCE_HIGH
         val mChannel = NotificationChannel(name, name, importance)
         mChannel.description = description
         mChannel.enableLights(true)

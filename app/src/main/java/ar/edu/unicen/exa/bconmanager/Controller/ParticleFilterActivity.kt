@@ -31,7 +31,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     lateinit var currentTrilatView: ImageView
     private var particleViewList: MutableList<ImageView> = mutableListOf<ImageView>()
 
-    private var pdrService = PDRService.instance
+    override var pdrService = PDRService.instance
     private var particleFilterService: ParticleFilterService? = null
     private var referenceCalculator = FingerprintingService()
     private lateinit var pfAdapter: ParticleFilterAdapter
@@ -151,7 +151,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         setupResource(particle, particleView, 30, 30)
     }
 
-    private fun drawTrilaterationPoint(location: Location) {
+    private fun drawReferencePoint(location: Location) {
         removeResource(currentTrilatView)
 
         val particle = PositionOnMap(location)
@@ -210,7 +210,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     /**
      * Gets called by the adapter when the trilateration service has a new position
      */
-    fun trilateratePosition() {
+    fun calculateReferencePosition() {
         if (isFingerprint) {
             //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
             var currentTimestamp = AveragedTimestamp()
@@ -221,7 +221,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
             if (resultLocation != null) {
                 trilatLocationOnMap = Location(resultLocation!!.x, resultLocation.y, floorMap)
                 currentTrilatPosition = PositionOnMap(trilatLocationOnMap!!)
-                drawTrilaterationPoint(currentTrilatPosition.position)
+                drawReferencePoint(currentTrilatPosition.position)
             }
         }
     }
@@ -233,7 +233,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
         removeResource(currentTrilatView)
         if (isFingerprint)
-            drawTrilaterationPoint(currentTrilatPosition.position)
+            drawReferencePoint(currentTrilatPosition.position)
 
         Log.d("PFACTIVITY-PRE", "Trilateration location is $currentTrilatPosition")
         Log.d("PFACTIVITY-PRE", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")

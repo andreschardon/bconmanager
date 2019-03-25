@@ -51,7 +51,7 @@ class ParticleFilterAdapter(context : ParticleFilterActivity, beacons : List<Bea
 
             Log.d("REFRESH", context.toString())
             counter = 0
-            context.trilateratePosition()
+            context.calculateReferencePosition()
             beacons.forEach {
                 it.cleanAverages()
             }

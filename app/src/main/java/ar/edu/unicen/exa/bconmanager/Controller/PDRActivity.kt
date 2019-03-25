@@ -28,7 +28,7 @@ class PDRActivity : PDRInterface, OnMapActivity() {
     private var isPDREnabled = false
     lateinit var currentPosition: PositionOnMap
 
-    private var pdrService = PDRService.instance
+    override var pdrService = PDRService.instance
     lateinit var pdrAdapter: PDRAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {

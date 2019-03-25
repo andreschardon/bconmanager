@@ -38,7 +38,7 @@ class DatasetActivity : PDRInterface,OnMapActivity() {
     private var dataCollectionHandler = Handler()
     private var datalist = mutableListOf<JsonData>()
     private val delay = 200L //milliseconds. Interval in which data will be captured
-    private var pdrService = PDRService.instance
+    override var pdrService = PDRService.instance
     private lateinit var pdrAdapter: PDRAdapter
 
 
