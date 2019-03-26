@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import android.widget.Toast
 import ar.edu.unicen.exa.bconmanager.Adapters.PDRAdapter
 import ar.edu.unicen.exa.bconmanager.Adapters.ParticleFilterAdapter
 import ar.edu.unicen.exa.bconmanager.Model.AveragedTimestamp
@@ -20,6 +21,8 @@ import ar.edu.unicen.exa.bconmanager.Service.Algorithm.FingerprintingService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.PDRService
 import ar.edu.unicen.exa.bconmanager.Service.Algorithm.ParticleFilterService
 import ar.edu.unicen.exa.bconmanager.Service.Sensors.BluetoothScanner
+import kotlinx.android.synthetic.main.activity_particle_filter.*
+import kotlinx.android.synthetic.main.activity_pdr.*
 
 class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var stop = false
@@ -36,14 +39,18 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     private var referenceCalculator = FingerprintingService()
     private lateinit var pfAdapter: ParticleFilterAdapter
     private lateinit var pdrAdapter: PDRAdapter
-    private var isFingerprint = true
+    private var usesFingerprint = true
+
     private var isSettingStartPoint = false
+    private var isRecordingAngle = false
+    private var startingPointSet = false
+    
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_particle_filter)
-        isFingerprint = intent.getBooleanExtra("isFingerprint", true)
-        Log.d("ISFINGERPRINT", isFingerprint.toString())
+        usesFingerprint = intent.getBooleanExtra("isFingerprint", true)
+        Log.d("ISFINGERPRINT", usesFingerprint.toString())
         val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
         val intent: Intent
         chooseFile.type = "application/octet-stream" //as close to only Json as possible
@@ -84,14 +91,17 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     override fun displayMap() {
         this.touchListener = (object : View.OnTouchListener {
             override fun onTouch(v: View, event: MotionEvent): Boolean {
-                if (isSettingStartPoint) {
+                if (isRecordingAngle || isSettingStartPoint) {
                     val screenX = event.x
                     val screenY = event.y
                     val viewX = screenX - v.left
                     val viewY = screenY - v.top
-                    Log.d(TAG, "Touching x: $viewX y: $viewY")
-                    isSettingStartPoint = false
-                    setUpParticleFilter(viewX, viewY)
+                    if (isRecordingAngle) {
+                        setStartingPoint(viewX.toDouble(), viewY.toDouble())
+                    } else {
+                        setUpParticleFilter(viewX, viewY)
+                    }
+
                 }
                 return false
             }
@@ -119,14 +129,14 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         startLoc.setX(startX.toInt())
         startLoc.setY(startY.toInt())
 
-        // Set up trilateration and fingerprinting
+        // Set up fingerprinting
         startScan(bluetoothScanner)
         referenceCalculator.startUp(floorMap)
 
         // Set up PDR
-        pdrService.bearingAdjustment = (floorMap.angle / 57.2958).toFloat()
-        Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment}")
-        Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment * 57.2958}°")
+        //pdrService.bearingAdjustment = (floorMap.angle / 57.2958).toFloat()
+        //Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment}")
+        //Log.d("ADJUSTMENT", "SAVED PF Adjustment is ${pdrService.bearingAdjustment * 57.2958}°")
         pdrAdapter = PDRAdapter(this)
         pdrService.startPDR()
 
@@ -173,17 +183,25 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         setupResource(currentPosition, positionView)
 
         // PDR
+        pdrAdapter = PDRAdapter(this)
         val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         pdrService.setupSensorsHandlers(loc, pdrAdapter, sensorManager, false)
 
-        // Trilateration
-        currentTrilatPosition = PositionOnMap(Location(0.0, 0.0, floorMap))
-        currentTrilatPosition.image = R.drawable.finger_zone_blue
-        currentTrilatView = ImageView(this)
-        setupResource(currentTrilatPosition, currentTrilatView)
 
-        particleFilterService!!.setStartingLocation(loc)
+        if (isRecordingAngle) {
+            Toast.makeText(this, "Walk a few steps straight towards the right side of the map", Toast.LENGTH_SHORT).show()
+            setStartButton.isEnabled = true
+        } else {
+            isSettingStartPoint = false
+            Toast.makeText(this, "You can start walking on any direction", Toast.LENGTH_SHORT).show()
+            // Reference point
+            currentTrilatPosition = PositionOnMap(Location(0.0, 0.0, floorMap))
+            currentTrilatPosition.image = R.drawable.finger_zone_blue
+            currentTrilatView = ImageView(this)
+            setupResource(currentTrilatPosition, currentTrilatView)
 
+            particleFilterService!!.setStartingLocation(loc)
+        }
     }
 
     /**
@@ -211,7 +229,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
      * Gets called by the adapter when the trilateration service has a new position
      */
     fun calculateReferencePosition() {
-        if (isFingerprint) {
+        if (usesFingerprint) {
             //val resultLocation = trilaterationCalculator.getPositionInMap(floorMap.savedBeacons)
             var currentTimestamp = AveragedTimestamp()
             currentTimestamp.startFromBeacons(floorMap.savedBeacons)
@@ -228,28 +246,27 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
 
     fun advanceStep(movedX: Double, movedY: Double) {
+        if (!isRecordingAngle) {
+            Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
 
-        Log.d("PFACTIVITY", "Advanced an step, calculate trilateration location")
+            removeResource(currentTrilatView)
+            if (usesFingerprint)
+                drawReferencePoint(currentTrilatPosition.position)
 
-        removeResource(currentTrilatView)
-        if (isFingerprint)
-            drawReferencePoint(currentTrilatPosition.position)
+            Log.d("PFACTIVITY-PRE", "Trilateration location is $currentTrilatPosition")
+            Log.d("PFACTIVITY-PRE", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
+            Log.d("PFACTIVITY-PRE", "Current location2 is      (${currentPosition.position.x}, ${currentPosition.position.y})")
+            Log.d("PFACTIVITY-PRE", "Moved length is           ($movedX, $movedY)")
 
-        Log.d("PFACTIVITY-PRE", "Trilateration location is $currentTrilatPosition")
-        Log.d("PFACTIVITY-PRE", "Current location is       (${currentPosition.position.getXMeters()}, ${currentPosition.position.getYMeters()})")
-        Log.d("PFACTIVITY-PRE", "Current location2 is      (${currentPosition.position.x}, ${currentPosition.position.y})")
-        Log.d("PFACTIVITY-PRE", "Moved length is           ($movedX, $movedY)")
-
-        if (isFingerprint) {
-            particleFilterService!!.updatePosition(movedX, movedY,
-                    currentTrilatPosition.position.getXMeters(), currentTrilatPosition.position.getYMeters())
-        } else {
-            var currentTimestamp = AveragedTimestamp()
-            currentTimestamp.startFromBeacons(floorMap.savedBeacons)
-            particleFilterService!!.updatePosition(movedX, movedY, currentTimestamp.beacons)
+            if (usesFingerprint) {
+                particleFilterService!!.updatePosition(movedX, movedY,
+                        currentTrilatPosition.position.getXMeters(), currentTrilatPosition.position.getYMeters())
+            } else {
+                var currentTimestamp = AveragedTimestamp()
+                currentTimestamp.startFromBeacons(floorMap.savedBeacons)
+                particleFilterService!!.updatePosition(movedX, movedY, currentTimestamp.beacons)
+            }
         }
-
-
     }
 
 
@@ -297,7 +314,18 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
     }
 
     fun recordStartPoint(view: View) {
+        isRecordingAngle = false
         isSettingStartPoint = true
+        recordAngleBtn.isEnabled = false
+        setStartButton.isEnabled = false
+    }
+
+    fun recordAngle(view: View) {
+        recordAngleBtn.isEnabled = false
+        setStartButton.isEnabled = false
+        isRecordingAngle = true
+        pdrService.startRecordingAngle()
+        Toast.makeText(this, "Touch on your current position", Toast.LENGTH_SHORT).show()
     }
 
 }

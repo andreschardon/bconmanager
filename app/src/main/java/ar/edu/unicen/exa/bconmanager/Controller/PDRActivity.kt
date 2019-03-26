@@ -53,11 +53,6 @@ class PDRActivity : PDRInterface, OnMapActivity() {
                     val screenY = event.y
                     val viewX = screenX - v.left
                     val viewY = screenY - v.top
-                    Log.d(TAG, "Touching x: $viewX y: $viewY")
-                    // check if point exists
-
-                    // if it does, click it
-                    // otherwise, create a new point there
                     setStartingPoint(viewX, viewY)
                     startingPoint = true
                 }
@@ -71,11 +66,6 @@ class PDRActivity : PDRInterface, OnMapActivity() {
         Log.d("ADJUSTMENT", "SAVED Adjustment is ${pdrService.bearingAdjustment*57.2958}")
 
         pdrAdapter = PDRAdapter(this)
-        // Drawing all the points of interest for this map
-        /*for (point in floorMap.pointsOfInterest) {
-            val imageView = ImageView(this)
-            setupResource(point, imageView)
-        }*/
     }
 
     override fun updatePosition(beacons: List<BeaconDevice>) {
