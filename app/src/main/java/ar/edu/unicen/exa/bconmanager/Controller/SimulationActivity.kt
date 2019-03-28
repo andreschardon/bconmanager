@@ -276,7 +276,9 @@ class SimulationActivity : OnMapActivity() {
         result.errorMax = maxError
         result.errorAverage = averageError
         result.errorMedian = getMedianError(timestampList.size, errors)
+        result.stdDev = calculateSD(errors)
         Log.d("ERROR", "ERROR MEDIAN: ${result.errorMedian}")
+        Log.d("ERROR", "ERROR STDDEV: ${result.stdDev}")
         val finalPath = "$datasetPathMod$choice.json"
 
         if (!runAverageCalculation || !choice.contains("ParticleFilter")) {
@@ -362,5 +364,24 @@ class SimulationActivity : OnMapActivity() {
             Log.d("ERROR", "ERROR ODD: ${errors[medianNOdd]}")
             return errors[medianNOdd]
         }
+    }
+
+    fun calculateSD(errors: List<Double>): Double {
+        var sum = 0.0
+        var standardDeviation = 0.0
+
+        for (num in errors) {
+            sum += num
+        }
+
+        val mean = sum / errors.size
+
+        for (num in errors) {
+            standardDeviation += Math.pow(num - mean, 2.0)
+        }
+
+        val divider = errors.size - 1
+
+        return Math.sqrt(standardDeviation / divider )
     }
 }

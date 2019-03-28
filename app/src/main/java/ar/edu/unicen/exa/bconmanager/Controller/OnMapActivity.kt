@@ -118,6 +118,7 @@ abstract class OnMapActivity : AppCompatActivity() {
     protected fun loadMapFromFile(filePath: String): CustomMap {
         val jsonMap = JsonUtility.readFromFile(filePath)
         val fileMap = CustomMap("", 0.0, 0.0, 0.0)
+
         fileMap.startFromFile(jsonMap)
         Log.d(TAG, "Map loaded from JSON file in $filePath")
         return fileMap
