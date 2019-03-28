@@ -154,7 +154,6 @@ public class ParticleFilterService extends Algorithm {
         Location pdrLocation = pdrService.getNextPosition(data);
         double movedX = pdrService.getMovedX();
         double movedY = pdrService.getMovedY();
-        //System.out.println("PDRWTF Moved " + movedX + " and " + movedY);
 
         if (useFingerprinting) {
             Location referenceLocation = referenceService.getNextPosition(data);

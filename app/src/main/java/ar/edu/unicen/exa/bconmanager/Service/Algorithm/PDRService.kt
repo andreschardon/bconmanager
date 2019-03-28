@@ -66,12 +66,9 @@ class PDRService : Algorithm() {
             acceleration = if (stepSize >= 0) stepSize else 0F // Only use positive acceleration values
             if (PDREnabled) {
                 nextPosition = computeNextStep(stepSize, (deviceOrientationHandler!!.orientationVals[0] + bearingAdjustment))
-                //Log.d(TAG, "Location: " + nextPosition.toString() + "  angle: " + (deviceOrientationHandler!!.orientationVals[0] + bearingAdjustment) * 57.2958)
-                //Log.d(TAG, "IS WALKING")
                 pdrAdapter!!.StepDetected()
             }
         } else if (isWalking && isRecordingAngle) {
-            //Log.d("PDRActivity","IS RECORDING")
             recordCount++
             if (recordCount == 3) {
                 recordCount = 0
@@ -130,12 +127,10 @@ class PDRService : Algorithm() {
     private fun getNextNthPosition(dataEntry: AveragedTimestamp, index: Int): Location {
         val steps = getStepsDone(dataEntry.timeList[index], dataEntry.accelerationList[index])
         var i = 0
-        Log.d("PDRWTF", "---------------------------------------------------------- $steps steps")
         if (steps != 0) {
             this.mPrevLocation = this.mCurrentLocation!!.clone()
             while (i < steps) {
                 var newPositionUnrestricted = computeNextStep(stepSize, dataEntry.angleList[index].toFloat())
-                //  Log.d("SIMULATION", "COMPUTED: $asd")
                 nextPosition = customMap.restrictPosition(PositionOnMap(newPositionUnrestricted)).position
                 this.mCurrentLocation = nextPosition
                 i++
@@ -195,29 +190,22 @@ class PDRService : Algorithm() {
         val oldY = mCurrentLocation!!.getYMeters()
         val bearingD = bearing.toDouble()
         var adjustedAngle = bearingD
-        var factor = 1.0
+        var factor = 0.5
         if (isSimulation) {
             // To radians and considering adjustment
             adjustedAngle = ((bearingD) / 57.2958)
             factor = 1.9
         }
 
-        Log.d("ANGLEWTF", "Moving in ${adjustedAngle.toDouble()}° adj: $bearingAdjustment")
-
-        //reconversion en degrees
+        //reconversion to degrees
         advancedX = Math.cos(adjustedAngle.toDouble()) * stepSize * factor
         advancedY = Math.sin(adjustedAngle.toDouble()) * stepSize * factor
 
-        Log.d("ANGLEWTF", "Advanced ($advancedX, $advancedY) cos ${Math.cos(adjustedAngle.toDouble())} sen ${Math.sin(adjustedAngle.toDouble())}")
         val newX = oldX + advancedX
         newLoc!!.x = newX.roundTo2DecimalPlaces()
         val newY = oldY + advancedY
         newLoc!!.y = newY.roundTo2DecimalPlaces()
-
-        Log.d("PDRWTF", "From (${oldX.roundTo2DecimalPlaces()}, ${oldY.roundTo2DecimalPlaces()}) to (${newX.roundTo2DecimalPlaces()}, ${newY.roundTo2DecimalPlaces()})")
-
         this.mCurrentLocation = newLoc
-
         return newLoc!!
     }
 
@@ -233,17 +221,12 @@ class PDRService : Algorithm() {
     }
 
     private fun getStepsDone(ts: Float, acc: Float): Int {
-        //Log.d("SIMULATION", "$t1 ${t2.toInt()} $acc")
         var vel = 0.0F
         val t = ts.div(1000F)
-        //Log.d("SIMULATION", "Time: $t")
         vel = t * acc
-        //Log.d("SIMULATION", "Speed: $vel")
         val tsq = Math.pow(t.toDouble(), 2.0)
         val traveledDistance = vel * t + (0.5 * acc * tsq)
-        //Log.d("SIMULATION", "Traveled: $traveledDistance")
         val stepsDone = (traveledDistance / stepSize)
-        //Log.d("SIMULATION", "Steps done: $stepsDone")
         if (stepsDone.roundToInt() == 0 && acc >= 0.2) {
             return 1
         }
@@ -259,9 +242,7 @@ class PDRService : Algorithm() {
     }
 
     private fun movedDistance(startLocation: Location) {
-        Log.d("PDRWTF", "$startLocation going to ${this.mCurrentLocation}")
         this.movedX = this.mCurrentLocation!!.x.roundTo2DecimalPlaces() - startLocation.x.roundTo2DecimalPlaces()
         this.movedY = this.mCurrentLocation!!.y.roundTo2DecimalPlaces() - startLocation.y.roundTo2DecimalPlaces()
-        Log.d("PFPDR", "Setting moved distance to $movedX and $movedY")
     }
 }

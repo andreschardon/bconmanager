@@ -48,8 +48,6 @@ class BeaconsAdapter(context : TrilaterationActivity, beacons : List<BeaconDevic
         counter++
 
         if (counter == REFRESH_RATE) {
-
-            Log.d("REFRESH", context.toString())
             counter = 0
             context.trilateratePosition()
             beacons.forEach {

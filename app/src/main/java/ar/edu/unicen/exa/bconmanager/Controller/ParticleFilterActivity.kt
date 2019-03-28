@@ -43,7 +43,7 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
 
     private var isSettingStartPoint = false
     private var isRecordingAngle = false
-    private var startingPointSet = false
+    private var drawParticles = true
     
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -282,29 +282,37 @@ class ParticleFilterActivity : PDRInterface, OnMapActivity() {
         loc.x = viewX
         loc.y = viewY
 
-        Log.d("PFACTIVITY", "Particle filter finished, remove old particles")
+        if (drawParticles) {
+            Log.d("PFACTIVITY", "Particle filter finished, remove old particles")
 
-        // Remove old particles
-        particleViewList.forEach { removeResource(it) }
+            // Remove old particles
+            particleViewList.forEach { removeResource(it) }
 
-        // Draw particles
-        Log.d("PFACTIVITY", "Draw new particles")
-        val particlesToDraw = particleFilterService!!.particles
-        particlesToDraw.forEach {
-            drawParticle(Location(it.x, it.y, floorMap))
+            // Draw particles
+            Log.d("PFACTIVITY", "Draw new particles")
+            val particlesToDraw = particleFilterService!!.particles
+            particlesToDraw.forEach {
+                drawParticle(Location(it.x, it.y, floorMap))
+            }
         }
 
         // Update old position to new
         Log.d("PFACTIVITY", "Update new position to PF's middle point: $loc")
 
-        val layoutParams = positionView.layoutParams as RelativeLayout.LayoutParams
+        //val layoutParams = positionView.layoutParams as RelativeLayout.LayoutParams
 
         Log.d(TAG, "Location before update: " + currentPosition.toString())
         currentPosition.position = validatePosition(loc)
         Log.d(TAG, "Location after update: " + currentPosition.toString())
-        layoutParams.leftMargin = currentPosition.position.getX() - 35
-        layoutParams.topMargin = currentPosition.position.getY() - 35
+        //layoutParams.leftMargin = currentPosition.position.getX() - 35
+        //layoutParams.topMargin = currentPosition.position.getY() - 35
         //positionView.layoutParams = layoutParams
+
+        removeResource(positionView)
+        positionView = ImageView(this)
+        setupResource(currentPosition, positionView)
+
+
 
         if (shouldCheckZones) {
             Log.d("NOTIFICATIONS", "Should check")
